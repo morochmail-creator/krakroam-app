@@ -2,66 +2,472 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KrakRoam</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
   :root {
-    --bg: #1a1410;
-    --accent: #c9a15a;
-    --text: #f5f0e6;
-    --text-dim: #cfc4b0;
+    --bg: #14110d;
+    --panel: #1f1a13;
+    --panel-2: #262019;
+    --line: #362e22;
+    --cream: #f3ead9;
+    --cream-dim: #cabfa9;
+    --amber: #c9932c;
+    --amber-soft: #e0ac48;
+    --moss: #5c7a63;
+    --moss-soft: #7c9b83;
+    --shadow: 0 12px 32px rgba(0,0,0,0.45);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
-    height: 100%;
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
     background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--cream);
   }
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    text-align: center;
+  h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; }
+
+  #app { position: relative; width: 100%; height: 100dvh; }
+  #map { position: absolute; inset: 0; z-index: 1; }
+
+  #map-tint {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: linear-gradient(180deg, rgba(20,17,13,0.35) 0%, rgba(20,17,13,0) 18%, rgba(20,17,13,0) 70%, rgba(20,17,13,0.55) 100%);
   }
-  .wrap { max-width: 480px; }
-  .badge {
-    display: inline-block;
-    padding: 6px 14px;
-    border: 1px solid var(--accent);
-    border-radius: 999px;
-    color: var(--accent);
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 24px;
+
+  #topbar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px;
   }
-  h1 {
-    font-size: 40px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 12px;
+  #brand {
+    font-size: 20px; font-weight: 600; letter-spacing: 0.01em;
+    color: var(--cream);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.6);
   }
-  h1 span { color: var(--accent); }
-  p {
-    color: var(--text-dim);
-    font-size: 16px;
-    line-height: 1.6;
+  #brand span { color: var(--amber-soft); }
+  #locate-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--panel); border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
   }
-  .footer {
-    margin-top: 40px;
-    font-size: 13px;
-    color: #7d7364;
+  #locate-btn svg { width: 20px; height: 20px; stroke: var(--cream); }
+  #locate-btn.active svg { stroke: var(--amber-soft); }
+
+  #intro-card {
+    position: absolute; top: 72px; left: 16px; right: 16px; z-index: 10;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 12px;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  #intro-card.hidden { transform: translateY(-12px); opacity: 0; pointer-events: none; }
+  #intro-play {
+    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+    background: var(--amber); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #intro-play svg { width: 16px; height: 16px; fill: var(--bg); }
+  #intro-text { flex: 1; }
+  #intro-text .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 2px; }
+  #intro-text .title { font-size: 14px; color: var(--cream); }
+  #intro-close { background: none; border: none; color: var(--cream-dim); font-size: 20px; cursor: pointer; padding: 4px; line-height: 1; }
+
+  .marker-main {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--amber);
+    border: 3px solid #14110d;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  }
+  .marker-extra {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--moss-soft);
+    border: 2px solid #14110d;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .marker-gps {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #4a90d9;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 6px rgba(74,144,217,0.25);
+  }
+
+  #sheet-backdrop {
+    position: absolute; inset: 0; z-index: 19;
+    background: rgba(10,8,6,0.45);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  #sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.55);
+    padding: 10px 18px 22px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(.32,.72,0,1);
+  }
+  #sheet.open { transform: translateY(0); }
+
+  #sheet-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--line); margin: 6px auto 14px;
+  }
+
+  #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
+  #sheet-title { font-size: 22px; font-weight: 600; margin: 0 0 16px; color: var(--cream); }
+
+  #track-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .track-tab {
+    flex: 1; padding: 10px 12px; border-radius: 12px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    cursor: pointer; text-align: left;
+  }
+  .track-tab.active { background: var(--amber); border-color: var(--amber); }
+  .track-tab .tt-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cream-dim); }
+  .track-tab.active .tt-label { color: rgba(20,17,13,0.65); }
+  .track-tab .tt-name { font-size: 13px; font-weight: 600; color: var(--cream); margin-top: 2px; }
+  .track-tab.active .tt-name { color: var(--bg); }
+
+  #player {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--panel-2); border-radius: 16px; padding: 12px 14px;
+  }
+  #play-btn {
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
+    background: var(--amber); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #play-btn svg { width: 18px; height: 18px; fill: var(--bg); }
+  #player-mid { flex: 1; min-width: 0; }
+  #progress-track { height: 4px; background: var(--line); border-radius: 2px; position: relative; cursor: pointer; }
+  #progress-fill { height: 100%; width: 0%; background: var(--amber-soft); border-radius: 2px; }
+  #time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--cream-dim); margin-top: 6px; }
+
+  #sheet-close {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; color: var(--cream-dim);
+    font-size: 22px; cursor: pointer; line-height: 1; padding: 6px;
+  }
+
+  .no-audio-note {
+    font-size: 12px; color: var(--cream-dim); margin-top: 10px; text-align: center;
   }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="badge">Wkrótce dostępne</div>
-    <h1>Krak<span>Roam</span></h1>
-    <p>Twój audioprzewodnik po Krakowie pracuje w tej chwili nad ostatnimi szlifami. Wróć tu wkrótce, żeby odkryć miasto na własnych zasadach.</p>
-    <div class="footer">app.krakroam.pl</div>
+
+<div id="app">
+  <div id="map"></div>
+  <div id="map-tint"></div>
+
+  <div id="topbar">
+    <div id="brand">Krak<span>Roam</span></div>
+    <button id="locate-btn" aria-label="Pokaż moją lokalizację">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+      </svg>
+    </button>
   </div>
+
+  <div id="intro-card">
+    <button id="intro-play" aria-label="Odtwórz wprowadzenie">
+      <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+    </button>
+    <div id="intro-text">
+      <div class="label">Trasa królewska · Wprowadzenie</div>
+      <div class="title">Zanim wyruszysz, posłuchaj krótkiej historii trasy</div>
+    </div>
+    <button id="intro-close" aria-label="Zamknij">×</button>
+  </div>
+
+  <div id="sheet-backdrop"></div>
+
+  <div id="sheet">
+    <button id="sheet-close" aria-label="Zamknij">×</button>
+    <div id="sheet-handle"></div>
+    <div id="sheet-kicker">Punkt główny</div>
+    <h2 id="sheet-title">—</h2>
+
+    <div id="track-tabs">
+      <div class="track-tab active" data-track="main">
+        <div class="tt-label">Opowieść</div>
+        <div class="tt-name">Główny track</div>
+      </div>
+      <div class="track-tab" data-track="curious">
+        <div class="tt-label">Więcej</div>
+        <div class="tt-name">Dla ciekawskich</div>
+      </div>
+    </div>
+
+    <div id="player">
+      <button id="play-btn" aria-label="Odtwórz">
+        <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+      </button>
+      <div id="player-mid">
+        <div id="progress-track"><div id="progress-fill"></div></div>
+        <div id="time-row"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
+      </div>
+    </div>
+    <div class="no-audio-note" id="no-audio-note" style="display:none;">Plik audio jeszcze nie został dodany dla tego punktu.</div>
+  </div>
+</div>
+
+<audio id="audio-el" preload="none"></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ============================================================
+   DANE PUNKTÓW
+   Docelowo to wczyta się z points.json (albo z arkusza).
+   Na razie: przykładowe dane, żeby zobaczyć działający UI.
+   — uzupełnij "audioMain" / "audioCurious" realnymi plikami mp3.
+============================================================ */
+const ROUTE_INTRO_AUDIO = null; // np. "audio/trasa-krolewska-intro.mp3"
+
+const POINTS = [
+  {
+    id: "rynek-glowny",
+    name: "Rynek Główny",
+    type: "main",
+    lat: 50.0616,
+    lng: 19.9373,
+    audioMain: null,      // np. "audio/rynek-glowny-1.mp3"
+    audioCurious: null    // np. "audio/rynek-glowny-1-1.mp3"
+  },
+  {
+    id: "mariacki",
+    name: "Kościół Mariacki",
+    type: "main",
+    lat: 50.06175,
+    lng: 19.93915,
+    audioMain: null,
+    audioCurious: null
+  },
+  {
+    id: "pod-adasiem",
+    name: '"Pod Adasiem"',
+    type: "extra",
+    lat: 50.0619,
+    lng: 19.9382,
+    audioMain: null,
+    audioCurious: null
+  }
+];
+
+/* ============================================================
+   MAPA
+============================================================ */
+const map = L.map('map', { zoomControl: false, attributionControl: false })
+  .setView([50.0616, 19.9373], 17);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 20
+}).addTo(map);
+
+function makeDivIcon(className, size) {
+  return L.divIcon({ className: '', html: `<div class="${className}"></div>`, iconSize: [size, size] });
+}
+
+const markersById = {};
+POINTS.forEach(p => {
+  const icon = p.type === 'main' ? makeDivIcon('marker-main', 26) : makeDivIcon('marker-extra', 16);
+  const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
+  marker.on('click', () => openSheet(p));
+  markersById[p.id] = marker;
+});
+
+// linia trasy (placeholder — łączy główne punkty w kolejności)
+const mainPoints = POINTS.filter(p => p.type === 'main');
+if (mainPoints.length > 1) {
+  L.polyline(mainPoints.map(p => [p.lat, p.lng]), {
+    color: '#c9932c', weight: 3, opacity: 0.55, dashArray: '1,10', lineCap: 'round'
+  }).addTo(map);
+}
+
+/* ============================================================
+   GPS
+============================================================ */
+let gpsMarker = null;
+let watching = false;
+let watchId = null;
+
+document.getElementById('locate-btn').addEventListener('click', () => {
+  const btn = document.getElementById('locate-btn');
+  if (!navigator.geolocation) {
+    alert('Twoja przeglądarka nie obsługuje lokalizacji GPS.');
+    return;
+  }
+  if (watching) {
+    navigator.geolocation.clearWatch(watchId);
+    watching = false;
+    btn.classList.remove('active');
+    return;
+  }
+  btn.classList.add('active');
+  watching = true;
+  watchId = navigator.geolocation.watchPosition(pos => {
+    const { latitude, longitude } = pos.coords;
+    if (!gpsMarker) {
+      gpsMarker = L.marker([latitude, longitude], { icon: makeDivIcon('marker-gps', 18) }).addTo(map);
+      map.setView([latitude, longitude], 17);
+    } else {
+      gpsMarker.setLatLng([latitude, longitude]);
+    }
+  }, err => {
+    alert('Nie udało się pobrać lokalizacji: ' + err.message);
+    btn.classList.remove('active');
+    watching = false;
+  }, { enableHighAccuracy: true });
+});
+
+/* ============================================================
+   INTRO CARD (track 0)
+============================================================ */
+const introCard = document.getElementById('intro-card');
+document.getElementById('intro-close').addEventListener('click', () => introCard.classList.add('hidden'));
+document.getElementById('intro-play').addEventListener('click', () => {
+  if (ROUTE_INTRO_AUDIO) {
+    playAudioSrc(ROUTE_INTRO_AUDIO);
+  } else {
+    alert('Plik wprowadzenia jeszcze nie został dodany.');
+  }
+});
+
+/* ============================================================
+   SHEET (panel punktu + odtwarzacz)
+============================================================ */
+const sheet = document.getElementById('sheet');
+const sheetBackdrop = document.getElementById('sheet-backdrop');
+const sheetTitle = document.getElementById('sheet-title');
+const sheetKicker = document.getElementById('sheet-kicker');
+const noAudioNote = document.getElementById('no-audio-note');
+const playerEl = document.getElementById('player');
+
+let currentPoint = null;
+let currentTrackKind = 'main'; // 'main' | 'curious'
+
+function openSheet(point) {
+  currentPoint = point;
+  currentTrackKind = 'main';
+  sheetTitle.textContent = point.name;
+  sheetKicker.textContent = point.type === 'main' ? 'Punkt główny' : 'Ciekawostka';
+  setActiveTab('main');
+  loadTrack();
+  sheet.classList.add('open');
+  sheetBackdrop.classList.add('open');
+}
+
+function closeSheet() {
+  sheet.classList.remove('open');
+  sheetBackdrop.classList.remove('open');
+  audioEl.pause();
+}
+
+document.getElementById('sheet-close').addEventListener('click', closeSheet);
+sheetBackdrop.addEventListener('click', closeSheet);
+
+document.querySelectorAll('.track-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    currentTrackKind = tab.dataset.track;
+    setActiveTab(currentTrackKind);
+    loadTrack();
+  });
+});
+
+function setActiveTab(kind) {
+  document.querySelectorAll('.track-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.track === kind);
+  });
+}
+
+function loadTrack() {
+  if (!currentPoint) return;
+  const src = currentTrackKind === 'main' ? currentPoint.audioMain : currentPoint.audioCurious;
+  audioEl.pause();
+  setPlayIcon(false);
+  progressFill.style.width = '0%';
+  timeCurrent.textContent = '0:00';
+  timeTotal.textContent = '0:00';
+  if (src) {
+    noAudioNote.style.display = 'none';
+    playerEl.style.opacity = '1';
+    playerEl.style.pointerEvents = 'auto';
+    audioEl.src = src;
+  } else {
+    noAudioNote.style.display = 'block';
+    playerEl.style.opacity = '0.4';
+    playerEl.style.pointerEvents = 'none';
+    audioEl.removeAttribute('src');
+  }
+}
+
+/* ============================================================
+   AUDIO PLAYER
+============================================================ */
+const audioEl = document.getElementById('audio-el');
+const playBtn = document.getElementById('play-btn');
+const progressFill = document.getElementById('progress-fill');
+const progressTrack = document.getElementById('progress-track');
+const timeCurrent = document.getElementById('time-current');
+const timeTotal = document.getElementById('time-total');
+
+function fmtTime(s) {
+  if (!isFinite(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+function setPlayIcon(isPlaying) {
+  playBtn.innerHTML = isPlaying
+    ? '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16"></rect><rect x="14" y="4" width="5" height="16"></rect></svg>'
+    : '<svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>';
+}
+
+playBtn.addEventListener('click', () => {
+  if (!audioEl.src) return;
+  if (audioEl.paused) { audioEl.play(); setPlayIcon(true); }
+  else { audioEl.pause(); setPlayIcon(false); }
+});
+
+audioEl.addEventListener('timeupdate', () => {
+  if (!audioEl.duration) return;
+  const pct = (audioEl.currentTime / audioEl.duration) * 100;
+  progressFill.style.width = pct + '%';
+  timeCurrent.textContent = fmtTime(audioEl.currentTime);
+});
+audioEl.addEventListener('loadedmetadata', () => {
+  timeTotal.textContent = fmtTime(audioEl.duration);
+});
+audioEl.addEventListener('ended', () => setPlayIcon(false));
+
+progressTrack.addEventListener('click', (e) => {
+  if (!audioEl.duration) return;
+  const rect = progressTrack.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audioEl.currentTime = pct * audioEl.duration;
+});
+
+function playAudioSrc(src) {
+  audioEl.src = src;
+  audioEl.play();
+  setPlayIcon(true);
+}
+</script>
 </body>
 </html>
