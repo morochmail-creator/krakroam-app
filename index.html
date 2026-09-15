@@ -94,7 +94,7 @@
   }
   .marker-extra {
     width: 16px; height: 16px; border-radius: 50%;
-    background: var(--moss-soft);
+    background: #4f8fd6;
     border: 2px solid #14110d;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   }
@@ -133,17 +133,24 @@
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
   #sheet-title { font-size: 22px; font-weight: 600; margin: 0 0 16px; color: var(--cream); }
 
-  #track-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-  .track-tab {
-    flex: 1; padding: 10px 12px; border-radius: 12px;
+  #track-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 34vh; overflow-y: auto; }
+  .track-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 12px;
     background: var(--panel-2); border: 1px solid var(--line);
     cursor: pointer; text-align: left;
   }
-  .track-tab.active { background: var(--amber); border-color: var(--amber); }
-  .track-tab .tt-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cream-dim); }
-  .track-tab.active .tt-label { color: rgba(20,17,13,0.65); }
-  .track-tab .tt-name { font-size: 13px; font-weight: 600; color: var(--cream); margin-top: 2px; }
-  .track-tab.active .tt-name { color: var(--bg); }
+  .track-row.active { background: var(--amber); border-color: var(--amber); }
+  .track-row .tr-num {
+    flex-shrink: 0; font-family: 'Fraunces', Georgia, serif;
+    font-size: 15px; font-weight: 600; color: var(--amber-soft);
+    min-width: 28px;
+  }
+  .track-row.active .tr-num { color: rgba(20,17,13,0.65); }
+  .track-row .tr-name { font-size: 14px; font-weight: 500; color: var(--cream); flex: 1; }
+  .track-row.active .tr-name { color: var(--bg); }
+  .track-row .tr-icon { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.6; }
+  .track-row.active .tr-icon { opacity: 0.75; }
 
   #player {
     display: flex; align-items: center; gap: 14px;
@@ -206,16 +213,7 @@
     <div id="sheet-kicker">Punkt główny</div>
     <h2 id="sheet-title">—</h2>
 
-    <div id="track-tabs">
-      <div class="track-tab active" data-track="main">
-        <div class="tt-label">Opowieść</div>
-        <div class="tt-name">Główny track</div>
-      </div>
-      <div class="track-tab" data-track="curious">
-        <div class="tt-label">Więcej</div>
-        <div class="tt-name">Dla ciekawskich</div>
-      </div>
-    </div>
+    <div id="track-list"></div>
 
     <div id="player">
       <button id="play-btn" aria-label="Odtwórz">
@@ -235,42 +233,442 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 /* ============================================================
-   DANE PUNKTÓW
-   Docelowo to wczyta się z points.json (albo z arkusza).
-   Na razie: przykładowe dane, żeby zobaczyć działający UI.
-   — uzupełnij "audioMain" / "audioCurious" realnymi plikami mp3.
+   DANE PUNKTÓW — trasa Stare Miasto (Królewska)
+   31 punktów głównych + 22 dodatkowe, wyeksportowane z Google My Maps.
+   Każdy punkt ma listę "tracks" — dowolną liczbę nagrań
+   (np. 1 główny opis + 1.1, 1.2 dodatkowe ciekawostki).
+   — uzupełnij "audio" realnymi plikami mp3, gdy będą gotowe.
 ============================================================ */
 const ROUTE_INTRO_AUDIO = null; // np. "audio/trasa-krolewska-intro.mp3"
 
 const POINTS = [
   {
     id: "rynek-glowny",
-    name: "Rynek Główny",
+    name: "Rynek główny",
     type: "main",
-    lat: 50.061853,
+    lat: 50.061854,
     lng: 19.938628,
-    audioMain: null,      // np. "audio/rynek-glowny-1.mp3"
-    audioCurious: null    // np. "audio/rynek-glowny-1-1.mp3"
+    tracks: [ { number: "1", label: "Rynek główny", audio: null } ]
   },
   {
-    id: "mariacki",
+    id: "kosciol-mariacki",
     name: "Kościół Mariacki",
     type: "main",
-    lat: 50.06175,
-    lng: 19.93915,
-    audioMain: null,
-    audioCurious: null
+    lat: 50.061817,
+    lng: 19.937952,
+    tracks: [ { number: "2", label: "Kościół Mariacki", audio: null } ]
   },
   {
-    id: "pod-adasiem",
-    name: '"Pod Adasiem"',
+    id: "sukiennice",
+    name: "Sukiennice",
+    type: "main",
+    lat: 50.061551,
+    lng: 19.937668,
+    tracks: [ { number: "3", label: "Sukiennice", audio: null } ]
+  },
+  {
+    id: "plac-mariacki",
+    name: "Plac mariacki",
+    type: "main",
+    lat: 50.061418,
+    lng: 19.939197,
+    tracks: [ { number: "4", label: "Plac mariacki", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-wojciecha",
+    name: "Kościół św Wojciecha",
     type: "extra",
-    lat: 50.0619,
-    lng: 19.9382,
-    audioMain: null,
-    audioCurious: null
+    lat: 50.060948,
+    lng: 19.937731,
+    tracks: [ { number: "•", label: "Kościół św Wojciecha", audio: null } ]
+  },
+  {
+    id: "kuny",
+    name: "kuny",
+    type: "extra",
+    lat: 50.061565,
+    lng: 19.939635,
+    tracks: [ { number: "•", label: "kuny", audio: null } ]
+  },
+  {
+    id: "adam-mickiewicz",
+    name: "Adam Mickiewicz",
+    type: "extra",
+    lat: 50.061518,
+    lng: 19.938121,
+    tracks: [ { number: "•", label: "Adam Mickiewicz", audio: null } ]
+  },
+  {
+    id: "maly-rynek",
+    name: "Mały Rynek",
+    type: "main",
+    lat: 50.061643,
+    lng: 19.94047,
+    tracks: [ { number: "5", label: "Mały Rynek", audio: null } ]
+  },
+  {
+    id: "witraz-mehoffera",
+    name: "Witraż Mehoffera",
+    type: "extra",
+    lat: 50.062838,
+    lng: 19.941459,
+    tracks: [ { number: "•", label: "Witraż Mehoffera", audio: null } ]
+  },
+  {
+    id: "plac-sw-ducha",
+    name: "Plac św Ducha",
+    type: "main",
+    lat: 50.063472,
+    lng: 19.942092,
+    tracks: [ { number: "6", label: "Plac św Ducha", audio: null } ]
+  },
+  {
+    id: "teatr-slowackiego",
+    name: "Teatr Słowackiego",
+    type: "main",
+    lat: 50.063952,
+    lng: 19.942237,
+    tracks: [ { number: "7", label: "Teatr Słowackiego", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-krzyza",
+    name: "Kościół św Krzyża",
+    type: "extra",
+    lat: 50.063435,
+    lng: 19.942941,
+    tracks: [ { number: "•", label: "Kościół św Krzyża", audio: null } ]
+  },
+  {
+    id: "planty",
+    name: "Planty",
+    type: "main",
+    lat: 50.064868,
+    lng: 19.942417,
+    tracks: [ { number: "8", label: "Planty", audio: null } ]
+  },
+  {
+    id: "mury-obronne",
+    name: "Mury Obronne",
+    type: "main",
+    lat: 50.065103,
+    lng: 19.941539,
+    tracks: [ { number: "9", label: "Mury Obronne", audio: null } ]
+  },
+  {
+    id: "barbakan",
+    name: "barbakan",
+    type: "main",
+    lat: 50.065217,
+    lng: 19.941433,
+    tracks: [ { number: "10", label: "barbakan", audio: null } ]
+  },
+  {
+    id: "linia-tramwajowa",
+    name: "Linia tramwajowa",
+    type: "extra",
+    lat: 50.06488,
+    lng: 19.941444,
+    tracks: [ { number: "•", label: "Linia tramwajowa", audio: null } ]
+  },
+  {
+    id: "muzeum-czartoryskich",
+    name: "Muzeum Czartoryskich",
+    type: "extra",
+    lat: 50.064928,
+    lng: 19.940467,
+    tracks: [ { number: "•", label: "Muzeum Czartoryskich", audio: null } ]
+  },
+  {
+    id: "ulica-florianska",
+    name: "Ulica Floriańska",
+    type: "main",
+    lat: 50.064724,
+    lng: 19.94126,
+    tracks: [ { number: "11", label: "Ulica Floriańska", audio: null } ]
+  },
+  {
+    id: "jama-michalika",
+    name: "Jama Michalika",
+    type: "extra",
+    lat: 50.064115,
+    lng: 19.940925,
+    tracks: [ { number: "•", label: "Jama Michalika", audio: null } ]
+  },
+  {
+    id: "dom-jana-matejki",
+    name: "Dom Jana Matejki",
+    type: "main",
+    lat: 50.063956,
+    lng: 19.940816,
+    tracks: [ { number: "12", label: "Dom Jana Matejki", audio: null } ]
+  },
+  {
+    id: "wieze-kosciola-mariackiego",
+    name: "Wieże Kościoła Mariackiego",
+    type: "main",
+    lat: 50.063349,
+    lng: 19.94021,
+    tracks: [ { number: "13", label: "Wieże Kościoła Mariackiego", audio: null } ]
+  },
+  {
+    id: "lancuchy-na-tomasza",
+    name: "Łańcuchy na Tomasza",
+    type: "main",
+    lat: 50.062891,
+    lng: 19.939941,
+    tracks: [ { number: "14", label: "Łańcuchy na Tomasza", audio: null } ]
+  },
+  {
+    id: "ulica-sw-jana",
+    name: "Ulica św Jana",
+    type: "main",
+    lat: 50.063157,
+    lng: 19.938621,
+    tracks: [ { number: "15", label: "Ulica św Jana", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-jana",
+    name: "Kościół św Jana",
+    type: "extra",
+    lat: 50.063168,
+    lng: 19.93886,
+    tracks: [ { number: "•", label: "Kościół św Jana", audio: null } ]
+  },
+  {
+    id: "wieza-ratuszowa",
+    name: "Wieża Ratuszowa",
+    type: "main",
+    lat: 50.061573,
+    lng: 19.936792,
+    tracks: [ { number: "16", label: "Wieża Ratuszowa", audio: null } ]
+  },
+  {
+    id: "hold-pruski",
+    name: "Hołd Pruski",
+    type: "extra",
+    lat: 50.061155,
+    lng: 19.9369,
+    tracks: [ { number: "•", label: "Hołd Pruski", audio: null } ]
+  },
+  {
+    id: "przysiega-kosciuszki",
+    name: "przysięga Kościuszki",
+    type: "extra",
+    lat: 50.061886,
+    lng: 19.936508,
+    tracks: [ { number: "•", label: "przysięga Kościuszki", audio: null } ]
+  },
+  {
+    id: "dorozki-zaczarowany-dorozkaz",
+    name: "Dorożki- zaczarowany dorożkaż",
+    type: "extra",
+    lat: 50.062377,
+    lng: 19.937727,
+    tracks: [ { number: "•", label: "Dorożki- zaczarowany dorożkaż", audio: null } ]
+  },
+  {
+    id: "eros-bendato",
+    name: "Eros Bendato",
+    type: "extra",
+    lat: 50.06156,
+    lng: 19.936192,
+    tracks: [ { number: "•", label: "Eros Bendato", audio: null } ]
+  },
+  {
+    id: "ul-sw-anny",
+    name: "Ul św Anny",
+    type: "main",
+    lat: 50.061426,
+    lng: 19.935244,
+    tracks: [ { number: "17", label: "Ul św Anny", audio: null } ]
+  },
+  {
+    id: "collegium-maius",
+    name: "Collegium maius",
+    type: "main",
+    lat: 50.06161,
+    lng: 19.93411,
+    tracks: [ { number: "18", label: "Collegium maius", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-anny",
+    name: "Kościół św Anny",
+    type: "extra",
+    lat: 50.062292,
+    lng: 19.933415,
+    tracks: [ { number: "•", label: "Kościół św Anny", audio: null } ]
+  },
+  {
+    id: "okno-papieskie",
+    name: "Okno papieskie",
+    type: "main",
+    lat: 50.059172,
+    lng: 19.934877,
+    tracks: [ { number: "19", label: "Okno papieskie", audio: null } ]
+  },
+  {
+    id: "k-franviszkanow",
+    name: "K franviszkanow",
+    type: "main",
+    lat: 50.059263,
+    lng: 19.935215,
+    tracks: [ { number: "20", label: "K franviszkanow", audio: null } ]
+  },
+  {
+    id: "dietl-palac-wielopolskich",
+    name: "Dietl - pałac Wielopolskich",
+    type: "main",
+    lat: 50.059109,
+    lng: 19.936769,
+    tracks: [ { number: "21", label: "Dietl - pałac Wielopolskich", audio: null } ]
+  },
+  {
+    id: "zyblikiewicz",
+    name: "Zyblikiewicz",
+    type: "extra",
+    lat: 50.058971,
+    lng: 19.937359,
+    tracks: [ { number: "•", label: "Zyblikiewicz", audio: null } ]
+  },
+  {
+    id: "ulica-grodzka",
+    name: "ulica Grodzka",
+    type: "main",
+    lat: 50.058855,
+    lng: 19.937885,
+    tracks: [ { number: "22", label: "ulica Grodzka", audio: null } ]
+  },
+  {
+    id: "okol",
+    name: "Okół",
+    type: "main",
+    lat: 50.058136,
+    lng: 19.938016,
+    tracks: [ { number: "23", label: "Okół", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-piora-i-pawla",
+    name: "Kościół św Piora i Pawła",
+    type: "main",
+    lat: 50.057003,
+    lng: 19.938314,
+    tracks: [ { number: "24", label: "Kościół św Piora i Pawła", audio: null } ]
+  },
+  {
+    id: "plac-sw-marii-magdaleny",
+    name: "Plac św Marii Magdaleny",
+    type: "main",
+    lat: 50.05686,
+    lng: 19.937799,
+    tracks: [ { number: "25", label: "Plac św Marii Magdaleny", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-andrzeja",
+    name: "kościół św Andrzeja",
+    type: "extra",
+    lat: 50.056648,
+    lng: 19.938303,
+    tracks: [ { number: "•", label: "kościół św Andrzeja", audio: null } ]
+  },
+  {
+    id: "ulica-kanonicza",
+    name: "ulica Kanonicza",
+    type: "main",
+    lat: 50.056596,
+    lng: 19.937506,
+    tracks: [ { number: "26", label: "ulica Kanonicza", audio: null } ]
+  },
+  {
+    id: "dom-dlugosza",
+    name: "Dom Długosza",
+    type: "extra",
+    lat: 50.055577,
+    lng: 19.936712,
+    tracks: [ { number: "•", label: "Dom Długosza", audio: null } ]
+  },
+  {
+    id: "wzgorze-wawel",
+    name: "Wzgórze Wawel",
+    type: "main",
+    lat: 50.055517,
+    lng: 19.93687,
+    tracks: [ { number: "27", label: "Wzgórze Wawel", audio: null } ]
+  },
+  {
+    id: "cegielki-wawelskie",
+    name: "Cegiełki Wawelskie",
+    type: "extra",
+    lat: 50.05518,
+    lng: 19.935916,
+    tracks: [ { number: "•", label: "Cegiełki Wawelskie", audio: null } ]
+  },
+  {
+    id: "brama-wazow",
+    name: "Brama Wazów",
+    type: "extra",
+    lat: 50.054832,
+    lng: 19.93481,
+    tracks: [ { number: "•", label: "Brama Wazów", audio: null } ]
+  },
+  {
+    id: "katedra-na-wawelu",
+    name: "Katedra na Wawelu",
+    type: "main",
+    lat: 50.054512,
+    lng: 19.934684,
+    tracks: [ { number: "28", label: "Katedra na Wawelu", audio: null } ]
+  },
+  {
+    id: "zamek-na-wawelu",
+    name: "Zamek na Wawelu",
+    type: "main",
+    lat: 50.054248,
+    lng: 19.935393,
+    tracks: [ { number: "29", label: "Zamek na Wawelu", audio: null } ]
+  },
+  {
+    id: "kaplica-zygmuntowska",
+    name: "Kaplica Zygmuntowska",
+    type: "main",
+    lat: 50.054454,
+    lng: 19.935541,
+    tracks: [ { number: "30", label: "Kaplica Zygmuntowska", audio: null } ]
+  },
+  {
+    id: "dziedziniec-arkadowy",
+    name: "Dziedziniec arkadowy",
+    type: "main",
+    lat: 50.054577,
+    lng: 19.936556,
+    tracks: [ { number: "31", label: "Dziedziniec arkadowy", audio: null } ]
+  },
+  {
+    id: "fryz",
+    name: "Fryz",
+    type: "extra",
+    lat: 50.054272,
+    lng: 19.936966,
+    tracks: [ { number: "•", label: "Fryz", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-michala",
+    name: "Kościół św Michała",
+    type: "extra",
+    lat: 50.054037,
+    lng: 19.935167,
+    tracks: [ { number: "•", label: "Kościół św Michała", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-jerzego",
+    name: "kościół św Jerzego",
+    type: "extra",
+    lat: 50.053675,
+    lng: 19.934687,
+    tracks: [ { number: "•", label: "kościół św Jerzego", audio: null } ]
   }
 ];
+
+const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 19.937668], [50.061418, 19.939197], [50.061518, 19.940102], [50.061728, 19.940223], [50.061643, 19.94047], [50.063432, 19.941711], [50.063472, 19.942092], [50.063809, 19.942005], [50.063952, 19.942237], [50.064794, 19.942681], [50.064868, 19.942417], [50.065103, 19.941539], [50.065242, 19.941431], [50.064724, 19.94126], [50.063975, 19.940728], [50.063349, 19.94021], [50.062891, 19.939941], [50.063055, 19.939092], [50.063059, 19.938867], [50.063157, 19.938621], [50.062295, 19.937947], [50.062381, 19.937448], [50.061573, 19.936792], [50.061265, 19.936474], [50.061426, 19.935244], [50.061776, 19.934305], [50.06161, 19.93411], [50.061013, 19.933679], [50.060606, 19.934908], [50.060076, 19.934371], [50.059122, 19.934639], [50.059172, 19.934877], [50.05917, 19.935289], [50.059332, 19.935203], [50.059405, 19.936351], [50.059184, 19.936844], [50.058768, 19.937133], [50.058892, 19.937884], [50.058107, 19.938035], [50.057003, 19.938314], [50.05686, 19.937799], [50.056596, 19.937506], [50.056055, 19.93733], [50.055517, 19.93687], [50.054877, 19.934792], [50.054533, 19.934855], [50.054512, 19.934684], [50.054248, 19.935393], [50.054454, 19.935541], [50.054577, 19.936556]];
 
 /* ============================================================
    MAPA
@@ -295,12 +693,12 @@ POINTS.forEach(p => {
   markersById[p.id] = marker;
 });
 
-// linia trasy (placeholder — łączy główne punkty w kolejności)
-const mainPoints = POINTS.filter(p => p.type === 'main');
-if (mainPoints.length > 1) {
-  L.polyline(mainPoints.map(p => [p.lat, p.lng]), {
-    color: '#c9932c', weight: 3, opacity: 0.55, dashArray: '1,10', lineCap: 'round'
+// linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
+if (ROUTE_LINE.length > 1) {
+  const routeLine = L.polyline(ROUTE_LINE, {
+    color: '#c9932c', weight: 4, opacity: 0.7, lineCap: 'round', lineJoin: 'round'
   }).addTo(map);
+  map.fitBounds(routeLine.getBounds(), { paddingTopLeft: [40, 220], paddingBottomRight: [40, 220] });
 }
 
 /* ============================================================
@@ -361,16 +759,17 @@ const sheetTitle = document.getElementById('sheet-title');
 const sheetKicker = document.getElementById('sheet-kicker');
 const noAudioNote = document.getElementById('no-audio-note');
 const playerEl = document.getElementById('player');
+const trackListEl = document.getElementById('track-list');
 
 let currentPoint = null;
-let currentTrackKind = 'main'; // 'main' | 'curious'
+let currentTrackIndex = 0;
 
 function openSheet(point) {
   currentPoint = point;
-  currentTrackKind = 'main';
+  currentTrackIndex = 0;
   sheetTitle.textContent = point.name;
-  sheetKicker.textContent = point.type === 'main' ? 'Punkt główny' : 'Ciekawostka';
-  setActiveTab('main');
+  sheetKicker.textContent = point.type === 'main' ? 'Punkt główny' : 'Punkt dodatkowy';
+  renderTrackList();
   loadTrack();
   sheet.classList.add('open');
   sheetBackdrop.classList.add('open');
@@ -385,23 +784,30 @@ function closeSheet() {
 document.getElementById('sheet-close').addEventListener('click', closeSheet);
 sheetBackdrop.addEventListener('click', closeSheet);
 
-document.querySelectorAll('.track-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    currentTrackKind = tab.dataset.track;
-    setActiveTab(currentTrackKind);
-    loadTrack();
-  });
-});
-
-function setActiveTab(kind) {
-  document.querySelectorAll('.track-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.track === kind);
+function renderTrackList() {
+  trackListEl.innerHTML = '';
+  if (!currentPoint) return;
+  currentPoint.tracks.forEach((track, i) => {
+    const row = document.createElement('div');
+    row.className = 'track-row' + (i === currentTrackIndex ? ' active' : '');
+    row.innerHTML = `
+      <span class="tr-num">${track.number}</span>
+      <span class="tr-name">${track.label}</span>
+      <svg class="tr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6,4 20,12 6,20" fill="currentColor" stroke="none"></polygon></svg>
+    `;
+    row.addEventListener('click', () => {
+      currentTrackIndex = i;
+      renderTrackList();
+      loadTrack();
+    });
+    trackListEl.appendChild(row);
   });
 }
 
 function loadTrack() {
   if (!currentPoint) return;
-  const src = currentTrackKind === 'main' ? currentPoint.audioMain : currentPoint.audioCurious;
+  const track = currentPoint.tracks[currentTrackIndex];
+  const src = track ? track.audio : null;
   audioEl.pause();
   setPlayIcon(false);
   progressFill.style.width = '0%';
