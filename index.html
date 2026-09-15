@@ -705,8 +705,21 @@ if (ROUTE_LINE.length > 1) {
    GPS
 ============================================================ */
 let gpsMarker = null;
+let guideLine = null;
 let watching = false;
 let watchId = null;
+
+const ROUTE_START = ROUTE_LINE.length ? ROUTE_LINE[0] : [POINTS[0].lat, POINTS[0].lng];
+
+function updateGuideLine(userLatLng) {
+  if (guideLine) {
+    guideLine.setLatLngs([userLatLng, ROUTE_START]);
+  } else {
+    guideLine = L.polyline([userLatLng, ROUTE_START], {
+      color: '#4a90d9', weight: 3, opacity: 0.75, dashArray: '2,10', lineCap: 'round'
+    }).addTo(map);
+  }
+}
 
 document.getElementById('locate-btn').addEventListener('click', () => {
   const btn = document.getElementById('locate-btn');
@@ -724,12 +737,14 @@ document.getElementById('locate-btn').addEventListener('click', () => {
   watching = true;
   watchId = navigator.geolocation.watchPosition(pos => {
     const { latitude, longitude } = pos.coords;
+    const userLatLng = [latitude, longitude];
     if (!gpsMarker) {
-      gpsMarker = L.marker([latitude, longitude], { icon: makeDivIcon('marker-gps', 18) }).addTo(map);
-      map.setView([latitude, longitude], 17);
+      gpsMarker = L.marker(userLatLng, { icon: makeDivIcon('marker-gps', 18) }).addTo(map);
+      map.setView(userLatLng, 16);
     } else {
-      gpsMarker.setLatLng([latitude, longitude]);
+      gpsMarker.setLatLng(userLatLng);
     }
+    updateGuideLine(userLatLng);
   }, err => {
     alert('Nie udało się pobrać lokalizacji: ' + err.message);
     btn.classList.remove('active');
