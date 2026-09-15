@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KrakRoam</title>
+<style>
+  :root {
+    --bg: #1a1410;
+    --accent: #c9a15a;
+    --text: #f5f0e6;
+    --text-dim: #cfc4b0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+  }
+  .wrap { max-width: 480px; }
+  .badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  h1 span { color: var(--accent); }
+  p {
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .footer {
+    margin-top: 40px;
+    font-size: 13px;
+    color: #7d7364;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="badge">Wkrótce dostępne</div>
+    <h1>Krak<span>Roam</span></h1>
+    <p>Twój audioprzewodnik po Krakowie pracuje w tej chwili nad ostatnimi szlifami. Wróć tu wkrótce, żeby odkryć miasto na własnych zasadach.</p>
+    <div class="footer">app.krakroam.pl</div>
+  </div>
+</body>
+</html>
