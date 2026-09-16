@@ -316,7 +316,6 @@
 <audio id="audio-el" preload="none"></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script>
 /* ============================================================
    DANE PUNKTÓW — trasa Stare Miasto (Królewska)
@@ -761,11 +760,7 @@ const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 
 ============================================================ */
 const map = L.map('map', {
   zoomControl: false,
-  attributionControl: false,
-  rotate: true,
-  touchRotate: true,
-  rotateControl: false,
-  shiftKeyRotate: true
+  attributionControl: false
 }).setView([50.061853, 19.938628], 17);
 
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -863,13 +858,20 @@ const startLatLng = [startPoint.lat, startPoint.lng];
 
 /* ---------- Kompas: kierunek, w którym patrzy telefon ---------- */
 let compassStarted = false;
+let currentBeamRotation = -35; // aktualna wartość kąta zastosowana do transformu (może przekraczać 0-360, żeby liczyć "najkrótszą drogę")
 
 function updateBeamRotation(heading) {
   if (!gpsMarker) return;
   const el = gpsMarker.getElement();
   if (!el) return;
   const beam = el.querySelector('.gps-beam');
-  if (beam) beam.style.transform = `rotate(${heading - 35}deg)`;
+  if (!beam) return;
+
+  const target = heading - 35;
+  // liczymy najkrótszą różnicę kątową (-180..180), żeby stożek nigdy nie "skakał" przy przejściu przez 0/360
+  let diff = ((target - currentBeamRotation + 540) % 360) - 180;
+  currentBeamRotation += diff;
+  beam.style.transform = `rotate(${currentBeamRotation}deg)`;
 }
 
 function handleOrientation(e) {
@@ -944,8 +946,6 @@ document.getElementById('locate-btn').addEventListener('click', () => {
     return;
   }
 
-  // Przycisk zawsze też przywraca mapę do domyślnej orientacji (północ u góry).
-  map.setBearing(0);
 
   // Jeśli lokalizacja jest już śledzona — drugie kliknięcie po prostu
   // "przelatuje" z powrotem do aktualnej pozycji (jak w Google Maps).
