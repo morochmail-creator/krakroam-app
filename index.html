@@ -888,6 +888,7 @@ document.getElementById('locate-btn').addEventListener('click', () => {
   btn.classList.add('active');
   watching = true;
   let firstFix = true;
+  startCompass(); // musi wystartować od razu w kliknięciu — iOS wymaga zgody w ramach gestu użytkownika
 
   watchId = navigator.geolocation.watchPosition(pos => {
     const { latitude, longitude } = pos.coords;
@@ -899,7 +900,6 @@ document.getElementById('locate-btn').addEventListener('click', () => {
         iconSize: [90, 90]
       });
       gpsMarker = L.marker(userLatLng, { icon: gpsIcon }).addTo(map);
-      startCompass();
     } else {
       gpsMarker.setLatLng(userLatLng);
     }
