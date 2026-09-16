@@ -43,10 +43,11 @@
     filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.5);
     transition: filter 0.3s ease;
   }
-  #app.light-map #map .leaflet-tile-pane {
+  #app[data-map-mode="light"] #map .leaflet-tile-pane,
+  #app[data-map-mode="satellite"] #map .leaflet-tile-pane {
     filter: none;
   }
-  #app.light-map #map-tint {
+  #app[data-map-mode="light"] #map-tint {
     background: linear-gradient(180deg, rgba(20,17,13,0.15) 0%, rgba(20,17,13,0) 18%, rgba(20,17,13,0) 70%, rgba(20,17,13,0.25) 100%);
   }
 
@@ -68,20 +69,40 @@
   #brand span { color: var(--amber-soft); }
   #btn-stack {
     display: flex; flex-direction: column; gap: 10px;
+    position: relative;
   }
-  #locate-btn, #theme-btn {
+  #locate-btn, #layers-btn {
     width: 44px; height: 44px; border-radius: 50%;
     background: var(--panel); border: 1px solid var(--line);
     box-shadow: var(--shadow);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #locate-btn svg, #theme-btn svg { width: 20px; height: 20px; stroke: var(--cream); }
+  #locate-btn svg, #layers-btn svg { width: 20px; height: 20px; stroke: var(--cream); }
   #locate-btn.active svg { stroke: var(--amber-soft); }
-  #theme-btn .icon-moon { display: block; }
-  #theme-btn .icon-sun { display: none; }
-  #theme-btn.light .icon-moon { display: none; }
-  #theme-btn.light .icon-sun { display: block; }
+  #layers-btn.active svg { stroke: var(--amber-soft); }
+
+  #layers-menu {
+    position: absolute; top: 0; right: 54px; z-index: 15;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow);
+    padding: 6px; min-width: 150px;
+    display: none;
+    flex-direction: column; gap: 2px;
+  }
+  #layers-menu.open { display: flex; }
+  .layer-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 9px;
+    cursor: pointer; font-size: 13px; color: var(--cream-dim);
+  }
+  .layer-option:hover { background: var(--panel-2); }
+  .layer-option.active { background: var(--panel-2); color: var(--cream); font-weight: 600; }
+  .layer-option .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--line); flex-shrink: 0;
+  }
+  .layer-option.active .dot { background: var(--amber-soft); }
 
   #intro-card {
     position: absolute; bottom: 18px; left: 16px; right: 16px; z-index: 10;
@@ -243,15 +264,18 @@
           <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
         </svg>
       </button>
-      <button id="theme-btn" aria-label="Zmień tryb mapy">
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path>
-        </svg>
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+      <button id="layers-btn" aria-label="Wybierz widok mapy">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12,2 2,7 12,12 22,7"></polygon>
+          <polyline points="2,17 12,22 22,17"></polyline>
+          <polyline points="2,12 12,17 22,12"></polyline>
         </svg>
       </button>
+      <div id="layers-menu">
+        <div class="layer-option active" data-mode="dark"><span class="dot"></span>Ciemna</div>
+        <div class="layer-option" data-mode="light"><span class="dot"></span>Jasna</div>
+        <div class="layer-option" data-mode="satellite"><span class="dot"></span>Satelita</div>
+      </div>
     </div>
   </div>
 
@@ -737,23 +761,58 @@ const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 
 const map = L.map('map', { zoomControl: false, attributionControl: false })
   .setView([50.061853, 19.938628], 17);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   subdomains: 'abc',
   keepBuffer: 4,
   updateWhenIdle: false,
   updateWhenZooming: false
-}).addTo(map);
+});
+
+const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+  keepBuffer: 4
+});
+
+osmLayer.addTo(map);
 
 /* ============================================================
-   TRYB MAPY (jasny / ciemny)
+   WIDOK MAPY (ciemna / jasna / satelita)
 ============================================================ */
-const themeBtn = document.getElementById('theme-btn');
 const appEl = document.getElementById('app');
-themeBtn.addEventListener('click', () => {
-  const isLight = appEl.classList.toggle('light-map');
-  themeBtn.classList.toggle('light', isLight);
-  appEl.style.setProperty('--map-bg', isLight ? '#eef0ec' : '#14110d');
+const layersBtn = document.getElementById('layers-btn');
+const layersMenu = document.getElementById('layers-menu');
+
+layersBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  layersMenu.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!layersMenu.contains(e.target) && e.target !== layersBtn) {
+    layersMenu.classList.remove('open');
+  }
+});
+
+function setMapMode(mode) {
+  appEl.setAttribute('data-map-mode', mode);
+  document.querySelectorAll('.layer-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.mode === mode);
+  });
+
+  if (mode === 'satellite') {
+    if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+    if (!map.hasLayer(satLayer)) satLayer.addTo(map);
+    appEl.style.setProperty('--map-bg', '#14110d');
+  } else {
+    if (map.hasLayer(satLayer)) map.removeLayer(satLayer);
+    if (!map.hasLayer(osmLayer)) osmLayer.addTo(map);
+    appEl.style.setProperty('--map-bg', mode === 'light' ? '#eef0ec' : '#14110d');
+  }
+  layersMenu.classList.remove('open');
+}
+
+document.querySelectorAll('.layer-option').forEach(el => {
+  el.addEventListener('click', () => setMapMode(el.dataset.mode));
 });
 
 function makeDivIcon(className, size) {
