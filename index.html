@@ -832,7 +832,13 @@ POINTS.forEach(p => {
   }
   const icon = makeDivIcon(className, size);
   const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
-  marker.on('click', () => openSheet(p));
+  marker.on('click', () => {
+    const targetZoom = 18;
+    const targetPoint = map.project([p.lat, p.lng], targetZoom).subtract([0, 150]);
+    const targetLatLng = map.unproject(targetPoint, targetZoom);
+    map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
+    openSheet(p);
+  });
   markersById[p.id] = marker;
 });
 
