@@ -40,6 +40,13 @@
   .leaflet-tile { will-change: auto; }
   #map .leaflet-tile-pane {
     filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.5);
+    transition: filter 0.3s ease;
+  }
+  #app.light-map #map .leaflet-tile-pane {
+    filter: none;
+  }
+  #app.light-map #map-tint {
+    background: linear-gradient(180deg, rgba(20,17,13,0.15) 0%, rgba(20,17,13,0) 18%, rgba(20,17,13,0) 70%, rgba(20,17,13,0.25) 100%);
   }
 
   #map-tint {
@@ -58,15 +65,22 @@
     text-shadow: 0 2px 10px rgba(0,0,0,0.6);
   }
   #brand span { color: var(--amber-soft); }
-  #locate-btn {
+  #btn-stack {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #locate-btn, #theme-btn {
     width: 44px; height: 44px; border-radius: 50%;
     background: var(--panel); border: 1px solid var(--line);
     box-shadow: var(--shadow);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #locate-btn svg { width: 20px; height: 20px; stroke: var(--cream); }
+  #locate-btn svg, #theme-btn svg { width: 20px; height: 20px; stroke: var(--cream); }
   #locate-btn.active svg { stroke: var(--amber-soft); }
+  #theme-btn .icon-moon { display: block; }
+  #theme-btn .icon-sun { display: none; }
+  #theme-btn.light .icon-moon { display: none; }
+  #theme-btn.light .icon-sun { display: block; }
 
   #intro-card {
     position: absolute; bottom: 18px; left: 16px; right: 16px; z-index: 10;
@@ -93,6 +107,21 @@
     background: var(--amber);
     border: 3px solid #14110d;
     box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  }
+  .marker-start {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--amber);
+    border: 3px solid #14110d;
+    box-shadow: 0 0 0 5px rgba(201,147,44,0.35), 0 3px 10px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .marker-start::after {
+    content: "\1F3C1";
+    position: absolute;
+    top: -22px; left: 50%; transform: translateX(-50%);
+    font-size: 18px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
   }
   .marker-extra {
     width: 16px; height: 16px; border-radius: 50%;
@@ -188,12 +217,23 @@
 
   <div id="topbar">
     <div id="brand">Krak<span>Roam</span></div>
-    <button id="locate-btn" aria-label="Pokaż moją lokalizację">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
-      </svg>
-    </button>
+    <div id="btn-stack">
+      <button id="locate-btn" aria-label="Pokaż moją lokalizację">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+        </svg>
+      </button>
+      <button id="theme-btn" aria-label="Zmień tryb mapy">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div id="intro-card">
@@ -686,13 +726,30 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   updateWhenZooming: false
 }).addTo(map);
 
+/* ============================================================
+   TRYB MAPY (jasny / ciemny)
+============================================================ */
+const themeBtn = document.getElementById('theme-btn');
+const appEl = document.getElementById('app');
+themeBtn.addEventListener('click', () => {
+  const isLight = appEl.classList.toggle('light-map');
+  themeBtn.classList.toggle('light', isLight);
+});
+
 function makeDivIcon(className, size) {
   return L.divIcon({ className: '', html: `<div class="${className}"></div>`, iconSize: [size, size] });
 }
 
 const markersById = {};
+const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
 POINTS.forEach(p => {
-  const icon = p.type === 'main' ? makeDivIcon('marker-main', 26) : makeDivIcon('marker-extra', 16);
+  let className = 'marker-extra';
+  let size = 16;
+  if (p.type === 'main') {
+    className = (p.id === startPoint.id) ? 'marker-start' : 'marker-main';
+    size = 26;
+  }
+  const icon = makeDivIcon(className, size);
   const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
   marker.on('click', () => openSheet(p));
   markersById[p.id] = marker;
@@ -713,16 +770,44 @@ let gpsMarker = null;
 let guideLine = null;
 let watching = false;
 let watchId = null;
+let lastRoutedLatLng = null;
+let routingInFlight = false;
 
-const ROUTE_START = ROUTE_LINE.length ? ROUTE_LINE[0] : [POINTS[0].lat, POINTS[0].lng];
+const startLatLng = [startPoint.lat, startPoint.lng];
 
-function updateGuideLine(userLatLng) {
+function drawGuideLine(latlngs) {
   if (guideLine) {
-    guideLine.setLatLngs([userLatLng, ROUTE_START]);
+    guideLine.setLatLngs(latlngs);
   } else {
-    guideLine = L.polyline([userLatLng, ROUTE_START], {
+    guideLine = L.polyline(latlngs, {
       color: '#4a90d9', weight: 3, opacity: 0.75, dashArray: '2,10', lineCap: 'round'
     }).addTo(map);
+  }
+}
+
+function distMeters(a, b) {
+  return L.latLng(a).distanceTo(L.latLng(b));
+}
+
+async function requestWalkingRoute(userLatLng) {
+  if (routingInFlight) return;
+  if (lastRoutedLatLng && distMeters(userLatLng, lastRoutedLatLng) < 30) return;
+  routingInFlight = true;
+  lastRoutedLatLng = userLatLng;
+  // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
+  drawGuideLine([userLatLng, startLatLng]);
+  try {
+    const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${userLatLng[1]},${userLatLng[0]};${startLatLng[1]},${startLatLng[0]}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.routes && data.routes[0]) {
+      const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      drawGuideLine(coords);
+    }
+  } catch (e) {
+    // zostaje prosta linia jako fallback — brak połączenia albo serwis niedostępny
+  } finally {
+    routingInFlight = false;
   }
 }
 
@@ -732,24 +817,33 @@ document.getElementById('locate-btn').addEventListener('click', () => {
     alert('Twoja przeglądarka nie obsługuje lokalizacji GPS.');
     return;
   }
+
+  // Jeśli lokalizacja jest już śledzona — drugie kliknięcie po prostu
+  // "przelatuje" z powrotem do aktualnej pozycji (jak w Google Maps).
   if (watching) {
-    navigator.geolocation.clearWatch(watchId);
-    watching = false;
-    btn.classList.remove('active');
+    if (gpsMarker) {
+      map.flyTo(gpsMarker.getLatLng(), 17, { duration: 1.1 });
+    }
     return;
   }
+
   btn.classList.add('active');
   watching = true;
+  let firstFix = true;
+
   watchId = navigator.geolocation.watchPosition(pos => {
     const { latitude, longitude } = pos.coords;
     const userLatLng = [latitude, longitude];
     if (!gpsMarker) {
       gpsMarker = L.marker(userLatLng, { icon: makeDivIcon('marker-gps', 18) }).addTo(map);
-      map.setView(userLatLng, 16);
     } else {
       gpsMarker.setLatLng(userLatLng);
     }
-    updateGuideLine(userLatLng);
+    if (firstFix) {
+      map.flyTo(userLatLng, 17, { duration: 1.4 });
+      firstFix = false;
+    }
+    requestWalkingRoute(userLatLng);
   }, err => {
     alert('Nie udało się pobrać lokalizacji: ' + err.message);
     btn.classList.remove('active');
