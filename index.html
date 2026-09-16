@@ -833,11 +833,15 @@ POINTS.forEach(p => {
   const icon = makeDivIcon(className, size);
   const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
   marker.on('click', () => {
+    openSheet(p);
     const targetZoom = 18;
-    const targetPoint = map.project([p.lat, p.lng], targetZoom).subtract([0, 150]);
+    const sheetHeight = document.getElementById('sheet').getBoundingClientRect().height;
+    const availableHeight = window.innerHeight - sheetHeight;
+    const desiredScreenY = availableHeight * 0.65; // trochę niżej niż idealny środek
+    const verticalOffset = (window.innerHeight / 2) - desiredScreenY;
+    const targetPoint = map.project([p.lat, p.lng], targetZoom).add([0, verticalOffset]);
     const targetLatLng = map.unproject(targetPoint, targetZoom);
     map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
-    openSheet(p);
   });
   markersById[p.id] = marker;
 });
