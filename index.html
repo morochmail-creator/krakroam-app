@@ -316,6 +316,7 @@
 <audio id="audio-el" preload="none"></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script>
 /* ============================================================
    DANE PUNKTÓW — trasa Stare Miasto (Królewska)
@@ -758,8 +759,14 @@ const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 
 /* ============================================================
    MAPA
 ============================================================ */
-const map = L.map('map', { zoomControl: false, attributionControl: false })
-  .setView([50.061853, 19.938628], 17);
+const map = L.map('map', {
+  zoomControl: false,
+  attributionControl: false,
+  rotate: true,
+  touchRotate: true,
+  rotateControl: false,
+  shiftKeyRotate: true
+}).setView([50.061853, 19.938628], 17);
 
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
@@ -936,6 +943,9 @@ document.getElementById('locate-btn').addEventListener('click', () => {
     alert('Twoja przeglądarka nie obsługuje lokalizacji GPS.');
     return;
   }
+
+  // Przycisk zawsze też przywraca mapę do domyślnej orientacji (północ u góry).
+  map.setBearing(0);
 
   // Jeśli lokalizacja jest już śledzona — drugie kliknięcie po prostu
   // "przelatuje" z powrotem do aktualnej pozycji (jak w Google Maps).
