@@ -6,6 +6,8 @@
 <title>KrakRoam</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -126,15 +128,15 @@
 
   .marker-main {
     width: 26px; height: 26px; border-radius: 50%;
-    background: var(--amber);
+    background: #2fd16f;
     border: 3px solid #14110d;
     box-shadow: 0 3px 10px rgba(0,0,0,0.5);
   }
   .marker-start {
     width: 26px; height: 26px; border-radius: 50%;
-    background: var(--amber);
+    background: #2fd16f;
     border: 3px solid #14110d;
-    box-shadow: 0 0 0 5px rgba(201,147,44,0.35), 0 3px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 0 0 5px rgba(47,209,111,0.35), 0 3px 10px rgba(0,0,0,0.5);
     display: flex; align-items: center; justify-content: center;
     position: relative;
   }
@@ -145,9 +147,24 @@
     font-size: 18px;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
   }
+
+  /* ---------- Klastry (bąbelki grupujące piny przy oddaleniu) ---------- */
+  .cluster-main, .cluster-extra {
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #14110d; font-weight: 700; font-family: 'Inter', sans-serif;
+    border: 3px solid #14110d;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+  }
+  .cluster-main { background: #2fd16f; }
+  .cluster-extra { background: var(--amber); color: #14110d; }
+  .cluster-sm { width: 34px; height: 34px; font-size: 13px; }
+  .cluster-md { width: 42px; height: 42px; font-size: 15px; }
+  .cluster-lg { width: 50px; height: 50px; font-size: 16px; }
+
   .marker-extra {
     width: 16px; height: 16px; border-radius: 50%;
-    background: #4f8fd6;
+    background: var(--amber);
     border: 2px solid #14110d;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   }
@@ -316,6 +333,7 @@
 <audio id="audio-el" preload="none"></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <script>
 /* ============================================================
    DANE PUNKTÓW — trasa Stare Miasto (Królewska)
@@ -821,6 +839,33 @@ function makeDivIcon(className, size) {
   return L.divIcon({ className: '', html: `<div class="${className}"></div>`, iconSize: [size, size] });
 }
 
+function clusterIconFactory(cssClass) {
+  return function (cluster) {
+    const count = cluster.getChildCount();
+    const sizeClass = count < 5 ? 'cluster-sm' : count < 12 ? 'cluster-md' : 'cluster-lg';
+    return L.divIcon({
+      html: `<div class="${cssClass} ${sizeClass}">${count}</div>`,
+      className: '',
+      iconSize: L.point(40, 40)
+    });
+  };
+}
+
+const mainCluster = L.markerClusterGroup({
+  maxClusterRadius: 50,
+  disableClusteringAtZoom: 18,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  iconCreateFunction: clusterIconFactory('cluster-main')
+});
+const extraCluster = L.markerClusterGroup({
+  maxClusterRadius: 45,
+  disableClusteringAtZoom: 18,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  iconCreateFunction: clusterIconFactory('cluster-extra')
+});
+
 const markersById = {};
 const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
 POINTS.forEach(p => {
@@ -831,7 +876,7 @@ POINTS.forEach(p => {
     size = 26;
   }
   const icon = makeDivIcon(className, size);
-  const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
+  const marker = L.marker([p.lat, p.lng], { icon });
   marker.on('click', () => {
     openSheet(p);
     const targetZoom = 18;
@@ -844,7 +889,10 @@ POINTS.forEach(p => {
     map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
   });
   markersById[p.id] = marker;
+  (p.type === 'main' ? mainCluster : extraCluster).addLayer(marker);
 });
+map.addLayer(mainCluster);
+map.addLayer(extraCluster);
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
 if (ROUTE_LINE.length > 1) {
