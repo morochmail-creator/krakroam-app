@@ -913,15 +913,15 @@ function clusterIconFactory(cssClass) {
 }
 
 const mainCluster = L.markerClusterGroup({
-  maxClusterRadius: 50,
-  disableClusteringAtZoom: 18,
+  maxClusterRadius: 32,
+  disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
   iconCreateFunction: clusterIconFactory('cluster-main')
 });
 const extraCluster = L.markerClusterGroup({
-  maxClusterRadius: 45,
-  disableClusteringAtZoom: 18,
+  maxClusterRadius: 28,
+  disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
   iconCreateFunction: clusterIconFactory('cluster-extra')
@@ -1027,7 +1027,7 @@ function drawGuideLine(latlngs) {
     guideLine.setLatLngs(latlngs);
   } else {
     guideLine = L.polyline(latlngs, {
-      color: '#4a90d9', weight: 3, opacity: 0.75, dashArray: '2,10', lineCap: 'round'
+      color: '#ff2fa0', weight: 3, opacity: 0.85, dashArray: '2,10', lineCap: 'round'
     }).addTo(map);
   }
 }
