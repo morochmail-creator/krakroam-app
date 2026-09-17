@@ -797,6 +797,67 @@ const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/servic
 osmLayer.addTo(map);
 
 /* ============================================================
+   WSTĘPNE DOŁADOWANIE KAFELKÓW DLA CAŁEGO OBSZARU TRASY
+   Żeby szybkie przesuwanie mapy w obrębie Starego Miasta nie
+   "gubiło" kafelków czekających na sieć — ładujemy je wszystkie
+   po cichu w tle zaraz po starcie, zanim user zacznie przewijać.
+============================================================ */
+function prefetchTilesForRoute() {
+  const allPoints = POINTS.map(p => [p.lat, p.lng]).concat(ROUTE_LINE);
+  if (!allPoints.length) return;
+
+  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+  allPoints.forEach(([lat, lng]) => {
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+  });
+  // mały zapas na krawędziach
+  const pad = 0.002;
+  minLat -= pad; maxLat += pad; minLng -= pad; maxLng += pad;
+
+  function lonToTileX(lon, z) { return Math.floor((lon + 180) / 360 * Math.pow(2, z)); }
+  function latToTileY(lat, z) {
+    const rad = lat * Math.PI / 180;
+    return Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, z));
+  }
+
+  const zooms = [16, 17, 18];
+  const subdomains = ['a', 'b', 'c'];
+  let sdIndex = 0;
+  const queue = [];
+
+  zooms.forEach(z => {
+    const xMin = lonToTileX(minLng, z), xMax = lonToTileX(maxLng, z);
+    const yMin = latToTileY(maxLat, z), yMax = latToTileY(minLat, z);
+    for (let x = xMin; x <= xMax; x++) {
+      for (let y = yMin; y <= yMax; y++) {
+        queue.push({ x, y, z });
+      }
+    }
+  });
+
+  // ładujemy partiami, żeby nie zablokować przeglądarki ani nie zarzucić serwera naraz
+  let i = 0;
+  function loadNext() {
+    const batch = queue.slice(i, i + 6);
+    if (!batch.length) return;
+    batch.forEach(t => {
+      const sd = subdomains[sdIndex++ % subdomains.length];
+      const img = new Image();
+      img.src = `https://${sd}.tile.openstreetmap.org/${t.z}/${t.x}/${t.y}.png`;
+    });
+    i += 6;
+    setTimeout(loadNext, 120);
+  }
+  loadNext();
+}
+
+// startujemy dopiero, gdy główny widok mapy się już wyrenderuje, żeby nie konkurować o pasmo z pierwszym ładowaniem
+setTimeout(prefetchTilesForRoute, 800);
+
+/* ============================================================
    WIDOK MAPY (ciemna / jasna / satelita)
 ============================================================ */
 const appEl = document.getElementById('app');
