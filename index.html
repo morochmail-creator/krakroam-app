@@ -854,14 +854,14 @@ function clusterIconFactory(cssClass) {
 const mainCluster = L.markerClusterGroup({
   maxClusterRadius: 50,
   disableClusteringAtZoom: 18,
-  spiderfyOnMaxZoom: true,
+  spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
   iconCreateFunction: clusterIconFactory('cluster-main')
 });
 const extraCluster = L.markerClusterGroup({
   maxClusterRadius: 45,
   disableClusteringAtZoom: 18,
-  spiderfyOnMaxZoom: true,
+  spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
   iconCreateFunction: clusterIconFactory('cluster-extra')
 });
