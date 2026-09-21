@@ -38,6 +38,48 @@
   h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; }
 
   #app { position: relative; width: 100%; height: 100dvh; }
+
+  /* ---------- Menu wyboru dzielnicy (ekran startowy) ---------- */
+  #district-menu {
+    position: absolute; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+  #district-menu.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #district-menu-inner { width: 100%; max-width: 420px; }
+  #district-menu-brand {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 32px; font-weight: 700; text-align: center;
+    color: var(--cream); margin-bottom: 8px;
+  }
+  #district-menu-brand span { color: var(--amber-soft); }
+  #district-menu-sub {
+    text-align: center; color: var(--cream-dim); font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .district-card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; padding: 18px 20px; margin-bottom: 12px;
+    cursor: pointer; transition: border-color 0.2s ease, transform 0.15s ease;
+    position: relative;
+  }
+  .district-card:active { transform: scale(0.98); }
+  .district-card:not(.disabled):hover { border-color: var(--amber); }
+  .district-card.disabled { opacity: 0.45; cursor: not-allowed; }
+  .dc-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 19px; font-weight: 600; color: var(--cream);
+  }
+  .dc-desc { font-size: 13px; color: var(--cream-dim); margin-top: 4px; }
+  .dc-badge {
+    position: absolute; top: 18px; right: 20px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--cream-dim); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px 9px;
+  }
+
   #map { position: absolute; inset: 0; z-index: 1; background: var(--map-bg); transition: background 0.3s ease; }
   .leaflet-container { background: var(--map-bg); transition: background 0.3s ease; }
   .leaflet-tile { will-change: auto; }
@@ -73,16 +115,17 @@
     display: flex; flex-direction: column; gap: 10px;
     position: relative;
   }
-  #locate-btn, #layers-btn {
+  #locate-btn, #layers-btn, #stop-nav-btn {
     width: 44px; height: 44px; border-radius: 50%;
     background: var(--panel); border: 1px solid var(--line);
     box-shadow: var(--shadow);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #locate-btn svg, #layers-btn svg { width: 20px; height: 20px; stroke: var(--cream); }
+  #locate-btn svg, #layers-btn svg, #stop-nav-btn svg { width: 20px; height: 20px; stroke: var(--cream); color: var(--cream); }
   #locate-btn.active svg { stroke: var(--amber-soft); }
   #layers-btn.active svg { stroke: var(--amber-soft); }
+  #stop-nav-btn.active svg { stroke: #ff2fa0; color: #ff2fa0; }
 
   #layers-menu {
     position: absolute; top: 0; right: 54px; z-index: 15;
@@ -269,6 +312,25 @@
 <body>
 
 <div id="app">
+  <div id="district-menu">
+    <div id="district-menu-inner">
+      <div id="district-menu-brand">Krak<span>Roam</span></div>
+      <div id="district-menu-sub">Wybierz dzielnicę, którą chcesz zwiedzić</div>
+      <div class="district-card" data-district="stare-miasto">
+        <div class="dc-title">Stare Miasto</div>
+        <div class="dc-desc">Spacer po średniowiecznym mieście — Rynek Główny, Mariacki i okolice</div>
+      </div>
+      <div class="district-card disabled">
+        <div class="dc-title">Kazimierz</div>
+        <div class="dc-badge">Wkrótce</div>
+      </div>
+      <div class="district-card disabled">
+        <div class="dc-title">Podgórze</div>
+        <div class="dc-badge">Wkrótce</div>
+      </div>
+    </div>
+  </div>
+
   <div id="map"></div>
   <div id="map-tint"></div>
 
@@ -279,6 +341,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+        </svg>
+      </button>
+      <button id="stop-nav-btn" aria-label="Pokaż/ukryj trasę do startu">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19c4-6 4-6 8-6s4 6 8 6" stroke-dasharray="2 4"></path>
+          <circle cx="4" cy="19" r="1.5" fill="currentColor" stroke="none"></circle>
+          <circle cx="20" cy="19" r="1.5" fill="currentColor" stroke="none"></circle>
         </svg>
       </button>
       <button id="layers-btn" aria-label="Wybierz widok mapy">
@@ -968,6 +1037,7 @@ if (ROUTE_LINE.length > 1) {
 ============================================================ */
 let gpsMarker = null;
 let guideLine = null;
+let guideLineVisible = true;
 let watching = false;
 let watchId = null;
 let lastRoutedLatLng = null;
@@ -1028,9 +1098,28 @@ function drawGuideLine(latlngs) {
   } else {
     guideLine = L.polyline(latlngs, {
       color: '#ff2fa0', weight: 3, opacity: 0.85, dashArray: '2,10', lineCap: 'round'
-    }).addTo(map);
+    });
+  }
+  if (guideLineVisible && !map.hasLayer(guideLine)) {
+    guideLine.addTo(map);
   }
 }
+
+document.getElementById('stop-nav-btn').addEventListener('click', () => {
+  const btn = document.getElementById('stop-nav-btn');
+  guideLineVisible = !guideLineVisible;
+  btn.classList.toggle('active', guideLineVisible);
+  if (!guideLineVisible && guideLine && map.hasLayer(guideLine)) {
+    map.removeLayer(guideLine);
+  } else if (guideLineVisible && guideLine && !map.hasLayer(guideLine)) {
+    guideLine.addTo(map);
+  } else if (guideLineVisible && !guideLine && gpsMarker) {
+    // linii jeszcze nie było — dorysuj ją teraz na podstawie ostatniej znanej pozycji
+    lastRoutedLatLng = null;
+    requestWalkingRoute(gpsMarker.getLatLng());
+  }
+});
+document.getElementById('stop-nav-btn').classList.add('active');
 
 function distMeters(a, b) {
   return L.latLng(a).distanceTo(L.latLng(b));
@@ -1058,27 +1147,15 @@ async function requestWalkingRoute(userLatLng) {
   }
 }
 
-document.getElementById('locate-btn').addEventListener('click', () => {
-  const btn = document.getElementById('locate-btn');
+function startLocationTracking(flyOnFirstFix) {
   if (!navigator.geolocation) {
     alert('Twoja przeglądarka nie obsługuje lokalizacji GPS.');
     return;
   }
-
-
-  // Jeśli lokalizacja jest już śledzona — drugie kliknięcie po prostu
-  // "przelatuje" z powrotem do aktualnej pozycji (jak w Google Maps).
-  if (watching) {
-    if (gpsMarker) {
-      map.flyTo(gpsMarker.getLatLng(), 17, { duration: 1.1 });
-    }
-    return;
-  }
-
+  const btn = document.getElementById('locate-btn');
   btn.classList.add('active');
   watching = true;
   let firstFix = true;
-  startCompass(); // musi wystartować od razu w kliknięciu — iOS wymaga zgody w ramach gestu użytkownika
 
   watchId = navigator.geolocation.watchPosition(pos => {
     const { latitude, longitude } = pos.coords;
@@ -1093,16 +1170,48 @@ document.getElementById('locate-btn').addEventListener('click', () => {
     } else {
       gpsMarker.setLatLng(userLatLng);
     }
-    if (firstFix) {
+    if (firstFix && flyOnFirstFix) {
       map.flyTo(userLatLng, 17, { duration: 1.4 });
-      firstFix = false;
     }
+    firstFix = false;
     requestWalkingRoute(userLatLng);
   }, err => {
-    alert('Nie udało się pobrać lokalizacji: ' + err.message);
+    // cichy fallback — na starcie apki nie chcemy straszyć alertem, jeśli user jeszcze nie zdążył kliknąć "zezwól"
     btn.classList.remove('active');
     watching = false;
   }, { enableHighAccuracy: true });
+}
+
+document.getElementById('locate-btn').addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    alert('Twoja przeglądarka nie obsługuje lokalizacji GPS.');
+    return;
+  }
+
+  // Jeśli lokalizacja jest już śledzona — kliknięcie po prostu
+  // "przelatuje" z powrotem do aktualnej pozycji (jak w Google Maps).
+  if (watching) {
+    startCompass();
+    if (gpsMarker) {
+      map.flyTo(gpsMarker.getLatLng(), 17, { duration: 1.1 });
+    }
+    return;
+  }
+
+  startCompass(); // musi wystartować w ramach kliknięcia — iOS wymaga zgody w ramach gestu użytkownika
+  startLocationTracking(true);
+});
+
+// GPS startuje automatycznie od razu przy wejściu do apki — nie trzeba klikać przycisku.
+// Kompas (kierunek telefonu) i tak wymaga osobnej zgody w ramach dotknięcia ekranu (patrz: menu dzielnic).
+startLocationTracking(false);
+
+/* ============================================================
+   MENU WYBORU DZIELNICY
+============================================================ */
+document.querySelector('.district-card[data-district="stare-miasto"]').addEventListener('click', () => {
+  startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
+  document.getElementById('district-menu').classList.add('hidden');
 });
 
 /* ============================================================
