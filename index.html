@@ -57,7 +57,19 @@
   #district-menu-brand span { color: var(--amber-soft); }
   #district-menu-sub {
     text-align: center; color: var(--cream-dim); font-size: 14px;
-    margin-bottom: 32px;
+    margin-bottom: 20px;
+  }
+  #nearest-route-btn {
+    display: block; width: 100%;
+    background: var(--panel-2); border: 1px solid var(--amber);
+    color: var(--amber-soft); font-size: 14px; font-weight: 600;
+    padding: 13px 16px; border-radius: 12px;
+    cursor: pointer; margin-bottom: 8px;
+  }
+  #nearest-route-btn:active { transform: scale(0.98); }
+  #nearest-feedback {
+    text-align: center; font-size: 12px; color: var(--cream-dim);
+    min-height: 16px; margin-bottom: 24px;
   }
   .district-card {
     background: var(--panel); border: 1px solid var(--line);
@@ -183,12 +195,25 @@
     display: flex; align-items: center; justify-content: center;
     position: relative;
   }
-  .marker-start::after {
-    content: "\1F3C1";
+  .marker-start::before {
+    content: "";
     position: absolute;
-    top: -22px; left: 50%; transform: translateX(-50%);
-    font-size: 18px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    bottom: 100%; left: 50%; transform: translateX(-50%);
+    width: 2px; height: 24px;
+    background: var(--cream);
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  }
+  .marker-start::after {
+    content: "START";
+    position: absolute;
+    bottom: calc(100% + 22px); left: 50%; transform: translateX(-50%);
+    background: #ff2fa0;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 5px 9px; border-radius: 7px;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
   }
 
   /* ---------- Klastry (bąbelki grupujące piny przy oddaleniu) ---------- */
@@ -316,6 +341,8 @@
     <div id="district-menu-inner">
       <div id="district-menu-brand">Krak<span>Roam</span></div>
       <div id="district-menu-sub">Wybierz dzielnicę, którą chcesz zwiedzić</div>
+      <button id="nearest-route-btn">📍 Poleć trasę najbliżej mnie</button>
+      <div id="nearest-feedback"></div>
       <div class="district-card" data-district="stare-miasto">
         <div class="dc-title">Stare Miasto</div>
         <div class="dc-desc">Spacer po średniowiecznym mieście — Rynek Główny, Mariacki i okolice</div>
@@ -866,25 +893,24 @@ const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/servic
 osmLayer.addTo(map);
 
 /* ============================================================
-   WSTĘPNE DOŁADOWANIE KAFELKÓW DLA CAŁEGO OBSZARU TRASY
-   Żeby szybkie przesuwanie mapy w obrębie Starego Miasta nie
-   "gubiło" kafelków czekających na sieć — ładujemy je wszystkie
-   po cichu w tle zaraz po starcie, zanim user zacznie przewijać.
+   WSTĘPNE DOŁADOWANIE KAFELKÓW DLA CAŁEGO OBSZARU CENTRUM
+   Pokrywa Stare Miasto, Kazimierz i Podgórze (~2 km w każdą stronę
+   od centrum), dla obu warstw (mapa i satelita) — żeby szybkie
+   przewijanie mapy nigdzie w tym obszarze nie "gubiło" kafelków
+   czekających na sieć.
 ============================================================ */
-function prefetchTilesForRoute() {
-  const allPoints = POINTS.map(p => [p.lat, p.lng]).concat(ROUTE_LINE);
-  if (!allPoints.length) return;
+function prefetchTilesForArea() {
+  // środek między trzema dzielnicami + zapas ~2 km w każdą stronę
+  const lats = [staremiastoCenterLat, 50.0492, 50.0397]; // Stare Miasto, Kazimierz, Podgórze
+  const lngs = [staremiastoCenterLng, 19.9463, 19.9499];
+  let minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  let minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
 
-  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-  allPoints.forEach(([lat, lng]) => {
-    if (lat < minLat) minLat = lat;
-    if (lat > maxLat) maxLat = lat;
-    if (lng < minLng) minLng = lng;
-    if (lng > maxLng) maxLng = lng;
-  });
-  // mały zapas na krawędziach
-  const pad = 0.002;
-  minLat -= pad; maxLat += pad; minLng -= pad; maxLng += pad;
+  const kmToDegLat = 2 / 111; // ~2 km w stopniach szerokości
+  const kmToDegLng = 2 / (111 * Math.cos(minLat * Math.PI / 180)); // ~2 km w stopniach długości na tej szerokości
+
+  minLat -= kmToDegLat; maxLat += kmToDegLat;
+  minLng -= kmToDegLng; maxLng += kmToDegLng;
 
   function lonToTileX(lon, z) { return Math.floor((lon + 180) / 360 * Math.pow(2, z)); }
   function latToTileY(lat, z) {
@@ -892,8 +918,8 @@ function prefetchTilesForRoute() {
     return Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, z));
   }
 
-  const zooms = [16, 17, 18];
-  const subdomains = ['a', 'b', 'c'];
+  const zooms = [15, 16, 17, 18];
+  const osmSubdomains = ['a', 'b', 'c'];
   let sdIndex = 0;
   const queue = [];
 
@@ -908,23 +934,34 @@ function prefetchTilesForRoute() {
   });
 
   // ładujemy partiami, żeby nie zablokować przeglądarki ani nie zarzucić serwera naraz
+  // — najpierw warstwa mapy (OSM, wspólna dla trybu ciemnego i jasnego), potem satelita (Esri)
   let i = 0;
-  function loadNext() {
+  function loadNextOsm() {
     const batch = queue.slice(i, i + 6);
-    if (!batch.length) return;
+    if (!batch.length) { i = 0; setTimeout(loadNextSat, 200); return; }
     batch.forEach(t => {
-      const sd = subdomains[sdIndex++ % subdomains.length];
+      const sd = osmSubdomains[sdIndex++ % osmSubdomains.length];
       const img = new Image();
       img.src = `https://${sd}.tile.openstreetmap.org/${t.z}/${t.x}/${t.y}.png`;
     });
     i += 6;
-    setTimeout(loadNext, 120);
+    setTimeout(loadNextOsm, 120);
   }
-  loadNext();
+  function loadNextSat() {
+    const batch = queue.slice(i, i + 6);
+    if (!batch.length) return;
+    batch.forEach(t => {
+      const img = new Image();
+      img.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${t.z}/${t.y}/${t.x}`;
+    });
+    i += 6;
+    setTimeout(loadNextSat, 120);
+  }
+  loadNextOsm();
 }
 
 // startujemy dopiero, gdy główny widok mapy się już wyrenderuje, żeby nie konkurować o pasmo z pierwszym ładowaniem
-setTimeout(prefetchTilesForRoute, 800);
+setTimeout(prefetchTilesForArea, 800);
 
 /* ============================================================
    WIDOK MAPY (ciemna / jasna / satelita)
@@ -1209,9 +1246,43 @@ startLocationTracking(false);
 /* ============================================================
    MENU WYBORU DZIELNICY
 ============================================================ */
-document.querySelector('.district-card[data-district="stare-miasto"]').addEventListener('click', () => {
+function selectDistrict() {
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
   document.getElementById('district-menu').classList.add('hidden');
+}
+
+document.querySelector('.district-card[data-district="stare-miasto"]').addEventListener('click', selectDistrict);
+
+// Środki (w przybliżeniu) poszczególnych dzielnic — do polecenia najbliższej trasy
+const staremiastoCenterLat = POINTS.reduce((s, p) => s + p.lat, 0) / POINTS.length;
+const staremiastoCenterLng = POINTS.reduce((s, p) => s + p.lng, 0) / POINTS.length;
+const DISTRICT_CENTERS = {
+  'stare-miasto': { latlng: [staremiastoCenterLat, staremiastoCenterLng], label: 'Stare Miasto', available: true },
+  'kazimierz': { latlng: [50.0492, 19.9463], label: 'Kazimierz', available: false },
+  'podgorze': { latlng: [50.0397, 19.9499], label: 'Podgórze', available: false }
+};
+
+const nearestBtn = document.getElementById('nearest-route-btn');
+const nearestFeedback = document.getElementById('nearest-feedback');
+
+nearestBtn.addEventListener('click', () => {
+  if (!gpsMarker) {
+    nearestFeedback.textContent = 'Czekam na lokalizację — spróbuj za chwilę.';
+    return;
+  }
+  const userPos = gpsMarker.getLatLng();
+  let nearestKey = null, nearestDist = Infinity;
+  Object.entries(DISTRICT_CENTERS).forEach(([key, d]) => {
+    const dist = distMeters([userPos.lat, userPos.lng], d.latlng);
+    if (dist < nearestDist) { nearestDist = dist; nearestKey = key; }
+  });
+  const nearest = DISTRICT_CENTERS[nearestKey];
+  if (nearest.available) {
+    nearestFeedback.textContent = `Najbliżej Ciebie: ${nearest.label} — otwieram trasę…`;
+    setTimeout(selectDistrict, 500);
+  } else {
+    nearestFeedback.textContent = `Najbliżej Ciebie jest ${nearest.label}, ale ta trasa jeszcze powstaje. Na razie zapraszamy na Stare Miasto!`;
+  }
 });
 
 /* ============================================================
