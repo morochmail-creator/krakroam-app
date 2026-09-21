@@ -95,6 +95,17 @@
     background: rgba(15,12,9,0.55);
     backdrop-filter: blur(3px) saturate(1.05);
     -webkit-backdrop-filter: blur(3px) saturate(1.05);
+    transition: opacity 0.3s ease;
+  }
+  #district-menu.peek #district-scrim {
+    opacity: 0; pointer-events: none;
+  }
+  #district-menu.peek {
+    pointer-events: none;
+  }
+  #district-menu.peek #district-menu-inner {
+    pointer-events: auto;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
   }
   #district-menu-inner {
     position: relative; width: 100%; max-width: 480px;
@@ -1252,8 +1263,7 @@ const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 
 ============================================================ */
 const map = L.map('map', {
   zoomControl: false,
-  attributionControl: false,
-  markerZoomAnimation: false // wyłącza animowane "doganianie" pozycji pinów w trakcie zoomu — eliminuje wrażenie skakania
+  attributionControl: false
 }).setView([50.061853, 19.938628], 17);
 
 // wykrywamy słabe połączenie (2G/3G, "oszczędzanie danych") i dostosowujemy zachowanie mapy
@@ -1399,7 +1409,6 @@ const mainCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
-  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-main')
 });
 const extraCluster = L.markerClusterGroup({
@@ -1407,7 +1416,6 @@ const extraCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
-  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-extra')
 });
 
@@ -1681,7 +1689,12 @@ startLocationTracking(false);
 ============================================================ */
 function selectDistrict(freeRoam) {
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
-  document.getElementById('district-menu').classList.add('hidden');
+  const dmEl = document.getElementById('district-menu');
+  dmEl.classList.add('hidden');
+  dmEl.classList.remove('peek');
+  const dmInner = document.getElementById('district-menu-inner');
+  dmInner.style.transform = 'translateY(0)';
+  if (typeof sheetState !== 'undefined') sheetState = 'full';
 
   // reset stanu nawigacji przy każdym (ponownym) wyborze
   routeChosen = !freeRoam;
@@ -1725,17 +1738,35 @@ document.querySelector('.district-row[data-district="stare-miasto"]').addEventLi
 document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => selectDistrict(true));
 
 document.getElementById('brand').addEventListener('click', () => {
-  document.getElementById('district-menu').classList.remove('hidden');
+  openDistrictMenuFull();
 });
-// przeciąganie uchwytu w dół zamyka panel (swipe-to-dismiss), tak jak w natywnych apkach
-(function enableSwipeToDismiss() {
-  const menuInner = document.getElementById('district-menu-inner');
-  const menuHandle = document.getElementById('district-menu-handle');
+
+/* ---------- Zwijane menu (peek) — przeciąganie uchwytu ---------- */
+const districtMenuEl = document.getElementById('district-menu');
+const menuInner = document.getElementById('district-menu-inner');
+const menuHandle = document.getElementById('district-menu-handle');
+let sheetState = 'full'; // 'full' | 'peek'
+
+function getPeekTranslate() {
+  const peekVisibleHeight = 118; // ile px panelu zostaje widoczne w stanie zwiniętym
+  return Math.max(menuInner.offsetHeight - peekVisibleHeight, 0);
+}
+
+function openDistrictMenuFull() {
+  districtMenuEl.classList.remove('hidden', 'peek');
+  sheetState = 'full';
+  menuInner.style.transition = '';
+  menuInner.style.transform = 'translateY(0)';
+}
+
+(function enableDraggableSheet() {
   let dragStartY = null;
+  let startTranslate = 0;
   let dragging = false;
 
   menuHandle.addEventListener('touchstart', (e) => {
     dragStartY = e.touches[0].clientY;
+    startTranslate = sheetState === 'peek' ? getPeekTranslate() : 0;
     dragging = true;
     menuInner.style.transition = 'none';
   }, { passive: true });
@@ -1743,21 +1774,46 @@ document.getElementById('brand').addEventListener('click', () => {
   menuHandle.addEventListener('touchmove', (e) => {
     if (!dragging) return;
     const deltaY = e.touches[0].clientY - dragStartY;
-    if (deltaY > 0) {
-      menuInner.style.transform = `translateY(${deltaY}px)`;
-    }
+    const newTranslate = Math.max(0, startTranslate + deltaY);
+    menuInner.style.transform = `translateY(${newTranslate}px)`;
   }, { passive: true });
 
   menuHandle.addEventListener('touchend', (e) => {
     if (!dragging) return;
     dragging = false;
     const deltaY = e.changedTouches[0].clientY - dragStartY;
+    const finalTranslate = Math.max(0, startTranslate + deltaY);
+    const peekY = getPeekTranslate();
     menuInner.style.transition = '';
-    menuInner.style.transform = '';
-    if (deltaY > 100) {
-      selectDistrict(true); // przeciągnięcie w dół = zamknięcie = tryb swobodny
+
+    if (finalTranslate < peekY * 0.45) {
+      // wraca do pełnego widoku
+      sheetState = 'full';
+      districtMenuEl.classList.remove('peek');
+      menuInner.style.transform = 'translateY(0)';
+    } else if (finalTranslate < peekY + 90) {
+      // zwija do "peek" — mapa staje się widoczna i dotykalna pod spodem
+      sheetState = 'peek';
+      districtMenuEl.classList.add('peek');
+      menuInner.style.transform = `translateY(${peekY}px)`;
+    } else {
+      // przeciągnięte daleko w dół = zamknięcie = tryb swobodny
+      districtMenuEl.classList.remove('peek');
+      menuInner.style.transform = '';
+      selectDistrict(true);
     }
     dragStartY = null;
+  });
+
+  // tapnięcie uchwytu (bez przeciągania) też przełącza pełny/zwinięty
+  menuHandle.addEventListener('click', () => {
+    if (sheetState === 'peek') {
+      openDistrictMenuFull();
+    } else {
+      sheetState = 'peek';
+      districtMenuEl.classList.add('peek');
+      menuInner.style.transform = `translateY(${getPeekTranslate()}px)`;
+    }
   });
 })();
 
@@ -1769,6 +1825,9 @@ document.getElementById('district-scrim').addEventListener('click', () => {
 });
 document.getElementById('change-lang-btn').addEventListener('click', () => {
   document.getElementById('district-menu').classList.add('hidden');
+  districtMenuEl.classList.remove('peek');
+  sheetState = 'full';
+  menuInner.style.transform = 'translateY(0)';
   document.getElementById('lang-menu').classList.remove('hidden');
 });
 // delikatne wjechanie panelu z dołu zaraz po starcie, zamiast pojawienia się od razu na sztywno
@@ -1778,7 +1837,9 @@ document.querySelectorAll('.lang-row').forEach(row => {
     applyTranslations();
     document.getElementById('lang-menu').classList.add('hidden');
     const dm = document.getElementById('district-menu');
-    dm.classList.remove('hidden');
+    dm.classList.remove('hidden', 'peek');
+    sheetState = 'full';
+    menuInner.style.transform = 'translateY(0)';
     requestAnimationFrame(() => {
       setTimeout(() => dm.classList.remove('entering'), 60);
     });
