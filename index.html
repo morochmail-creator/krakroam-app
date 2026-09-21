@@ -199,26 +199,6 @@
   }
   .layer-option.active .dot { background: var(--amber-soft); }
 
-  #intro-card {
-    position: absolute; bottom: 18px; left: 16px; right: 16px; z-index: 10;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 16px; padding: 14px 16px;
-    box-shadow: var(--shadow);
-    display: flex; align-items: center; gap: 12px;
-    transition: transform 0.25s ease, opacity 0.25s ease;
-  }
-  #intro-card.hidden { transform: translateY(16px); opacity: 0; pointer-events: none; }
-  #intro-play {
-    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
-    background: var(--amber); border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  #intro-play svg { width: 16px; height: 16px; fill: var(--bg); }
-  #intro-text { flex: 1; }
-  #intro-text .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 2px; }
-  #intro-text .title { font-size: 14px; color: var(--cream); }
-  #intro-close { background: none; border: none; color: var(--cream-dim); font-size: 20px; cursor: pointer; padding: 4px; line-height: 1; }
-
   .marker-main {
     width: 26px; height: 26px; border-radius: 50%;
     background: #2fd16f;
@@ -475,17 +455,6 @@
         <div class="layer-option" data-mode="satellite"><span class="dot"></span>Satelita</div>
       </div>
     </div>
-  </div>
-
-  <div id="intro-card">
-    <button id="intro-play" aria-label="Odtwórz wprowadzenie">
-      <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
-    </button>
-    <div id="intro-text">
-      <div class="label">Trasa królewska · Wprowadzenie</div>
-      <div class="title">Zanim wyruszysz, posłuchaj krótkiej historii trasy</div>
-    </div>
-    <button id="intro-close" aria-label="Zamknij">×</button>
   </div>
 
   <div id="sheet-backdrop"></div>
@@ -1378,19 +1347,6 @@ nearestBtn.addEventListener('click', () => {
     setTimeout(selectDistrict, 500);
   } else {
     nearestFeedback.textContent = `Najbliżej Ciebie jest ${nearest.label}, ale ta trasa jeszcze powstaje. Na razie zapraszamy na Stare Miasto!`;
-  }
-});
-
-/* ============================================================
-   INTRO CARD (track 0)
-============================================================ */
-const introCard = document.getElementById('intro-card');
-document.getElementById('intro-close').addEventListener('click', () => introCard.classList.add('hidden'));
-document.getElementById('intro-play').addEventListener('click', () => {
-  if (ROUTE_INTRO_AUDIO) {
-    playAudioSrc(ROUTE_INTRO_AUDIO);
-  } else {
-    alert('Plik wprowadzenia jeszcze nie został dodany.');
   }
 });
 
