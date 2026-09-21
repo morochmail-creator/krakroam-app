@@ -40,56 +40,82 @@
   #app { position: relative; width: 100%; height: 100dvh; }
 
   /* ---------- Menu wyboru dzielnicy (ekran startowy) ---------- */
+  /* ---------- Menu wyboru dzielnicy: mapa widoczna w tle, panel wysuwany z dołu ---------- */
   #district-menu {
     position: absolute; inset: 0; z-index: 100;
-    background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
+    display: flex; align-items: flex-end; justify-content: center;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
   }
   #district-menu.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-  #district-menu-inner { width: 100%; max-width: 420px; }
-  #district-menu-brand {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 32px; font-weight: 700; text-align: center;
-    color: var(--cream); margin-bottom: 8px;
+  #district-scrim {
+    position: absolute; inset: 0;
+    background: rgba(15,12,9,0.55);
+    backdrop-filter: blur(3px) saturate(1.05);
+    -webkit-backdrop-filter: blur(3px) saturate(1.05);
   }
-  #district-menu-brand span { color: var(--amber-soft); }
-  #district-menu-sub {
-    text-align: center; color: var(--cream-dim); font-size: 14px;
-    margin-bottom: 20px;
-  }
-  #nearest-route-btn {
-    display: block; width: 100%;
-    background: var(--panel-2); border: 1px solid var(--amber);
-    color: var(--amber-soft); font-size: 14px; font-weight: 600;
-    padding: 13px 16px; border-radius: 12px;
-    cursor: pointer; margin-bottom: 8px;
-  }
-  #nearest-route-btn:active { transform: scale(0.98); }
-  #nearest-feedback {
-    text-align: center; font-size: 12px; color: var(--cream-dim);
-    min-height: 16px; margin-bottom: 24px;
-  }
-  .district-card {
+  #district-menu-inner {
+    position: relative; width: 100%; max-width: 480px;
     background: var(--panel); border: 1px solid var(--line);
-    border-radius: 16px; padding: 18px 20px; margin-bottom: 12px;
-    cursor: pointer; transition: border-color 0.2s ease, transform 0.15s ease;
+    border-radius: 26px 26px 0 0;
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.6);
+    padding: 10px 22px calc(26px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(0);
+    transition: transform 0.4s cubic-bezier(.32,.72,0,1);
+  }
+  #district-menu.entering #district-menu-inner { transform: translateY(100%); }
+  #district-menu-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--line); margin: 6px auto 18px;
+  }
+  #district-menu-eyebrow {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--amber-soft); text-align: center; margin-bottom: 6px;
+  }
+  #district-menu-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 24px; font-weight: 600; text-align: center;
+    color: var(--cream); margin-bottom: 22px;
+  }
+  .district-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 12px; border-radius: 14px;
+    cursor: pointer; transition: background 0.15s ease;
     position: relative;
   }
-  .district-card:active { transform: scale(0.98); }
-  .district-card:not(.disabled):hover { border-color: var(--amber); }
-  .district-card.disabled { opacity: 0.45; cursor: not-allowed; }
-  .dc-title {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 19px; font-weight: 600; color: var(--cream);
+  .district-row:not(.disabled):active { background: var(--panel-2); }
+  .district-row + .district-row { margin-top: 2px; }
+  .district-row-icon {
+    flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
   }
-  .dc-desc { font-size: 13px; color: var(--cream-dim); margin-top: 4px; }
-  .dc-badge {
-    position: absolute; top: 18px; right: 20px;
-    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+  .district-row-icon svg { width: 20px; height: 20px; stroke: var(--amber-soft); }
+  .district-row.disabled .district-row-icon svg { stroke: var(--cream-dim); }
+  .district-row-mid { flex: 1; min-width: 0; }
+  .dr-title { font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--cream); }
+  .district-row.disabled .dr-title { color: var(--cream-dim); }
+  .dr-desc { font-size: 12.5px; color: var(--cream-dim); margin-top: 2px; }
+  .district-row.disabled { cursor: not-allowed; }
+  .dr-chevron { flex-shrink: 0; width: 18px; height: 18px; stroke: var(--cream-dim); }
+  .dr-badge {
+    flex-shrink: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--cream-dim); border: 1px solid var(--line);
-    border-radius: 999px; padding: 3px 9px;
+    border-radius: 999px; padding: 4px 10px;
+  }
+  #district-menu-divider {
+    height: 1px; background: var(--line); margin: 16px 0 12px;
+  }
+  #nearest-route-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; background: none; border: none;
+    color: var(--amber-soft); font-size: 13px; font-weight: 600;
+    padding: 10px; cursor: pointer;
+  }
+  #nearest-route-btn svg { width: 15px; height: 15px; stroke: var(--amber-soft); }
+  #nearest-route-btn:active { opacity: 0.7; }
+  #nearest-feedback {
+    text-align: center; font-size: 12px; color: var(--cream-dim);
+    min-height: 14px; margin-top: 2px;
   }
 
   #map { position: absolute; inset: 0; z-index: 1; background: var(--map-bg); transition: background 0.3s ease; }
@@ -118,10 +144,16 @@
     padding: 16px 18px;
   }
   #brand {
-    font-size: 20px; font-weight: 600; letter-spacing: 0.01em;
+    display: flex; align-items: center; gap: 9px;
+    font-size: 16px; font-weight: 600; letter-spacing: 0.01em;
     color: var(--cream);
-    text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 999px; padding: 10px 16px 10px 14px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
   }
+  #brand:active { transform: scale(0.98); }
+  #brand svg { width: 17px; height: 17px; stroke: var(--amber-soft); flex-shrink: 0; }
   #brand span { color: var(--amber-soft); }
   #btn-stack {
     display: flex; flex-direction: column; gap: 10px;
@@ -337,24 +369,63 @@
 <body>
 
 <div id="app">
-  <div id="district-menu">
+  <div id="district-menu" class="entering">
+    <div id="district-scrim"></div>
     <div id="district-menu-inner">
-      <div id="district-menu-brand">Krak<span>Roam</span></div>
-      <div id="district-menu-sub">Wybierz dzielnicę, którą chcesz zwiedzić</div>
-      <button id="nearest-route-btn">📍 Poleć trasę najbliżej mnie</button>
+      <div id="district-menu-handle"></div>
+      <div id="district-menu-eyebrow">KrakRoam</div>
+      <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
+
+      <div class="district-row" data-district="stare-miasto">
+        <div class="district-row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21h18M5 21V9l3-3v3l3-3v3l3-3v3l3-3v12"></path>
+          </svg>
+        </div>
+        <div class="district-row-mid">
+          <div class="dr-title">Stare Miasto</div>
+          <div class="dr-desc">Spacer po średniowiecznym mieście — Rynek, Mariacki i okolice</div>
+        </div>
+        <svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9,6 15,12 9,18"></polyline>
+        </svg>
+      </div>
+
+      <div class="district-row disabled">
+        <div class="district-row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21h18M5 21V10l7-6 7 6v11"></path>
+            <path d="M9 21v-6h6v6"></path>
+          </svg>
+        </div>
+        <div class="district-row-mid">
+          <div class="dr-title">Kazimierz</div>
+        </div>
+        <div class="dr-badge">Wkrótce</div>
+      </div>
+
+      <div class="district-row disabled">
+        <div class="district-row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="9" width="16" height="12"></rect>
+            <path d="M8 9V5h3v4M14 3v6"></path>
+          </svg>
+        </div>
+        <div class="district-row-mid">
+          <div class="dr-title">Podgórze</div>
+        </div>
+        <div class="dr-badge">Wkrótce</div>
+      </div>
+
+      <div id="district-menu-divider"></div>
+      <button id="nearest-route-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path>
+          <circle cx="12" cy="9" r="2.5"></circle>
+        </svg>
+        Poleć trasę najbliżej mnie
+      </button>
       <div id="nearest-feedback"></div>
-      <div class="district-card" data-district="stare-miasto">
-        <div class="dc-title">Stare Miasto</div>
-        <div class="dc-desc">Spacer po średniowiecznym mieście — Rynek Główny, Mariacki i okolice</div>
-      </div>
-      <div class="district-card disabled">
-        <div class="dc-title">Kazimierz</div>
-        <div class="dc-badge">Wkrótce</div>
-      </div>
-      <div class="district-card disabled">
-        <div class="dc-title">Podgórze</div>
-        <div class="dc-badge">Wkrótce</div>
-      </div>
     </div>
   </div>
 
@@ -362,7 +433,14 @@
   <div id="map-tint"></div>
 
   <div id="topbar">
-    <div id="brand">Krak<span>Roam</span></div>
+    <div id="brand" aria-label="Wróć do wyboru trasy">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+      Krak<span>Roam</span>
+    </div>
     <div id="btn-stack">
       <button id="locate-btn" aria-label="Pokaż moją lokalizację">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -877,17 +955,21 @@ const map = L.map('map', {
   attributionControl: false
 }).setView([50.061853, 19.938628], 17);
 
+// wykrywamy słabe połączenie (2G/3G, "oszczędzanie danych") i dostosowujemy zachowanie mapy
+const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+const isSlowConnection = !!(conn && (conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType)));
+
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   subdomains: 'abc',
-  keepBuffer: 4,
-  updateWhenIdle: false,
+  keepBuffer: isSlowConnection ? 1 : 3,
+  updateWhenIdle: isSlowConnection ? true : false,
   updateWhenZooming: false
 });
 
 const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 19,
-  keepBuffer: 4
+  keepBuffer: isSlowConnection ? 1 : 3
 });
 
 osmLayer.addTo(map);
@@ -900,6 +982,9 @@ osmLayer.addTo(map);
    czekających na sieć.
 ============================================================ */
 function prefetchTilesForArea() {
+  // na słabym połączeniu w ogóle nie ładujemy nic w tle — priorytet ma to, co user faktycznie widzi teraz
+  if (isSlowConnection) return;
+
   // środek między trzema dzielnicami + zapas ~2 km w każdą stronę
   const lats = [staremiastoCenterLat, 50.0492, 50.0397]; // Stare Miasto, Kazimierz, Podgórze
   const lngs = [staremiastoCenterLng, 19.9463, 19.9499];
@@ -918,7 +1003,8 @@ function prefetchTilesForArea() {
     return Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, z));
   }
 
-  const zooms = [15, 16, 17, 18];
+  // tylko warstwa mapy (nie satelita — dociąga się dopiero, jak user faktycznie ją włączy), tylko 2 poziomy zoomu
+  const zooms = [16, 17];
   const osmSubdomains = ['a', 'b', 'c'];
   let sdIndex = 0;
   const queue = [];
@@ -933,31 +1019,20 @@ function prefetchTilesForArea() {
     }
   });
 
-  // ładujemy partiami, żeby nie zablokować przeglądarki ani nie zarzucić serwera naraz
-  // — najpierw warstwa mapy (OSM, wspólna dla trybu ciemnego i jasnego), potem satelita (Esri)
+  // ładujemy małymi partiami z przerwami, żeby nie zarzucić słabszego łącza naraz
   let i = 0;
-  function loadNextOsm() {
-    const batch = queue.slice(i, i + 6);
-    if (!batch.length) { i = 0; setTimeout(loadNextSat, 200); return; }
+  function loadNext() {
+    const batch = queue.slice(i, i + 4);
+    if (!batch.length) return;
     batch.forEach(t => {
       const sd = osmSubdomains[sdIndex++ % osmSubdomains.length];
       const img = new Image();
       img.src = `https://${sd}.tile.openstreetmap.org/${t.z}/${t.x}/${t.y}.png`;
     });
-    i += 6;
-    setTimeout(loadNextOsm, 120);
+    i += 4;
+    setTimeout(loadNext, 200);
   }
-  function loadNextSat() {
-    const batch = queue.slice(i, i + 6);
-    if (!batch.length) return;
-    batch.forEach(t => {
-      const img = new Image();
-      img.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${t.z}/${t.y}/${t.x}`;
-    });
-    i += 6;
-    setTimeout(loadNextSat, 120);
-  }
-  loadNextOsm();
+  loadNext();
 }
 
 // startujemy dopiero, gdy główny widok mapy się już wyrenderuje, żeby nie konkurować o pasmo z pierwszym ładowaniem
@@ -1251,7 +1326,15 @@ function selectDistrict() {
   document.getElementById('district-menu').classList.add('hidden');
 }
 
-document.querySelector('.district-card[data-district="stare-miasto"]').addEventListener('click', selectDistrict);
+document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', selectDistrict);
+
+document.getElementById('brand').addEventListener('click', () => {
+  document.getElementById('district-menu').classList.remove('hidden');
+});
+// delikatne wjechanie panelu z dołu zaraz po starcie, zamiast pojawienia się od razu na sztywno
+requestAnimationFrame(() => {
+  setTimeout(() => document.getElementById('district-menu').classList.remove('entering'), 60);
+});
 
 // Środki (w przybliżeniu) poszczególnych dzielnic — do polecenia najbliższej trasy
 const staremiastoCenterLat = POINTS.reduce((s, p) => s + p.lat, 0) / POINTS.length;
