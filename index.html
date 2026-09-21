@@ -479,11 +479,13 @@
     <div id="district-scrim"></div>
     <div id="district-menu-inner">
       <button id="district-menu-close" aria-label="Zamknij">×</button>
-      <div id="drag-zone">
-        <div id="district-menu-handle"></div>
+      <div id="peek-visible">
+        <div id="drag-zone">
+          <div id="district-menu-handle"></div>
+        </div>
+        <div id="district-menu-eyebrow">KrakRoam</div>
+        <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
       </div>
-      <div id="district-menu-eyebrow">KrakRoam</div>
-      <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
       <button id="change-lang-btn">
         <span id="change-lang-flag">🇵🇱</span>
         <span id="change-lang-label">Zmień język</span>
@@ -1750,9 +1752,14 @@ const menuInner = document.getElementById('district-menu-inner');
 const menuHandle = document.getElementById('drag-zone');
 let sheetState = 'full'; // 'full' | 'peek'
 
+const TOP_PADDING = 10; // musi się zgadzać z paddingiem górnym #district-menu-inner w CSS
+const peekVisibleEl = document.getElementById('peek-visible');
+
 function getPeekTranslate() {
-  const peekVisibleHeight = 118; // ile px panelu zostaje widoczne w stanie zwiniętym
-  return Math.max(menuInner.offsetHeight - peekVisibleHeight, 0);
+  // dokładny pomiar: pasek + "KrakRoam" + tytuł, plus mały zapas — czyste ucięcie, bez połówki tekstu
+  const gapAfter = 22;
+  const visibleHeight = TOP_PADDING + peekVisibleEl.offsetHeight + gapAfter;
+  return Math.max(menuInner.offsetHeight - visibleHeight, 0);
 }
 
 function openDistrictMenuFull() {
@@ -1778,7 +1785,10 @@ function openDistrictMenuFull() {
   menuHandle.addEventListener('touchmove', (e) => {
     if (!dragging) return;
     const deltaY = e.touches[0].clientY - dragStartY;
-    const newTranslate = Math.max(0, startTranslate + deltaY);
+    const peekY = getPeekTranslate();
+    // przeciąganie ograniczone WYŁĄCZNIE między pełnym (0) a zwiniętym (peekY) —
+    // nigdy nie zamyka menu ani nie rusza kamery; do zamknięcia służy tylko przycisk X
+    const newTranslate = Math.min(Math.max(0, startTranslate + deltaY), peekY);
     menuInner.style.transform = `translateY(${newTranslate}px)`;
   }, { passive: true });
 
@@ -1787,25 +1797,20 @@ function openDistrictMenuFull() {
     dragging = false;
     const deltaY = e.changedTouches[0].clientY - dragStartY;
     justDragged = Math.abs(deltaY) > 8; // odróżnia realne przeciągnięcie od zwykłego stuknięcia
-    const finalTranslate = Math.max(0, startTranslate + deltaY);
     const peekY = getPeekTranslate();
+    const finalTranslate = Math.min(Math.max(0, startTranslate + deltaY), peekY);
     menuInner.style.transition = '';
 
-    if (finalTranslate < peekY * 0.45) {
+    if (finalTranslate < peekY * 0.5) {
       // wraca do pełnego widoku
       sheetState = 'full';
       districtMenuEl.classList.remove('peek');
       menuInner.style.transform = 'translateY(0)';
-    } else if (finalTranslate < peekY + 90) {
+    } else {
       // zwija do "peek" — mapa staje się widoczna i dotykalna pod spodem
       sheetState = 'peek';
       districtMenuEl.classList.add('peek');
       menuInner.style.transform = `translateY(${peekY}px)`;
-    } else {
-      // przeciągnięte daleko w dół = zamknięcie = tryb swobodny
-      districtMenuEl.classList.remove('peek');
-      menuInner.style.transform = '';
-      selectDistrict(true);
     }
     dragStartY = null;
   });
