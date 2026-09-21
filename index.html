@@ -41,6 +41,49 @@
 
   /* ---------- Menu wyboru dzielnicy (ekran startowy) ---------- */
   /* ---------- Menu wyboru dzielnicy: mapa widoczna w tle, panel wysuwany z dołu ---------- */
+  /* ---------- Ekran wyboru języka (pierwszy krok) ---------- */
+  #lang-menu {
+    position: absolute; inset: 0; z-index: 110;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+  #lang-menu.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #lang-scrim {
+    position: absolute; inset: 0;
+    background: rgba(15,12,9,0.72);
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  }
+  #lang-menu-inner {
+    position: relative; width: 100%; max-width: 420px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 24px; padding: 32px 22px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  #lang-menu-brand {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 26px; font-weight: 700;
+    color: var(--cream); margin-bottom: 6px;
+  }
+  #lang-menu-brand span { color: var(--amber-soft); }
+  #lang-menu-sub { color: var(--cream-dim); font-size: 14px; margin-bottom: 22px; }
+  .lang-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 12px; border-radius: 14px;
+    cursor: pointer; transition: background 0.15s ease; text-align: left;
+  }
+  .lang-row:active { background: var(--panel-2); }
+  .lang-row + .lang-row { margin-top: 2px; }
+  .lang-row-flag {
+    flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .lang-row-name { flex: 1; font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--cream); }
+
   #district-menu {
     position: absolute; inset: 0; z-index: 100;
     display: flex; align-items: flex-end; justify-content: center;
@@ -80,8 +123,15 @@
   #district-menu-title {
     font-family: 'Fraunces', Georgia, serif;
     font-size: 24px; font-weight: 600; text-align: center;
-    color: var(--cream); margin-bottom: 22px;
+    color: var(--cream); margin-bottom: 6px;
   }
+  #change-lang-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin: 0 auto 22px; background: none; border: none;
+    color: var(--cream-dim); font-size: 12.5px; font-weight: 500;
+    cursor: pointer; padding: 4px 8px;
+  }
+  #change-lang-flag { font-size: 15px; }
   .district-row {
     display: flex; align-items: center; gap: 14px;
     padding: 14px 12px; border-radius: 14px;
@@ -146,39 +196,28 @@
 
   #topbar {
     position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: flex-end;
     padding: 16px 18px;
   }
-  #brand {
-    display: flex; align-items: center; gap: 9px;
-    font-size: 16px; font-weight: 600; letter-spacing: 0.01em;
-    color: var(--cream);
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 999px; padding: 10px 16px 10px 14px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-  }
   #brand:active { transform: scale(0.98); }
-  #brand svg { width: 17px; height: 17px; stroke: var(--amber-soft); flex-shrink: 0; }
-  #brand span { color: var(--amber-soft); }
   #btn-stack {
     display: flex; flex-direction: column; gap: 10px;
     position: relative;
   }
-  #locate-btn, #layers-btn, #stop-nav-btn {
+  #brand, #locate-btn, #layers-btn, #stop-nav-btn {
     width: 44px; height: 44px; border-radius: 50%;
     background: var(--panel); border: 1px solid var(--line);
     box-shadow: var(--shadow);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #locate-btn svg, #layers-btn svg, #stop-nav-btn svg { width: 20px; height: 20px; stroke: var(--cream); color: var(--cream); }
+  #brand svg, #locate-btn svg, #layers-btn svg, #stop-nav-btn svg { width: 20px; height: 20px; stroke: var(--cream); color: var(--cream); }
   #locate-btn.active svg { stroke: var(--amber-soft); }
   #layers-btn.active svg { stroke: var(--amber-soft); }
   #stop-nav-btn.active svg { stroke: #ff2fa0; color: #ff2fa0; }
 
   #layers-menu {
-    position: absolute; top: 0; right: 54px; z-index: 15;
+    position: absolute; top: 162px; right: 54px; z-index: 15;
     background: var(--panel); border: 1px solid var(--line);
     border-radius: 14px; box-shadow: var(--shadow);
     padding: 6px; min-width: 150px;
@@ -355,18 +394,53 @@
 <body>
 
 <div id="app">
-  <div id="district-menu" class="entering">
+  <div id="lang-menu">
+    <div id="lang-scrim"></div>
+    <div id="lang-menu-inner">
+      <div id="lang-menu-brand">Krak<span>Roam</span></div>
+      <div id="lang-menu-sub">Witamy! Wybierz swój język</div>
+      <div class="lang-row" data-lang="pl">
+        <div class="lang-row-flag">🇵🇱</div>
+        <div class="lang-row-name">Polski</div>
+      </div>
+      <div class="lang-row" data-lang="ua">
+        <div class="lang-row-flag">🇺🇦</div>
+        <div class="lang-row-name">Українська</div>
+      </div>
+      <div class="lang-row" data-lang="en">
+        <div class="lang-row-flag">🇬🇧</div>
+        <div class="lang-row-name">English</div>
+      </div>
+      <div class="lang-row" data-lang="de">
+        <div class="lang-row-flag">🇩🇪</div>
+        <div class="lang-row-name">Deutsch</div>
+      </div>
+      <div class="lang-row" data-lang="es">
+        <div class="lang-row-flag">🇪🇸</div>
+        <div class="lang-row-name">Español</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="district-menu" class="entering hidden">
     <div id="district-scrim"></div>
     <div id="district-menu-inner">
       <button id="district-menu-close" aria-label="Zamknij">×</button>
       <div id="district-menu-handle"></div>
       <div id="district-menu-eyebrow">KrakRoam</div>
       <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
+      <button id="change-lang-btn">
+        <span id="change-lang-flag">🇵🇱</span>
+        <span id="change-lang-label">Zmień język</span>
+      </button>
 
       <div class="district-row" data-district="stare-miasto">
         <div class="district-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 21h18M5 21V9l3-3v3l3-3v3l3-3v3l3-3v12"></path>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 21V8.5l2-5 2 5V21"></path>
+            <path d="M15.5 21v-8a2 2 0 1 1 4 0v8"></path>
+            <path d="M9 21v-5.5a3 3 0 0 1 6 0V21"></path>
+            <path d="M3 21h18"></path>
           </svg>
         </div>
         <div class="district-row-mid">
@@ -378,30 +452,47 @@
         </svg>
       </div>
 
-      <div class="district-row disabled">
+      <div class="district-row disabled" data-district="kazimierz">
         <div class="district-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 21h18M5 21V10l7-6 7 6v11"></path>
-            <path d="M9 21v-6h6v6"></path>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L20.5 17 L3.5 17 Z"></path>
+            <path d="M12 22 L3.5 7 L20.5 7 Z"></path>
           </svg>
         </div>
         <div class="district-row-mid">
           <div class="dr-title">Kazimierz</div>
         </div>
-        <div class="dr-badge">Wkrótce</div>
+        <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
       </div>
 
-      <div class="district-row disabled">
+      <div class="district-row disabled" data-district="podgorze">
         <div class="district-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="9" width="16" height="12"></rect>
-            <path d="M8 9V5h3v4M14 3v6"></path>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21V12l4 2v-2l4 2v-2l4 2v-3h4v10"></path>
+            <path d="M3 21h18"></path>
+            <path d="M17 8V5"></path>
           </svg>
         </div>
         <div class="district-row-mid">
           <div class="dr-title">Podgórze</div>
         </div>
-        <div class="dr-badge">Wkrótce</div>
+        <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
+      </div>
+
+      <div class="district-row" data-district="free-roam">
+        <div class="district-row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M15 9l-2 6-6 2 2-6 6-2z"></path>
+          </svg>
+        </div>
+        <div class="district-row-mid">
+          <div class="dr-title" data-i18n="freeRoamTitle">Zwiedzaj bez trasy</div>
+          <div class="dr-desc" data-i18n="freeRoamDesc">Wybieraj punkty sam, w dowolnej kolejności</div>
+        </div>
+        <svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9,6 15,12 9,18"></polyline>
+        </svg>
       </div>
 
       <div id="district-menu-divider"></div>
@@ -410,7 +501,7 @@
           <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path>
           <circle cx="12" cy="9" r="2.5"></circle>
         </svg>
-        Poleć trasę najbliżej mnie
+        <span id="nearest-btn-label">Poleć trasę najbliżej mnie</span>
       </button>
       <div id="nearest-feedback"></div>
     </div>
@@ -420,15 +511,14 @@
   <div id="map-tint"></div>
 
   <div id="topbar">
-    <div id="brand" aria-label="Wróć do wyboru trasy">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-      Krak<span>Roam</span>
-    </div>
     <div id="btn-stack">
+      <button id="brand" aria-label="Wróć do wyboru trasy">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
       <button id="locate-btn" aria-label="Pokaż moją lokalizację">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -450,9 +540,9 @@
         </svg>
       </button>
       <div id="layers-menu">
-        <div class="layer-option active" data-mode="dark"><span class="dot"></span>Ciemna</div>
-        <div class="layer-option" data-mode="light"><span class="dot"></span>Jasna</div>
-        <div class="layer-option" data-mode="satellite"><span class="dot"></span>Satelita</div>
+        <div class="layer-option active" data-mode="dark"><span class="dot"></span><span class="lo-label">Ciemna</span></div>
+        <div class="layer-option" data-mode="light"><span class="dot"></span><span class="lo-label">Jasna</span></div>
+        <div class="layer-option" data-mode="satellite"><span class="dot"></span><span class="lo-label">Satelita</span></div>
       </div>
     </div>
   </div>
@@ -486,11 +576,170 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <script>
 /* ============================================================
+   TŁUMACZENIA UI (menu, przyciski, komunikaty)
+   UWAGA: to tłumaczy tylko interfejs apki — nazwy punktów i pliki
+   audio w POINTS zostają na razie po polsku, dopóki nie dojdą
+   nagrania w pozostałych językach. Wtedy trzeba będzie rozszerzyć
+   strukturę "tracks" o warianty per język (patrz komentarz niżej
+   przy POINTS) i tu dopisać funkcję wybierającą właściwy plik.
+============================================================ */
+let currentLang = 'pl';
+const FLAG_EMOJI = { pl: '🇵🇱', ua: '🇺🇦', en: '🇬🇧', de: '🇩🇪', es: '🇪🇸' };
+
+const TRANSLATIONS = {
+  pl: {
+    menuTitle: "Gdzie dziś zwiedzamy?",
+    stareMiastoTitle: "Stare Miasto",
+    stareMiastoDesc: "Spacer po średniowiecznym mieście — Rynek, Mariacki i okolice",
+    kazimierzTitle: "Kazimierz",
+    podgorzeTitle: "Podgórze",
+    comingSoon: "Wkrótce",
+    freeRoamTitle: "Zwiedzaj bez trasy",
+    freeRoamDesc: "Wybieraj punkty sam, w dowolnej kolejności",
+    nearestBtn: "Poleć trasę najbliżej mnie",
+    nearestWaiting: "Czekam na lokalizację — spróbuj za chwilę.",
+    nearestFound: label => `Najbliżej Ciebie: ${label} — otwieram trasę…`,
+    nearestUnavailable: label => `Najbliżej Ciebie jest ${label}, ale ta trasa jeszcze powstaje. Na razie zapraszamy na Stare Miasto!`,
+    pointMain: "Punkt główny",
+    pointExtra: "Punkt dodatkowy",
+    noAudio: "Plik audio jeszcze nie został dodany dla tego punktu.",
+    layerDark: "Ciemna", layerLight: "Jasna", layerSat: "Satelita",
+    closeLabel: "Zamknij", backToMenu: "Wróć do wyboru trasy",
+    locateLabel: "Pokaż moją lokalizację", layersLabel: "Wybierz widok mapy",
+    navToggleLabel: "Pokaż/ukryj trasę do startu",
+    changeLang: "Zmień język"
+  },
+  ua: {
+    menuTitle: "Що досліджуємо сьогодні?",
+    stareMiastoTitle: "Старе Місто",
+    stareMiastoDesc: "Прогулянка середньовічним містом — Ринкова площа, костел Маріацький і околиці",
+    kazimierzTitle: "Казімєж",
+    podgorzeTitle: "Подґуже",
+    comingSoon: "Незабаром",
+    freeRoamTitle: "Огляд без маршруту",
+    freeRoamDesc: "Обирайте точки самі, у будь-якому порядку",
+    nearestBtn: "Порадити маршрут найближче до мене",
+    nearestWaiting: "Очікуємо на місцезнаходження — спробуйте за мить.",
+    nearestFound: label => `Найближче до вас: ${label} — відкриваємо маршрут…`,
+    nearestUnavailable: label => `Найближче до вас ${label}, але цей маршрут ще розробляється. Поки що запрошуємо до Старого Міста!`,
+    pointMain: "Головна зупинка",
+    pointExtra: "Додаткова зупинка",
+    noAudio: "Аудіофайл для цієї точки ще не додано.",
+    layerDark: "Темна", layerLight: "Світла", layerSat: "Супутник",
+    closeLabel: "Закрити", backToMenu: "Повернутися до вибору маршруту",
+    locateLabel: "Показати моє місцезнаходження", layersLabel: "Обрати вигляд карти",
+    navToggleLabel: "Показати/приховати маршрут до старту",
+    changeLang: "Змінити мову"
+  },
+  en: {
+    menuTitle: "Where are we exploring today?",
+    stareMiastoTitle: "Old Town",
+    stareMiastoDesc: "A walk through the medieval city — Main Square, St. Mary's and around",
+    kazimierzTitle: "Kazimierz",
+    podgorzeTitle: "Podgórze",
+    comingSoon: "Coming soon",
+    freeRoamTitle: "Explore without a route",
+    freeRoamDesc: "Pick points yourself, in any order",
+    nearestBtn: "Recommend the route nearest me",
+    nearestWaiting: "Waiting for location — try again in a moment.",
+    nearestFound: label => `Nearest to you: ${label} — opening the route…`,
+    nearestUnavailable: label => `${label} is closest to you, but that route is still being built. For now, join us in the Old Town!`,
+    pointMain: "Main stop",
+    pointExtra: "Extra stop",
+    noAudio: "No audio file has been added for this stop yet.",
+    layerDark: "Dark", layerLight: "Light", layerSat: "Satellite",
+    closeLabel: "Close", backToMenu: "Back to route selection",
+    locateLabel: "Show my location", layersLabel: "Choose map view",
+    navToggleLabel: "Show/hide the route to the start",
+    changeLang: "Change language"
+  },
+  de: {
+    menuTitle: "Was erkunden wir heute?",
+    stareMiastoTitle: "Altstadt",
+    stareMiastoDesc: "Ein Spaziergang durch die mittelalterliche Stadt — Marktplatz, Marienkirche und Umgebung",
+    kazimierzTitle: "Kazimierz",
+    podgorzeTitle: "Podgórze",
+    comingSoon: "Demnächst",
+    freeRoamTitle: "Ohne feste Route erkunden",
+    freeRoamDesc: "Wähle die Stationen selbst, in beliebiger Reihenfolge",
+    nearestBtn: "Route in meiner Nähe empfehlen",
+    nearestWaiting: "Warte auf Standort — versuch es gleich noch einmal.",
+    nearestFound: label => `In deiner Nähe: ${label} — Route wird geöffnet…`,
+    nearestUnavailable: label => `${label} liegt am nächsten, aber diese Route entsteht noch. Bis dahin laden wir dich in die Altstadt ein!`,
+    pointMain: "Hauptstation",
+    pointExtra: "Zusatzstation",
+    noAudio: "Für diese Station wurde noch keine Audiodatei hinzugefügt.",
+    layerDark: "Dunkel", layerLight: "Hell", layerSat: "Satellit",
+    closeLabel: "Schließen", backToMenu: "Zurück zur Routenauswahl",
+    locateLabel: "Meinen Standort anzeigen", layersLabel: "Kartenansicht wählen",
+    navToggleLabel: "Route zum Start ein-/ausblenden",
+    changeLang: "Sprache ändern"
+  },
+  es: {
+    menuTitle: "¿Qué visitamos hoy?",
+    stareMiastoTitle: "Casco Antiguo",
+    stareMiastoDesc: "Un paseo por la ciudad medieval — Plaza Mayor, Santa María y alrededores",
+    kazimierzTitle: "Kazimierz",
+    podgorzeTitle: "Podgórze",
+    comingSoon: "Próximamente",
+    freeRoamTitle: "Explorar sin ruta fija",
+    freeRoamDesc: "Elige los puntos tú mismo, en cualquier orden",
+    nearestBtn: "Recomendarme la ruta más cercana",
+    nearestWaiting: "Esperando ubicación — inténtalo de nuevo en un momento.",
+    nearestFound: label => `Lo más cercano a ti: ${label} — abriendo la ruta…`,
+    nearestUnavailable: label => `${label} es lo más cercano, pero esa ruta todavía se está construyendo. ¡Por ahora te esperamos en el Casco Antiguo!`,
+    pointMain: "Parada principal",
+    pointExtra: "Parada adicional",
+    noAudio: "Todavía no se ha añadido ningún archivo de audio para este punto.",
+    layerDark: "Oscuro", layerLight: "Claro", layerSat: "Satélite",
+    closeLabel: "Cerrar", backToMenu: "Volver a elegir ruta",
+    locateLabel: "Mostrar mi ubicación", layersLabel: "Elegir vista del mapa",
+    navToggleLabel: "Mostrar/ocultar la ruta al inicio",
+    changeLang: "Cambiar idioma"
+  }
+};
+
+function t(key) {
+  const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.pl;
+  return dict[key] !== undefined ? dict[key] : TRANSLATIONS.pl[key];
+}
+
+function applyTranslations() {
+  document.getElementById('district-menu-title').textContent = t('menuTitle');
+  document.querySelector('.district-row[data-district="stare-miasto"] .dr-title').textContent = t('stareMiastoTitle');
+  document.querySelector('.district-row[data-district="stare-miasto"] .dr-desc').textContent = t('stareMiastoDesc');
+  document.querySelector('.district-row[data-district="kazimierz"] .dr-title').textContent = t('kazimierzTitle');
+  document.querySelector('.district-row[data-district="podgorze"] .dr-title').textContent = t('podgorzeTitle');
+  document.querySelectorAll('[data-i18n="comingSoon"]').forEach(el => el.textContent = t('comingSoon'));
+  document.querySelector('[data-i18n="freeRoamTitle"]').textContent = t('freeRoamTitle');
+  document.querySelector('[data-i18n="freeRoamDesc"]').textContent = t('freeRoamDesc');
+  document.getElementById('nearest-btn-label').textContent = t('nearestBtn');
+  document.getElementById('no-audio-note').textContent = t('noAudio');
+  document.getElementById('change-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
+  document.getElementById('change-lang-label').textContent = t('changeLang');
+  document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
+  document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
+  document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
+
+  document.getElementById('sheet-close').setAttribute('aria-label', t('closeLabel'));
+  document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
+  document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
+  document.getElementById('locate-btn').setAttribute('aria-label', t('locateLabel'));
+  document.getElementById('layers-btn').setAttribute('aria-label', t('layersLabel'));
+  document.getElementById('stop-nav-btn').setAttribute('aria-label', t('navToggleLabel'));
+}
+
+/* ============================================================
    DANE PUNKTÓW — trasa Stare Miasto (Królewska)
    31 punktów głównych + 22 dodatkowe, wyeksportowane z Google My Maps.
    Każdy punkt ma listę "tracks" — dowolną liczbę nagrań
    (np. 1 główny opis + 1.1, 1.2 dodatkowe ciekawostki).
    — uzupełnij "audio" realnymi plikami mp3, gdy będą gotowe.
+   TODO (wielojęzyczność treści): gdy dojdą nagrania w innych
+   językach, "audio" i "label" w każdym tracku powinny stać się
+   obiektami { pl: "...", en: "...", de: "...", ... } zamiast
+   pojedynczego stringa — wtedy loadTrack()/renderTrackList()
+   będą wybierać wariant na podstawie currentLang.
 ============================================================ */
 const ROUTE_INTRO_AUDIO = null; // np. "audio/trasa-krolewska-intro.mp3"
 
@@ -1113,11 +1362,13 @@ map.addLayer(mainCluster);
 map.addLayer(extraCluster);
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
+let routeLinePath = null;
 if (ROUTE_LINE.length > 1) {
-  const routeLine = L.polyline(ROUTE_LINE, {
+  routeLinePath = L.polyline(ROUTE_LINE, {
     color: '#c9932c', weight: 4, opacity: 0.7, lineCap: 'round', lineJoin: 'round'
   }).addTo(map);
-  map.fitBounds(routeLine.getBounds(), { paddingTopLeft: [40, 220], paddingBottomRight: [40, 220] });
+  // startowy widok NIE jest jeszcze dopasowany do trasy — dzięki temu wybór dzielnicy
+  // daje faktycznie widoczny "przelot" kamery nad trasą, a nie statyczne pojawienie się
 }
 
 /* ============================================================
@@ -1297,12 +1548,30 @@ startLocationTracking(false);
 /* ============================================================
    MENU WYBORU DZIELNICY
 ============================================================ */
-function selectDistrict() {
+function selectDistrict(freeRoam) {
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
   document.getElementById('district-menu').classList.add('hidden');
+
+  if (routeLinePath) {
+    if (freeRoam) {
+      map.removeLayer(routeLinePath);
+    } else if (!map.hasLayer(routeLinePath)) {
+      routeLinePath.addTo(map);
+    }
+  }
+
+  if (ROUTE_LINE.length > 1) {
+    const bounds = L.latLngBounds(ROUTE_LINE);
+    map.flyToBounds(bounds, {
+      paddingTopLeft: [40, 220],
+      paddingBottomRight: [40, 220],
+      duration: 1.8
+    });
+  }
 }
 
-document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', selectDistrict);
+document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', () => selectDistrict(false));
+document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => selectDistrict(true));
 
 document.getElementById('brand').addEventListener('click', () => {
   document.getElementById('district-menu').classList.remove('hidden');
@@ -1314,17 +1583,26 @@ document.getElementById('district-scrim').addEventListener('click', () => {
   document.getElementById('district-menu').classList.add('hidden');
 });
 // delikatne wjechanie panelu z dołu zaraz po starcie, zamiast pojawienia się od razu na sztywno
-requestAnimationFrame(() => {
-  setTimeout(() => document.getElementById('district-menu').classList.remove('entering'), 60);
+document.querySelectorAll('.lang-row').forEach(row => {
+  row.addEventListener('click', () => {
+    currentLang = row.dataset.lang;
+    applyTranslations();
+    document.getElementById('lang-menu').classList.add('hidden');
+    const dm = document.getElementById('district-menu');
+    dm.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      setTimeout(() => dm.classList.remove('entering'), 60);
+    });
+  });
 });
 
 // Środki (w przybliżeniu) poszczególnych dzielnic — do polecenia najbliższej trasy
 const staremiastoCenterLat = POINTS.reduce((s, p) => s + p.lat, 0) / POINTS.length;
 const staremiastoCenterLng = POINTS.reduce((s, p) => s + p.lng, 0) / POINTS.length;
 const DISTRICT_CENTERS = {
-  'stare-miasto': { latlng: [staremiastoCenterLat, staremiastoCenterLng], label: 'Stare Miasto', available: true },
-  'kazimierz': { latlng: [50.0492, 19.9463], label: 'Kazimierz', available: false },
-  'podgorze': { latlng: [50.0397, 19.9499], label: 'Podgórze', available: false }
+  'stare-miasto': { latlng: [staremiastoCenterLat, staremiastoCenterLng], labelKey: 'stareMiastoTitle', available: true },
+  'kazimierz': { latlng: [50.0492, 19.9463], labelKey: 'kazimierzTitle', available: false },
+  'podgorze': { latlng: [50.0397, 19.9499], labelKey: 'podgorzeTitle', available: false }
 };
 
 const nearestBtn = document.getElementById('nearest-route-btn');
@@ -1332,7 +1610,7 @@ const nearestFeedback = document.getElementById('nearest-feedback');
 
 nearestBtn.addEventListener('click', () => {
   if (!gpsMarker) {
-    nearestFeedback.textContent = 'Czekam na lokalizację — spróbuj za chwilę.';
+    nearestFeedback.textContent = t('nearestWaiting');
     return;
   }
   const userPos = gpsMarker.getLatLng();
@@ -1342,11 +1620,12 @@ nearestBtn.addEventListener('click', () => {
     if (dist < nearestDist) { nearestDist = dist; nearestKey = key; }
   });
   const nearest = DISTRICT_CENTERS[nearestKey];
+  const nearestLabel = t(nearest.labelKey);
   if (nearest.available) {
-    nearestFeedback.textContent = `Najbliżej Ciebie: ${nearest.label} — otwieram trasę…`;
+    nearestFeedback.textContent = t('nearestFound')(nearestLabel);
     setTimeout(selectDistrict, 500);
   } else {
-    nearestFeedback.textContent = `Najbliżej Ciebie jest ${nearest.label}, ale ta trasa jeszcze powstaje. Na razie zapraszamy na Stare Miasto!`;
+    nearestFeedback.textContent = t('nearestUnavailable')(nearestLabel);
   }
 });
 
@@ -1368,7 +1647,7 @@ function openSheet(point) {
   currentPoint = point;
   currentTrackIndex = 0;
   sheetTitle.textContent = point.name;
-  sheetKicker.textContent = point.type === 'main' ? 'Punkt główny' : 'Punkt dodatkowy';
+  sheetKicker.textContent = point.type === 'main' ? t('pointMain') : t('pointExtra');
   renderTrackList();
   loadTrack();
   sheet.classList.add('open');
