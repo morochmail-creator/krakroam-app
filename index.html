@@ -109,6 +109,11 @@
   #district-menu-handle {
     width: 36px; height: 4px; border-radius: 2px;
     background: var(--line); margin: 6px auto 18px;
+    position: relative;
+  }
+  #district-menu-handle::before {
+    content: ""; position: absolute;
+    top: -16px; left: -50%; right: -50%; bottom: -16px;
   }
   #district-menu-close {
     position: absolute; top: 16px; right: 16px;
@@ -1247,7 +1252,8 @@ const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 
 ============================================================ */
 const map = L.map('map', {
   zoomControl: false,
-  attributionControl: false
+  attributionControl: false,
+  markerZoomAnimation: false // wyłącza animowane "doganianie" pozycji pinów w trakcie zoomu — eliminuje wrażenie skakania
 }).setView([50.061853, 19.938628], 17);
 
 // wykrywamy słabe połączenie (2G/3G, "oszczędzanie danych") i dostosowujemy zachowanie mapy
@@ -1393,6 +1399,7 @@ const mainCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
+  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-main')
 });
 const extraCluster = L.markerClusterGroup({
@@ -1400,6 +1407,7 @@ const extraCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
+  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-extra')
 });
 
@@ -1693,20 +1701,23 @@ function selectDistrict(freeRoam) {
   }
 
   if (freeRoam) {
-    // tryb swobodny — pokazujemy przegląd wszystkich punktów, bez konkretnego "startu"
-    if (POINTS.length) {
-      const bounds = L.latLngBounds(POINTS.map(p => [p.lat, p.lng]));
-      map.flyToBounds(bounds, {
-        paddingTopLeft: [30, 100],
-        paddingBottomRight: [30, 100],
-        maxZoom: 17,
-        duration: 1.8
-      });
-    }
+    // tryb swobodny — pokazujemy przegląd WSZYSTKICH dzielnic (nie tylko Starego Miasta),
+    // żeby user widział, gdzie w ogóle jest miasto i co jest dostępne
+    const cityPoints = POINTS.map(p => [p.lat, p.lng])
+      .concat([DISTRICT_CENTERS.kazimierz.latlng, DISTRICT_CENTERS.podgorze.latlng]);
+    const bounds = L.latLngBounds(cityPoints);
+    map.flyToBounds(bounds, {
+      padding: [36, 36],
+      duration: 1.8
+    });
   } else {
-    // trasa wybrana — skupiamy się na punkcie startowym (nie na całej, długiej trasie),
-    // żeby na telefonie kamera nie musiała oddalać się za bardzo, aby zmieścić wszystko naraz
-    map.flyTo([startPoint.lat, startPoint.lng], 16.5, { duration: 1.6 });
+    // trasa wybrana — pokazujemy całą trasę na raz (nie tylko punkt startowy),
+    // ale ciaśniejszy zapas niż wcześniej, żeby nie oddalać za bardzo na telefonie
+    const bounds = L.latLngBounds(ROUTE_LINE);
+    map.flyToBounds(bounds, {
+      padding: [24, 24],
+      duration: 1.8
+    });
   }
 }
 
@@ -1716,6 +1727,40 @@ document.querySelector('.district-row[data-district="free-roam"]').addEventListe
 document.getElementById('brand').addEventListener('click', () => {
   document.getElementById('district-menu').classList.remove('hidden');
 });
+// przeciąganie uchwytu w dół zamyka panel (swipe-to-dismiss), tak jak w natywnych apkach
+(function enableSwipeToDismiss() {
+  const menuInner = document.getElementById('district-menu-inner');
+  const menuHandle = document.getElementById('district-menu-handle');
+  let dragStartY = null;
+  let dragging = false;
+
+  menuHandle.addEventListener('touchstart', (e) => {
+    dragStartY = e.touches[0].clientY;
+    dragging = true;
+    menuInner.style.transition = 'none';
+  }, { passive: true });
+
+  menuHandle.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const deltaY = e.touches[0].clientY - dragStartY;
+    if (deltaY > 0) {
+      menuInner.style.transform = `translateY(${deltaY}px)`;
+    }
+  }, { passive: true });
+
+  menuHandle.addEventListener('touchend', (e) => {
+    if (!dragging) return;
+    dragging = false;
+    const deltaY = e.changedTouches[0].clientY - dragStartY;
+    menuInner.style.transition = '';
+    menuInner.style.transform = '';
+    if (deltaY > 100) {
+      selectDistrict(true); // przeciągnięcie w dół = zamknięcie = tryb swobodny
+    }
+    dragStartY = null;
+  });
+})();
+
 document.getElementById('district-menu-close').addEventListener('click', () => {
   selectDistrict(true); // zamknięcie bez wyboru = tryb swobodny
 });
