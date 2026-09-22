@@ -289,16 +289,16 @@
   }
   #start-prompt-text .title { font-size: 14px; color: var(--cream); font-weight: 500; }
   #nav-go-btn {
-    flex-shrink: 0; background: #ff2fa0; border: none; color: #fff;
+    flex-shrink: 0; background: #4a90d9; border: none; color: #fff;
     font-size: 13px; font-weight: 700; letter-spacing: 0.03em;
     padding: 11px 18px; border-radius: 12px; cursor: pointer;
   }
-  #nav-active-bar { border-color: #ff2fa0; }
+  #nav-active-bar { border-color: #4a90d9; }
   #nav-active-icon {
     flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(255,47,160,0.15); display: flex; align-items: center; justify-content: center;
+    background: rgba(74,144,217,0.15); display: flex; align-items: center; justify-content: center;
   }
-  #nav-active-icon svg { width: 16px; height: 16px; stroke: #ff2fa0; }
+  #nav-active-icon svg { width: 16px; height: 16px; stroke: #4a90d9; }
   #nav-active-text { flex: 1; font-size: 14px; color: var(--cream); font-weight: 500; }
   #nav-stop-btn {
     flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
@@ -354,7 +354,7 @@
     content: "START";
     position: absolute;
     bottom: calc(100% + 22px); left: 50%; transform: translateX(-50%);
-    background: #ff2fa0;
+    background: #4a90d9;
     color: #fff;
     font-family: 'Inter', sans-serif;
     font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
@@ -371,16 +371,18 @@
   .flag-only::before {
     content: "";
     position: absolute;
-    bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 2px; height: 26px;
+    /* słupek zaczyna się dopiero na górnej krawędzi kółka punktu (promień 13px),
+       żeby nie "wjeżdżał" wizualnie w sam punkt */
+    bottom: 13px; left: 50%; transform: translateX(-50%);
+    width: 2px; height: 20px;
     background: var(--cream);
     box-shadow: 0 0 4px rgba(0,0,0,0.5);
   }
   .flag-only::after {
     content: "START";
     position: absolute;
-    bottom: 26px; left: 50%; transform: translateX(-50%);
-    background: #ff2fa0;
+    bottom: 33px; left: 50%; transform: translateX(-50%);
+    background: #4a90d9;
     color: #fff;
     font-family: 'Inter', sans-serif;
     font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
@@ -513,7 +515,7 @@
   <div id="pw-screen">
     <div id="pw-inner">
       <div id="pw-brand">Krak<span>Roam</span></div>
-      <div id="pw-sub">Wpisz kod dostępu, który otrzymałeś przy zakupie</div>
+      <div id="pw-sub">Wpisz kod dostępu, który otrzymałeś przy zakupie. Znajdziesz go w swojej skrzynce e-mail.</div>
       <input id="pw-input" type="text" inputmode="numeric" autocomplete="off" placeholder="••••" maxlength="12" />
       <button id="pw-submit">Wejdź</button>
       <div id="pw-error"></div>
@@ -1617,7 +1619,7 @@ let guideLine = null;
 let navActive = false;      // czy aktywnie nawigujemy (pokazana magenta linia)
 let routeChosen = false;    // czy user wybrał konkretną trasę (nie "zwiedzaj bez trasy")
 let reachedStart = false;   // czy user dotarł już blisko punktu startowego
-const START_PROXIMITY_METERS = 60;
+const START_PROXIMITY_METERS = 10;
 let watching = false;
 let watchId = null;
 let lastRoutedLatLng = null;
@@ -1677,7 +1679,7 @@ function drawGuideLine(latlngs) {
     guideLine.setLatLngs(latlngs);
   } else {
     guideLine = L.polyline(latlngs, {
-      color: '#ff2fa0', weight: 3, opacity: 0.85, dashArray: '2,10', lineCap: 'round'
+      color: '#4a90d9', weight: 5, opacity: 0.9, dashArray: '2,12', lineCap: 'round'
     });
   }
   if (navActive && !map.hasLayer(guideLine)) {
