@@ -406,6 +406,7 @@
     transition: opacity 0.25s ease;
   }
   #sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+  #sheet-backdrop.peek { opacity: 0; pointer-events: none; }
 
   #sheet {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -418,10 +419,24 @@
     transition: transform 0.3s cubic-bezier(.32,.72,0,1);
   }
   #sheet.open { transform: translateY(0); }
+  #sheet.peek { pointer-events: none; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  #sheet.peek #sheet-handle-zone,
+  #sheet.peek #sheet-peek-bar,
+  #sheet.peek #sheet-close { pointer-events: auto; }
+  #sheet.peek #sheet-full-content { display: none; }
+  #sheet-peek-bar {
+    display: none; align-items: center; justify-content: center; gap: 8px;
+    padding: 6px 0 2px; color: var(--cream-dim); font-size: 13px; font-weight: 600;
+  }
+  #sheet.peek #sheet-peek-bar { display: flex; }
+  #sheet-peek-bar svg { width: 15px; height: 15px; stroke: var(--amber-soft); }
 
+  #sheet-handle-zone {
+    padding: 8px 0 12px; margin: -10px -18px 0; cursor: pointer;
+  }
   #sheet-handle {
     width: 36px; height: 4px; border-radius: 2px;
-    background: var(--line); margin: 6px auto 14px;
+    background: var(--line); margin: 6px auto 0;
   }
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
@@ -645,30 +660,39 @@
 
   <div id="sheet">
     <button id="sheet-close" aria-label="Zamknij">×</button>
-    <div id="sheet-handle"></div>
-    <div id="sheet-kicker">Punkt główny</div>
-    <h2 id="sheet-title">—</h2>
-
-    <button id="sheet-nav-cta" class="hidden">
-      <svg id="sheet-nav-cta-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path>
-        <circle cx="12" cy="9" r="2.5"></circle>
-      </svg>
-      <span id="sheet-nav-cta-label">Nawiguj do startu</span>
-    </button>
-
-    <div id="track-list"></div>
-
-    <div id="player">
-      <button id="play-btn" aria-label="Odtwórz">
-        <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
-      </button>
-      <div id="player-mid">
-        <div id="progress-track"><div id="progress-fill"></div></div>
-        <div id="time-row"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
-      </div>
+    <div id="sheet-handle-zone">
+      <div id="sheet-handle"></div>
     </div>
-    <div class="no-audio-note" id="no-audio-note" style="display:none;">Plik audio jeszcze nie został dodany dla tego punktu.</div>
+    <div id="sheet-peek-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"></polyline></svg>
+      <span id="sheet-peek-label">—</span>
+    </div>
+
+    <div id="sheet-full-content">
+      <div id="sheet-kicker">Punkt główny</div>
+      <h2 id="sheet-title">—</h2>
+
+      <button id="sheet-nav-cta" class="hidden">
+        <svg id="sheet-nav-cta-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path>
+          <circle cx="12" cy="9" r="2.5"></circle>
+        </svg>
+        <span id="sheet-nav-cta-label">Nawiguj do startu</span>
+      </button>
+
+      <div id="track-list"></div>
+
+      <div id="player">
+        <button id="play-btn" aria-label="Odtwórz">
+          <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </button>
+        <div id="player-mid">
+          <div id="progress-track"><div id="progress-fill"></div></div>
+          <div id="time-row"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
+        </div>
+      </div>
+      <div class="no-audio-note" id="no-audio-note" style="display:none;">Plik audio jeszcze nie został dodany dla tego punktu.</div>
+    </div>
   </div>
 </div>
 
@@ -1730,6 +1754,7 @@ function startLocationTracking(flyOnFirstFix) {
           navActive = false;
           if (typeof setNavCtaState === 'function') setNavCtaState(false);
           if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+          if (typeof setSheetPeek === 'function') setSheetPeek(false); // dotarł — pokazujemy z powrotem pełny panel z tracklami
         }
       }
     }
@@ -1778,6 +1803,8 @@ sheetNavCta.addEventListener('click', () => {
     const bounds = L.latLngBounds([[gll.lat, gll.lng], [startPoint.lat, startPoint.lng]]);
     map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
   }
+  // zwijamy panel do małego paska na dole, żeby było widać mapę i nawigację podczas chodzenia
+  setSheetPeek(true);
 });
 
 document.getElementById('locate-btn').addEventListener('click', () => {
@@ -1954,6 +1981,18 @@ const trackListEl = document.getElementById('track-list');
 let currentPoint = null;
 let currentTrackIndex = 0;
 
+let sheetPeek = false;
+function setSheetPeek(state) {
+  sheetPeek = state;
+  sheet.classList.toggle('peek', state);
+  sheetBackdrop.classList.toggle('peek', state);
+  if (state && currentPoint) {
+    document.getElementById('sheet-peek-label').textContent = currentPoint.name;
+  }
+}
+document.getElementById('sheet-handle-zone').addEventListener('click', () => setSheetPeek(!sheetPeek));
+document.getElementById('sheet-peek-bar').addEventListener('click', () => setSheetPeek(false));
+
 function openSheet(point) {
   // jeśli menu dzielnic jest w stanie zwiniętym (peek) — chowamy je całkiem, żeby nie kolidowało z tym panelem
   const dm = document.getElementById('district-menu');
@@ -1974,6 +2013,7 @@ function openSheet(point) {
   }
   renderTrackList();
   loadTrack();
+  setSheetPeek(false); // świeżo otwarty panel zawsze zaczyna w pełni rozwinięty
   sheet.classList.add('open');
   sheetBackdrop.classList.add('open');
 }
@@ -1981,6 +2021,7 @@ function openSheet(point) {
 function closeSheet() {
   sheet.classList.remove('open');
   sheetBackdrop.classList.remove('open');
+  setSheetPeek(false);
   audioEl.pause();
 }
 
