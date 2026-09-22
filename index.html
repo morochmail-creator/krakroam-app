@@ -477,12 +477,11 @@
   }
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
-  #sheet-title-row { margin-bottom: 4px; }
+  #sheet-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
   #sheet-title { font-size: 22px; font-weight: 600; margin: 0; color: var(--cream); }
 
-  #sheet-goto-row { display: flex; justify-content: flex-end; margin-bottom: 10px; }
   #sheet-goto-btn {
-    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0; display: flex; align-items: center; gap: 8px;
     background: rgba(74,144,217,0.14); border: 1px solid #4a90d9;
     color: #4a90d9; font-size: 12.5px; font-weight: 700;
     padding: 7px 12px 7px 8px; border-radius: 999px; cursor: pointer;
@@ -741,9 +740,6 @@
       <div id="sheet-kicker">Punkt główny</div>
       <div id="sheet-title-row">
         <h2 id="sheet-title">—</h2>
-      </div>
-
-      <div id="sheet-goto-row">
         <button id="sheet-goto-btn" class="hidden" aria-label="Prowadź mnie tutaj">
           <span id="sheet-goto-icon-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2097,10 +2093,11 @@ function setSheetPeek(state) {
     const label = document.getElementById('sheet-peek-label');
     label.textContent = track ? track.label : currentPoint.name;
   }
-  if (!state && currentPoint && currentPoint.type !== 'intro') {
-    // rozwinięcie panelu = mapa leci nad ten punkt, tak samo jak przy kliknięciu w pin
-    // (poza track 0 "Zanim wyruszysz" — to nie jest realny punkt geograficzny)
-    flyToPointBehindSheet(currentPoint);
+  if (!state && currentPoint) {
+    // rozwinięcie panelu = mapa leci nad ten punkt, tak samo jak przy kliknięciu w pin.
+    // Track 0 "Zanim wyruszysz" nie ma własnych współrzędnych — leci wtedy nad punkt startowy trasy
+    const target = currentPoint.type === 'intro' ? startPoint : currentPoint;
+    flyToPointBehindSheet(target);
   }
 }
 document.getElementById('sheet-peek-bar').addEventListener('click', () => setSheetPeek(false));
