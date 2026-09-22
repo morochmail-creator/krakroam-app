@@ -1284,10 +1284,16 @@ const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 
 /* ============================================================
    MAPA
 ============================================================ */
+// domyślny widok od razu na całe miasto (Stare Miasto + Kazimierz + Podgórze) —
+// dokładnie ten sam obszar co przy wyborze "Zwiedzaj bez trasy", widoczny od razu w tle,
+// jeszcze zanim user wybierze język czy dzielnicę
+const initialCityBounds = L.latLngBounds(
+  POINTS.map(p => [p.lat, p.lng]).concat([[50.0492, 19.9463], [50.0397, 19.9499]])
+);
 const map = L.map('map', {
   zoomControl: false,
   attributionControl: false
-}).setView([50.061853, 19.938628], 17);
+}).fitBounds(initialCityBounds, { padding: [36, 36] });
 
 // wykrywamy słabe połączenie (2G/3G, "oszczędzanie danych") i dostosowujemy zachowanie mapy
 const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -1489,6 +1495,9 @@ map.addLayer(extraCluster);
 
 // pokazuje/chowa flagę "start" na pinie startowym, zależnie od tego,
 // czy user w ogóle wybrał trasę, i czy jest już blisko punktu startowego
+let hiddenNearbyMarkers = [];
+const NEARBY_HIDE_RADIUS = 45; // metrów — w tym promieniu od startu chowamy inne punkty, żeby pinezka "start" była jedyna
+
 function updateStartMarkerIcon() {
   if (!startMarker) return;
   if (routeChosen) {
@@ -1500,11 +1509,35 @@ function updateStartMarkerIcon() {
     }
     const showFlag = !reachedStart;
     startMarker.setIcon(makeDivIcon(showFlag ? 'marker-start' : 'marker-main', 26));
+
+    if (showFlag && hiddenNearbyMarkers.length === 0) {
+      // chowamy inne punkty leżące tuż przy starcie — pinezka "start" ma być jedyną widoczną w tej okolicy
+      POINTS.forEach(p => {
+        if (p.id === startPoint.id) return;
+        const dist = distMeters([p.lat, p.lng], [startPoint.lat, startPoint.lng]);
+        if (dist < NEARBY_HIDE_RADIUS) {
+          const m = markersById[p.id];
+          const group = p.type === 'main' ? mainCluster : extraCluster;
+          if (m && group.hasLayer(m)) {
+            group.removeLayer(m);
+            hiddenNearbyMarkers.push({ marker: m, group });
+          }
+        }
+      });
+    } else if (!showFlag && hiddenNearbyMarkers.length > 0) {
+      // user dotarł do startu — przywracamy pobliskie punkty
+      hiddenNearbyMarkers.forEach(({ marker, group }) => { if (!group.hasLayer(marker)) group.addLayer(marker); });
+      hiddenNearbyMarkers = [];
+    }
   } else {
     // tryb swobodny / brak wyboru — to zwykły punkt główny, wraca do normalnego klastrowania
     if (map.hasLayer(startMarker)) map.removeLayer(startMarker);
     startMarker.setIcon(makeDivIcon('marker-main', 26));
     if (!mainCluster.hasLayer(startMarker)) mainCluster.addLayer(startMarker);
+    if (hiddenNearbyMarkers.length > 0) {
+      hiddenNearbyMarkers.forEach(({ marker, group }) => { if (!group.hasLayer(marker)) group.addLayer(marker); });
+      hiddenNearbyMarkers = [];
+    }
   }
 }
 
@@ -1622,6 +1655,7 @@ async function requestWalkingRoute(userLatLng) {
     'https://router.project-osrm.org'
   ];
   let success = false;
+  let lastError = null;
   for (const base of endpoints) {
     try {
       const coords = await fetchWalkingRouteFrom(base, userLatLng, startLatLng);
@@ -1629,11 +1663,16 @@ async function requestWalkingRoute(userLatLng) {
       success = true;
       break;
     } catch (e) {
+      lastError = e;
       console.error('Routing przez', base, 'nie powiodło się:', e);
     }
   }
-  if (!success) {
-    // obydwa serwery zawiodły — zostaje prosta linia jako fallback
+  const navActiveTextEl = document.getElementById('nav-active-text');
+  if (!success && navActiveTextEl) {
+    // tymczasowy widoczny komunikat diagnostyczny — żeby dało się zobaczyć, co faktycznie poszło nie tak
+    navActiveTextEl.textContent = 'Trasa: błąd (' + (lastError ? String(lastError.message || lastError) : 'nieznany') + ')';
+  } else if (success && navActiveTextEl) {
+    navActiveTextEl.textContent = t('navigatingText');
   }
   routingInFlight = false;
 }
@@ -1817,11 +1856,8 @@ const menuInner = document.getElementById('district-menu-inner');
 const menuHandle = document.getElementById('drag-zone');
 let sheetState = 'full'; // 'full' | 'peek'
 
-const TOP_PADDING = 10; // musi się zgadzać z paddingiem górnym #district-menu-inner w CSS
-const peekVisibleEl = document.getElementById('peek-visible');
-
 function getPeekTranslate() {
-  // stała wysokość: pasek do przeciągania + kompaktowy pasek "KrakRoam" — zaprojektowane z góry, nie mierzone dynamicznie
+  // tyle trzeba przesunąć w dół, żeby zostawić widoczny tylko kompaktowy pasek na dole
   const PEEK_VISIBLE_HEIGHT = 78;
   return Math.max(menuInner.offsetHeight - PEEK_VISIBLE_HEIGHT, 0);
 }
@@ -1833,15 +1869,33 @@ function openDistrictMenuFull() {
   menuInner.style.transform = 'translateY(0)';
 }
 
+function collapseDistrictMenuToPeek() {
+  // stan spoczynkowy "zwinięty" NIE polega na przycinaniu wysokiego panelu przez transform —
+  // zamiast tego CSS realnie chowa wiersze/tytuł (.peek chowa je), więc panel sam robi się
+  // krótki i naturalnie "siedzi" na dole, bez żadnych wyliczeń pikseli, które mogły się rozjechać
+  sheetState = 'peek';
+  menuInner.style.transition = '';
+  menuInner.style.transform = 'translateY(0)';
+  districtMenuEl.classList.add('peek');
+}
+
 (function enableDraggableSheet() {
   let dragStartY = null;
   let startTranslate = 0;
   let dragging = false;
-  let justDragged = false;
 
   menuHandle.addEventListener('touchstart', (e) => {
     dragStartY = e.touches[0].clientY;
-    startTranslate = sheetState === 'peek' ? getPeekTranslate() : 0;
+    if (sheetState === 'peek') {
+      // na czas przeciągania pokazujemy z powrotem pełną treść (żeby było co "wyciągać" w górę),
+      // i od razu przesuwamy panel tak, żeby wizualnie nic nie "skoczyło"
+      districtMenuEl.classList.remove('peek');
+      startTranslate = getPeekTranslate();
+      menuInner.style.transition = 'none';
+      menuInner.style.transform = `translateY(${startTranslate}px)`;
+    } else {
+      startTranslate = 0;
+    }
     dragging = true;
     menuInner.style.transition = 'none';
   }, { passive: true });
@@ -1860,7 +1914,6 @@ function openDistrictMenuFull() {
     if (!dragging) return;
     dragging = false;
     const deltaY = e.changedTouches[0].clientY - dragStartY;
-    justDragged = Math.abs(deltaY) > 8; // odróżnia realne przeciągnięcie od zwykłego stuknięcia
     const peekY = getPeekTranslate();
     const finalTranslate = Math.min(Math.max(0, startTranslate + deltaY), peekY);
     menuInner.style.transition = '';
@@ -1871,15 +1924,11 @@ function openDistrictMenuFull() {
       districtMenuEl.classList.remove('peek');
       menuInner.style.transform = 'translateY(0)';
     } else {
-      // zwija do "peek" — mapa staje się widoczna i dotykalna pod spodem
-      sheetState = 'peek';
-      districtMenuEl.classList.add('peek');
-      menuInner.style.transform = `translateY(${peekY}px)`;
+      // zwija do "peek" — CSS chowa treść, panel naturalnie robi się krótki i zostaje na dole
+      collapseDistrictMenuToPeek();
     }
     dragStartY = null;
   });
-
-  // tapnięcie uchwytu (bez przeciągania) też przełącza pełny/zwinięty
 })();
 
 document.getElementById('district-menu-close').addEventListener('click', () => {
