@@ -1464,7 +1464,6 @@ const mainCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
-  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-main')
 });
 const extraCluster = L.markerClusterGroup({
@@ -1472,7 +1471,6 @@ const extraCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
-  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-extra')
 });
 
@@ -1799,6 +1797,8 @@ startLocationTracking(false);
 function selectDistrict(freeRoam, options) {
   const skipCameraMove = !!(options && options.skipCameraMove);
   map.invalidateSize(); // wymusza poprawne przeliczenie pozycji pinów/mapy — zapobiega "rozjechanym" pinom przy pierwszym pokazaniu
+  mainCluster.refreshClusters();
+  extraCluster.refreshClusters();
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
   const dmEl = document.getElementById('district-menu');
   dmEl.classList.add('hidden');
