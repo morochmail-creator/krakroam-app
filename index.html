@@ -1492,14 +1492,8 @@ POINTS.forEach(p => {
   const marker = L.marker([p.lat, p.lng], { icon });
 
   marker.on('click', () => {
-    // punkt startowy, dopóki user do niego nie dotarł po wybraniu trasy — inne zachowanie:
-    // zamiast panelu z audio, pokazujemy pasek z przyciskiem "NAWIGUJ"
-    if (p.id === startPoint.id && routeChosen && !reachedStart) {
-      openStartPrompt();
-      const targetZoom = 17;
-      map.flyTo([p.lat, p.lng], targetZoom, { duration: 1.1 });
-      return;
-    }
+    // uwaga: klikanie punktu startowego (zielona kropka) zawsze otwiera jego panel audio —
+    // to osobna flaga "START" (patrz startFlagMarker niżej) odpowiada za pasek "NAWIGUJ"
     openSheet(p);
     const targetZoom = 18;
     const sheetHeight = document.getElementById('sheet').getBoundingClientRect().height;
