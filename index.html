@@ -107,6 +107,20 @@
     pointer-events: auto;
     box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
   }
+  /* w stanie zwiniętym: chowamy pełny tytuł, pokazujemy tylko mały, czytelny pasek */
+  #district-menu.peek #district-menu-eyebrow,
+  #district-menu.peek #district-menu-title,
+  #district-menu.peek #change-lang-btn {
+    display: none;
+  }
+  #peek-compact-bar {
+    display: none;
+    align-items: center; justify-content: center; gap: 8px;
+    padding: 2px 0 4px;
+    color: var(--cream-dim); font-size: 13px; font-weight: 600;
+  }
+  #district-menu.peek #peek-compact-bar { display: flex; }
+  #peek-compact-bar svg { width: 15px; height: 15px; stroke: var(--amber-soft); }
   #district-menu-inner {
     position: relative; width: 100%; max-width: 480px;
     background: var(--panel); border: 1px solid var(--line);
@@ -482,6 +496,10 @@
       <div id="peek-visible">
         <div id="drag-zone">
           <div id="district-menu-handle"></div>
+        </div>
+        <div id="peek-compact-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"></polyline></svg>
+          KrakRoam
         </div>
         <div id="district-menu-eyebrow">KrakRoam</div>
         <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
@@ -1414,6 +1432,7 @@ const mainCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
+  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-main')
 });
 const extraCluster = L.markerClusterGroup({
@@ -1421,6 +1440,7 @@ const extraCluster = L.markerClusterGroup({
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
+  animate: false,
   iconCreateFunction: clusterIconFactory('cluster-extra')
 });
 
@@ -1460,6 +1480,8 @@ POINTS.forEach(p => {
 
   markersById[p.id] = marker;
   if (p.id === startPoint.id) startMarker = marker;
+  // punkt startowy na start zachowuje się jak zwykły punkt główny (bierze udział w klastrowaniu) —
+  // dopiero po wybraniu konkretnej trasy zostaje z niej "wyciągnięty" i pokazany osobno z flagą (patrz updateStartMarkerIcon)
   (p.type === 'main' ? mainCluster : extraCluster).addLayer(marker);
 });
 map.addLayer(mainCluster);
@@ -1469,8 +1491,21 @@ map.addLayer(extraCluster);
 // czy user w ogóle wybrał trasę, i czy jest już blisko punktu startowego
 function updateStartMarkerIcon() {
   if (!startMarker) return;
-  const showFlag = routeChosen && !reachedStart;
-  startMarker.setIcon(makeDivIcon(showFlag ? 'marker-start' : 'marker-main', 26));
+  if (routeChosen) {
+    // trasa wybrana — wyciągamy punkt z klastra, pokazujemy osobno, zawsze na wierzchu
+    if (mainCluster.hasLayer(startMarker)) mainCluster.removeLayer(startMarker);
+    if (!map.hasLayer(startMarker)) {
+      startMarker.setZIndexOffset(2000);
+      startMarker.addTo(map);
+    }
+    const showFlag = !reachedStart;
+    startMarker.setIcon(makeDivIcon(showFlag ? 'marker-start' : 'marker-main', 26));
+  } else {
+    // tryb swobodny / brak wyboru — to zwykły punkt główny, wraca do normalnego klastrowania
+    if (map.hasLayer(startMarker)) map.removeLayer(startMarker);
+    startMarker.setIcon(makeDivIcon('marker-main', 26));
+    if (!mainCluster.hasLayer(startMarker)) mainCluster.addLayer(startMarker);
+  }
 }
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
@@ -1561,6 +1596,17 @@ function distMeters(a, b) {
   return L.latLng(a).distanceTo(L.latLng(b));
 }
 
+async function fetchWalkingRouteFrom(baseUrl, from, to) {
+  const url = `${baseUrl}/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('routing HTTP ' + res.status);
+  const data = await res.json();
+  if (data.routes && data.routes[0]) {
+    return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+  }
+  throw new Error('no route in response');
+}
+
 async function requestWalkingRoute(userLatLng) {
   if (routingInFlight) return;
   if (lastRoutedLatLng && distMeters(userLatLng, lastRoutedLatLng) < 30) return;
@@ -1568,19 +1614,28 @@ async function requestWalkingRoute(userLatLng) {
   lastRoutedLatLng = userLatLng;
   // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
   drawGuideLine([userLatLng, startLatLng]);
-  try {
-    const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${userLatLng[1]},${userLatLng[0]};${startLatLng[1]},${startLatLng[0]}?overview=full&geometries=geojson`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.routes && data.routes[0]) {
-      const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+  // dwa niezależne serwery routingu pieszego (ten sam silnik OSRM, różne adresy) —
+  // jeśli pierwszy akurat zawiedzie (limit zapytań / przestój), próbujemy drugiego
+  const endpoints = [
+    'https://routing.openstreetmap.de/routed-foot',
+    'https://router.project-osrm.org'
+  ];
+  let success = false;
+  for (const base of endpoints) {
+    try {
+      const coords = await fetchWalkingRouteFrom(base, userLatLng, startLatLng);
       drawGuideLine(coords);
+      success = true;
+      break;
+    } catch (e) {
+      console.error('Routing przez', base, 'nie powiodło się:', e);
     }
-  } catch (e) {
-    // zostaje prosta linia jako fallback — brak połączenia albo serwis niedostępny
-  } finally {
-    routingInFlight = false;
   }
+  if (!success) {
+    // obydwa serwery zawiodły — zostaje prosta linia jako fallback
+  }
+  routingInFlight = false;
 }
 
 function startLocationTracking(flyOnFirstFix) {
@@ -1641,6 +1696,12 @@ const startPromptBar = document.getElementById('start-prompt-bar');
 const navActiveBar = document.getElementById('nav-active-bar');
 
 function openStartPrompt() {
+  // to samo zabezpieczenie co w openSheet — nie chcemy dwóch pasków na dole naraz
+  const dm = document.getElementById('district-menu');
+  if (dm.classList.contains('peek')) {
+    dm.classList.add('hidden');
+    dm.classList.remove('peek');
+  }
   navActiveBar.classList.add('hidden');
   startPromptBar.classList.remove('hidden');
 }
@@ -1692,7 +1753,9 @@ startLocationTracking(false);
 /* ============================================================
    MENU WYBORU DZIELNICY
 ============================================================ */
-function selectDistrict(freeRoam) {
+function selectDistrict(freeRoam, options) {
+  const skipCameraMove = !!(options && options.skipCameraMove);
+  map.invalidateSize(); // wymusza poprawne przeliczenie pozycji pinów/mapy — zapobiega "rozjechanym" pinom przy pierwszym pokazaniu
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
   const dmEl = document.getElementById('district-menu');
   dmEl.classList.add('hidden');
@@ -1717,6 +1780,8 @@ function selectDistrict(freeRoam) {
       routeLinePath.addTo(map);
     }
   }
+
+  if (skipCameraMove) return; // zamknięcie przez X/tło — nie ruszamy kamerą, zostawiamy widok jak był
 
   if (freeRoam) {
     // tryb swobodny — pokazujemy przegląd WSZYSTKICH dzielnic (nie tylko Starego Miasta),
@@ -1756,10 +1821,9 @@ const TOP_PADDING = 10; // musi się zgadzać z paddingiem górnym #district-men
 const peekVisibleEl = document.getElementById('peek-visible');
 
 function getPeekTranslate() {
-  // dokładny pomiar: pasek + "KrakRoam" + tytuł, plus mały zapas — czyste ucięcie, bez połówki tekstu
-  const gapAfter = 22;
-  const visibleHeight = TOP_PADDING + peekVisibleEl.offsetHeight + gapAfter;
-  return Math.max(menuInner.offsetHeight - visibleHeight, 0);
+  // stała wysokość: pasek do przeciągania + kompaktowy pasek "KrakRoam" — zaprojektowane z góry, nie mierzone dynamicznie
+  const PEEK_VISIBLE_HEIGHT = 78;
+  return Math.max(menuInner.offsetHeight - PEEK_VISIBLE_HEIGHT, 0);
 }
 
 function openDistrictMenuFull() {
@@ -1816,27 +1880,13 @@ function openDistrictMenuFull() {
   });
 
   // tapnięcie uchwytu (bez przeciągania) też przełącza pełny/zwinięty
-  menuHandle.addEventListener('click', () => {
-    if (justDragged) {
-      // to kliknięcie to tylko "ogon" po przeciągnięciu — ignorujemy, żeby nie cofać tego co drag właśnie ustawił
-      justDragged = false;
-      return;
-    }
-    if (sheetState === 'peek') {
-      openDistrictMenuFull();
-    } else {
-      sheetState = 'peek';
-      districtMenuEl.classList.add('peek');
-      menuInner.style.transform = `translateY(${getPeekTranslate()}px)`;
-    }
-  });
 })();
 
 document.getElementById('district-menu-close').addEventListener('click', () => {
-  selectDistrict(true); // zamknięcie bez wyboru = tryb swobodny
+  selectDistrict(true, { skipCameraMove: true }); // zamknięcie bez wyboru = tryb swobodny, bez ruszania kamery
 });
 document.getElementById('district-scrim').addEventListener('click', () => {
-  selectDistrict(true); // kliknięcie w tło = tryb swobodny
+  selectDistrict(true, { skipCameraMove: true }); // kliknięcie w tło = tryb swobodny, bez ruszania kamery
 });
 document.getElementById('change-lang-btn').addEventListener('click', () => {
   document.getElementById('district-menu').classList.add('hidden');
@@ -1909,6 +1959,12 @@ let currentPoint = null;
 let currentTrackIndex = 0;
 
 function openSheet(point) {
+  // jeśli menu dzielnic jest w stanie zwiniętym (peek) — chowamy je całkiem, żeby nie kolidowało z tym panelem
+  const dm = document.getElementById('district-menu');
+  if (dm.classList.contains('peek')) {
+    dm.classList.add('hidden');
+    dm.classList.remove('peek');
+  }
   currentPoint = point;
   currentTrackIndex = 0;
   sheetTitle.textContent = point.name;
