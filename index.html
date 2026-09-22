@@ -145,56 +145,27 @@
   #district-menu.peek #district-scrim {
     opacity: 0; pointer-events: none;
   }
-  #district-menu.peek {
-    pointer-events: none;
-  }
-  #district-menu.peek #district-menu-inner {
-    pointer-events: auto;
-    box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
-  }
-  /* w stanie zwiniętym: chowamy pełny tytuł, pokazujemy tylko mały, czytelny pasek */
-  #district-menu.peek #district-menu-eyebrow,
-  #district-menu.peek #district-menu-title,
-  #district-menu.peek #change-lang-btn {
-    display: none;
-  }
-  #peek-compact-bar {
-    display: none;
-    align-items: center; justify-content: center; gap: 8px;
-    padding: 2px 0 4px;
-    color: var(--cream-dim); font-size: 13px; font-weight: 600;
-  }
-  #district-menu.peek #peek-compact-bar { display: flex; }
-  #peek-compact-bar svg { width: 15px; height: 15px; stroke: var(--amber-soft); }
   #district-menu-inner {
     position: relative; width: 100%; max-width: 480px;
     background: var(--panel); border: 1px solid var(--line);
     border-radius: 26px 26px 0 0;
     box-shadow: 0 -20px 60px rgba(0,0,0,0.6);
-    padding: 10px 22px calc(26px + env(safe-area-inset-bottom, 0px));
+    padding: 20px 22px calc(26px + env(safe-area-inset-bottom, 0px));
     transform: translateY(0);
     transition: transform 0.4s cubic-bezier(.32,.72,0,1);
   }
   #district-menu.entering #district-menu-inner { transform: translateY(100%); }
-  #drag-zone {
-    position: relative;
-    margin: -10px -22px 8px; /* rozciąga strefę na całą szerokość panelu, poza jego padding */
-    padding: 16px 0 22px;
-    touch-action: none;
-  }
-  #district-menu-handle {
-    width: 36px; height: 4px; border-radius: 2px;
-    background: var(--line); margin: 0 auto;
-  }
   #district-menu-close {
     position: absolute; top: 16px; right: 16px;
-    background: none; border: none; color: var(--cream-dim);
-    font-size: 22px; cursor: pointer; line-height: 1; padding: 6px;
+    background: var(--panel-2); border: none; color: var(--cream);
+    width: 36px; height: 36px; border-radius: 50%;
+    font-size: 24px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
     z-index: 2;
   }
   #district-menu-eyebrow {
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--amber-soft); text-align: center; margin-bottom: 6px;
+    color: var(--amber-soft); text-align: center; margin: 6px 0 6px;
   }
   #district-menu-title {
     font-family: 'Fraunces', Georgia, serif;
@@ -216,15 +187,16 @@
   #change-lang-flag { font-size: 15px; }
   .district-row {
     display: flex; align-items: center; gap: 14px;
-    padding: 14px 12px; border-radius: 14px;
-    cursor: pointer; transition: background 0.15s ease;
+    padding: 14px 14px; border-radius: 16px;
+    cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
     position: relative;
+    background: var(--panel-2); border: 1px solid var(--line);
   }
-  .district-row:not(.disabled):active { background: var(--panel-2); }
-  .district-row + .district-row { margin-top: 2px; }
+  .district-row:not(.disabled):active { background: var(--line); }
+  .district-row + .district-row { margin-top: 10px; }
   .district-row-icon {
     flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
-    background: var(--panel-2); border: 1px solid var(--line);
+    background: var(--panel); border: 1px solid var(--line);
     display: flex; align-items: center; justify-content: center;
   }
   .district-row-icon svg { width: 20px; height: 20px; stroke: var(--amber-soft); }
@@ -580,17 +552,8 @@
     <div id="district-scrim"></div>
     <div id="district-menu-inner">
       <button id="district-menu-close" aria-label="Zamknij">×</button>
-      <div id="peek-visible">
-        <div id="drag-zone">
-          <div id="district-menu-handle"></div>
-        </div>
-        <div id="peek-compact-bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"></polyline></svg>
-          KrakRoam
-        </div>
-        <div id="district-menu-eyebrow">KrakRoam</div>
-        <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
-      </div>
+      <div id="district-menu-eyebrow">KrakRoam</div>
+      <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
       <button id="change-lang-btn">
         <span id="change-lang-flag">🇵🇱</span>
         <span id="change-lang-label">Zmień język</span>
@@ -781,6 +744,7 @@ pwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock();
 
 function lockApp() {
   localStorage.removeItem('krakroam_unlocked');
+  localStorage.removeItem('krakroam_lang');
   location.reload();
 }
 
@@ -1980,6 +1944,7 @@ document.getElementById('logout-btn').addEventListener('click', lockApp);
 document.querySelectorAll('.lang-row').forEach(row => {
   row.addEventListener('click', () => {
     currentLang = row.dataset.lang;
+    localStorage.setItem('krakroam_lang', currentLang);
     applyTranslations();
     document.getElementById('lang-menu').classList.add('hidden');
     const dm = document.getElementById('district-menu');
@@ -1990,6 +1955,16 @@ document.querySelectorAll('.lang-row').forEach(row => {
     });
   });
 });
+
+// jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu
+const savedLang = localStorage.getItem('krakroam_lang');
+if (savedLang && TRANSLATIONS[savedLang]) {
+  currentLang = savedLang;
+  applyTranslations();
+  document.getElementById('lang-menu').classList.add('hidden');
+  const dm = document.getElementById('district-menu');
+  dm.classList.remove('hidden', 'entering');
+}
 
 // Środki (w przybliżeniu) poszczególnych dzielnic — do polecenia najbliższej trasy
 const staremiastoCenterLat = POINTS.reduce((s, p) => s + p.lat, 0) / POINTS.length;
