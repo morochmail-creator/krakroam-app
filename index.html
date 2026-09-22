@@ -1798,10 +1798,8 @@ function selectDistrict(freeRoam, options) {
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
   const dmEl = document.getElementById('district-menu');
   dmEl.classList.add('hidden');
-  dmEl.classList.remove('peek');
   const dmInner = document.getElementById('district-menu-inner');
   dmInner.style.transform = 'translateY(0)';
-  if (typeof sheetState !== 'undefined') sheetState = 'full';
 
   // reset stanu nawigacji przy każdym (ponownym) wyborze
   routeChosen = !freeRoam;
@@ -1850,97 +1848,23 @@ document.getElementById('brand').addEventListener('click', () => {
   openDistrictMenuFull();
 });
 
-/* ---------- Zwijane menu (peek) — przeciąganie uchwytu ---------- */
+/* ---------- Menu dzielnic: stałe, bez przeciągania/zwijania ---------- */
 const districtMenuEl = document.getElementById('district-menu');
 const menuInner = document.getElementById('district-menu-inner');
-const menuHandle = document.getElementById('drag-zone');
-let sheetState = 'full'; // 'full' | 'peek'
-
-function getPeekTranslate() {
-  // tyle trzeba przesunąć w dół, żeby zostawić widoczny tylko kompaktowy pasek na dole
-  const PEEK_VISIBLE_HEIGHT = 78;
-  return Math.max(menuInner.offsetHeight - PEEK_VISIBLE_HEIGHT, 0);
-}
 
 function openDistrictMenuFull() {
-  districtMenuEl.classList.remove('hidden', 'peek');
-  sheetState = 'full';
-  menuInner.style.transition = '';
+  districtMenuEl.classList.remove('hidden');
   menuInner.style.transform = 'translateY(0)';
 }
 
-function collapseDistrictMenuToPeek() {
-  // stan spoczynkowy "zwinięty" NIE polega na przycinaniu wysokiego panelu przez transform —
-  // zamiast tego CSS realnie chowa wiersze/tytuł (.peek chowa je), więc panel sam robi się
-  // krótki i naturalnie "siedzi" na dole, bez żadnych wyliczeń pikseli, które mogły się rozjechać
-  sheetState = 'peek';
-  menuInner.style.transition = '';
-  menuInner.style.transform = 'translateY(0)';
-  districtMenuEl.classList.add('peek');
+function closeDistrictMenu() {
+  // X / kliknięcie w tło = tylko zamyka menu, NIE zmienia wybranej trasy ani stanu nawigacji
+  document.getElementById('district-menu').classList.add('hidden');
 }
-
-(function enableDraggableSheet() {
-  let dragStartY = null;
-  let startTranslate = 0;
-  let dragging = false;
-
-  menuHandle.addEventListener('touchstart', (e) => {
-    dragStartY = e.touches[0].clientY;
-    if (sheetState === 'peek') {
-      // na czas przeciągania pokazujemy z powrotem pełną treść (żeby było co "wyciągać" w górę),
-      // i od razu przesuwamy panel tak, żeby wizualnie nic nie "skoczyło"
-      districtMenuEl.classList.remove('peek');
-      startTranslate = getPeekTranslate();
-      menuInner.style.transition = 'none';
-      menuInner.style.transform = `translateY(${startTranslate}px)`;
-    } else {
-      startTranslate = 0;
-    }
-    dragging = true;
-    menuInner.style.transition = 'none';
-  }, { passive: true });
-
-  menuHandle.addEventListener('touchmove', (e) => {
-    if (!dragging) return;
-    const deltaY = e.touches[0].clientY - dragStartY;
-    const peekY = getPeekTranslate();
-    // przeciąganie ograniczone WYŁĄCZNIE między pełnym (0) a zwiniętym (peekY) —
-    // nigdy nie zamyka menu ani nie rusza kamery; do zamknięcia służy tylko przycisk X
-    const newTranslate = Math.min(Math.max(0, startTranslate + deltaY), peekY);
-    menuInner.style.transform = `translateY(${newTranslate}px)`;
-  }, { passive: true });
-
-  menuHandle.addEventListener('touchend', (e) => {
-    if (!dragging) return;
-    dragging = false;
-    const deltaY = e.changedTouches[0].clientY - dragStartY;
-    const peekY = getPeekTranslate();
-    const finalTranslate = Math.min(Math.max(0, startTranslate + deltaY), peekY);
-    menuInner.style.transition = '';
-
-    if (finalTranslate < peekY * 0.5) {
-      // wraca do pełnego widoku
-      sheetState = 'full';
-      districtMenuEl.classList.remove('peek');
-      menuInner.style.transform = 'translateY(0)';
-    } else {
-      // zwija do "peek" — CSS chowa treść, panel naturalnie robi się krótki i zostaje na dole
-      collapseDistrictMenuToPeek();
-    }
-    dragStartY = null;
-  });
-})();
-
-document.getElementById('district-menu-close').addEventListener('click', () => {
-  selectDistrict(true, { skipCameraMove: true }); // zamknięcie bez wyboru = tryb swobodny, bez ruszania kamery
-});
-document.getElementById('district-scrim').addEventListener('click', () => {
-  selectDistrict(true, { skipCameraMove: true }); // kliknięcie w tło = tryb swobodny, bez ruszania kamery
-});
+document.getElementById('district-menu-close').addEventListener('click', closeDistrictMenu);
+document.getElementById('district-scrim').addEventListener('click', closeDistrictMenu);
 document.getElementById('change-lang-btn').addEventListener('click', () => {
   document.getElementById('district-menu').classList.add('hidden');
-  districtMenuEl.classList.remove('peek');
-  sheetState = 'full';
   menuInner.style.transform = 'translateY(0)';
   document.getElementById('lang-menu').classList.remove('hidden');
 });
@@ -1951,8 +1875,7 @@ document.querySelectorAll('.lang-row').forEach(row => {
     applyTranslations();
     document.getElementById('lang-menu').classList.add('hidden');
     const dm = document.getElementById('district-menu');
-    dm.classList.remove('hidden', 'peek');
-    sheetState = 'full';
+    dm.classList.remove('hidden');
     menuInner.style.transform = 'translateY(0)';
     requestAnimationFrame(() => {
       setTimeout(() => dm.classList.remove('entering'), 60);
