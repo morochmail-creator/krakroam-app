@@ -481,17 +481,12 @@
   #sheet-title { font-size: 22px; font-weight: 600; margin: 0; color: var(--cream); }
 
   #sheet-goto-btn {
-    flex-shrink: 0; display: flex; align-items: center; gap: 8px;
-    background: rgba(74,144,217,0.14); border: 1px solid #4a90d9;
-    color: #4a90d9; font-size: 12.5px; font-weight: 700;
-    padding: 7px 12px 7px 8px; border-radius: 999px; cursor: pointer;
+    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+    background: #4a90d9; border: none;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   #sheet-goto-btn.hidden { display: none; }
-  #sheet-goto-icon-wrap {
-    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
-    background: #4a90d9; display: flex; align-items: center; justify-content: center;
-  }
-  #sheet-goto-btn svg { width: 12px; height: 12px; stroke: #fff; }
+  #sheet-goto-btn svg { width: 17px; height: 17px; stroke: #fff; }
 
   #track-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 34vh; overflow-y: auto; }
   .track-row {
@@ -741,14 +736,11 @@
       <div id="sheet-title-row">
         <h2 id="sheet-title">—</h2>
         <button id="sheet-goto-btn" class="hidden" aria-label="Prowadź mnie tutaj">
-          <span id="sheet-goto-icon-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="13" cy="4" r="2"></circle>
-              <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
-              <path d="M11 14l3 1 2 5"></path>
-            </svg>
-          </span>
-          <span id="sheet-goto-label">Prowadź mnie tutaj</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="13" cy="4" r="2"></circle>
+            <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
+            <path d="M11 14l3 1 2 5"></path>
+          </svg>
         </button>
       </div>
 
@@ -988,7 +980,6 @@ function applyTranslations() {
   document.getElementById('change-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
   document.getElementById('change-lang-label').textContent = t('changeLang');
   document.getElementById('logout-btn').textContent = t('logoutBtn');
-  document.getElementById('sheet-goto-label').textContent = t('gotoHereBtn');
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
   document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
@@ -1668,8 +1659,8 @@ let routingInFlight = false;
 
 // cel nawigacji jest teraz dynamiczny — domyślnie punkt startowy trasy,
 // ale może to być dowolny punkt (patrz "Prowadź mnie tutaj" w trybie swobodnym)
-let navTargetLatLng = [startPoint.lat, startPoint.lng];
-let navTargetName = startPoint.name;
+let navTargetLatLng = null; // null = brak wybranego celu — kropka nawigacji nic wtedy nie robi po tapnięciu
+let navTargetName = null;
 
 /* ---------- Kompas: kierunek, w którym patrzy telefon ---------- */
 let compassStarted = false;
@@ -1894,7 +1885,9 @@ document.getElementById('nav-top-close').addEventListener('click', () => {
   navTopBar.classList.add('collapsed');
 });
 document.getElementById('nav-top-peek').addEventListener('click', () => {
-  // tapnięcie krążka wznawia nawigację do ostatniego celu
+  // tapnięcie krążka wznawia nawigację do ostatniego celu — ale tylko jeśli jakiś realnie jest ustawiony
+  // (np. w trybie swobodnym zanim wybierzesz konkretny punkt "Prowadź mnie tutaj" — nie ma dokąd prowadzić)
+  if (!navTargetLatLng) return;
   startNavigation();
 });
 
@@ -1948,6 +1941,12 @@ function selectDistrict(freeRoam, options) {
   navActive = false;
   collapseNavTopBar();
   if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+  if (freeRoam) {
+    // tryb swobodny — czyścimy zapamiętany cel, żeby kropka nawigacji nic nie robiła,
+    // dopóki user sam nie wybierze konkretnego punktu przez "Prowadź mnie tutaj"
+    navTargetLatLng = null;
+    navTargetName = null;
+  }
 
   if (routeLinePath) {
     if (freeRoam) {
