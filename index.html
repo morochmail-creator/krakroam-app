@@ -340,6 +340,32 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.5);
   }
 
+  /* ---------- Samodzielna flaga "START" — NIE jest punktem, nie klastruje się, zawsze na wierzchu ---------- */
+  .flag-only {
+    position: relative;
+    width: 4px; height: 4px;
+  }
+  .flag-only::before {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 2px; height: 26px;
+    background: var(--cream);
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  }
+  .flag-only::after {
+    content: "START";
+    position: absolute;
+    bottom: 26px; left: 50%; transform: translateX(-50%);
+    background: #ff2fa0;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 5px 9px; border-radius: 7px;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  }
+
   /* ---------- Klastry (bąbelki grupujące piny przy oddaleniu) ---------- */
   .cluster-main, .cluster-extra {
     border-radius: 50%;
@@ -1453,12 +1479,13 @@ const extraCluster = L.markerClusterGroup({
 const markersById = {};
 const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
 let startMarker = null;
+let startFlagMarker = null; // osobny, niezależny marker — sama flaga, nigdy nie klastruje się
 
 POINTS.forEach(p => {
   let className = 'marker-extra';
   let size = 16;
   if (p.type === 'main') {
-    className = 'marker-main'; // flaga "start" dodawana dynamicznie dopiero po wyborze trasy
+    className = 'marker-main';
     size = 26;
   }
   const icon = makeDivIcon(className, size);
@@ -1486,60 +1513,34 @@ POINTS.forEach(p => {
 
   markersById[p.id] = marker;
   if (p.id === startPoint.id) startMarker = marker;
-  // punkt startowy na start zachowuje się jak zwykły punkt główny (bierze udział w klastrowaniu) —
-  // dopiero po wybraniu konkretnej trasy zostaje z niej "wyciągnięty" i pokazany osobno z flagą (patrz updateStartMarkerIcon)
+  // punkt startowy to ZWYKŁY punkt — zawsze bierze udział w klastrowaniu jak każdy inny,
+  // niezależnie od tego, czy trasa jest wybrana. Flaga "start" to osobny, dodatkowy marker (patrz niżej)
   (p.type === 'main' ? mainCluster : extraCluster).addLayer(marker);
 });
 map.addLayer(mainCluster);
 map.addLayer(extraCluster);
 
-// pokazuje/chowa flagę "start" na pinie startowym, zależnie od tego,
-// czy user w ogóle wybrał trasę, i czy jest już blisko punktu startowego
-let hiddenNearbyMarkers = [];
-const NEARBY_HIDE_RADIUS = 45; // metrów — w tym promieniu od startu chowamy inne punkty, żeby pinezka "start" była jedyna
-
+// niezależna flaga "START" — nie jest punktem, nigdy nie klastruje się, zawsze na wierzchu ponad wszystkim
 function updateStartMarkerIcon() {
-  if (!startMarker) return;
-  if (routeChosen) {
-    // trasa wybrana — wyciągamy punkt z klastra, pokazujemy osobno, zawsze na wierzchu
-    if (mainCluster.hasLayer(startMarker)) mainCluster.removeLayer(startMarker);
-    if (!map.hasLayer(startMarker)) {
-      startMarker.setZIndexOffset(2000);
-      startMarker.addTo(map);
-    }
-    const showFlag = !reachedStart;
-    startMarker.setIcon(makeDivIcon(showFlag ? 'marker-start' : 'marker-main', 26));
-
-    if (showFlag && hiddenNearbyMarkers.length === 0) {
-      // chowamy inne punkty leżące tuż przy starcie — pinezka "start" ma być jedyną widoczną w tej okolicy
-      POINTS.forEach(p => {
-        if (p.id === startPoint.id) return;
-        const dist = distMeters([p.lat, p.lng], [startPoint.lat, startPoint.lng]);
-        if (dist < NEARBY_HIDE_RADIUS) {
-          const m = markersById[p.id];
-          const group = p.type === 'main' ? mainCluster : extraCluster;
-          if (m && group.hasLayer(m)) {
-            group.removeLayer(m);
-            hiddenNearbyMarkers.push({ marker: m, group });
-          }
-        }
+  const shouldShow = routeChosen && !reachedStart;
+  if (shouldShow) {
+    if (!startFlagMarker) {
+      startFlagMarker = L.marker([startPoint.lat, startPoint.lng], {
+        icon: L.divIcon({ className: '', html: '<div class="flag-only"></div>', iconSize: [4, 4], iconAnchor: [2, 4] }),
+        zIndexOffset: 3000,
+        interactive: true
       });
-    } else if (!showFlag && hiddenNearbyMarkers.length > 0) {
-      // user dotarł do startu — przywracamy pobliskie punkty
-      hiddenNearbyMarkers.forEach(({ marker, group }) => { if (!group.hasLayer(marker)) group.addLayer(marker); });
-      hiddenNearbyMarkers = [];
+      startFlagMarker.on('click', () => {
+        openStartPrompt();
+        map.flyTo([startPoint.lat, startPoint.lng], 17, { duration: 1.1 });
+      });
     }
-  } else {
-    // tryb swobodny / brak wyboru — to zwykły punkt główny, wraca do normalnego klastrowania
-    if (map.hasLayer(startMarker)) map.removeLayer(startMarker);
-    startMarker.setIcon(makeDivIcon('marker-main', 26));
-    if (!mainCluster.hasLayer(startMarker)) mainCluster.addLayer(startMarker);
-    if (hiddenNearbyMarkers.length > 0) {
-      hiddenNearbyMarkers.forEach(({ marker, group }) => { if (!group.hasLayer(marker)) group.addLayer(marker); });
-      hiddenNearbyMarkers = [];
-    }
+    if (!map.hasLayer(startFlagMarker)) startFlagMarker.addTo(map);
+  } else if (startFlagMarker && map.hasLayer(startFlagMarker)) {
+    map.removeLayer(startFlagMarker);
   }
 }
+
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
 let routeLinePath = null;
@@ -1630,7 +1631,10 @@ function distMeters(a, b) {
 }
 
 async function fetchWalkingRouteFrom(baseUrl, from, to) {
-  const url = `${baseUrl}/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+  // uwaga: serwery FOSSGIS (routing.openstreetmap.de/routed-foot) ignorują nazwę profilu w ścieżce
+  // i oczekują dosłownie "driving" nawet dla trasy pieszej — sam prefiks /routed-foot/ w adresie
+  // bazowym decyduje o tym, że to routing pieszy; "foot" w tym miejscu jest odrzucane (HTTP 400)
+  const url = `${baseUrl}/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('routing HTTP ' + res.status);
   const data = await res.json();
