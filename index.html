@@ -487,7 +487,16 @@
   }
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
-  #sheet-title { font-size: 22px; font-weight: 600; margin: 0 0 16px; color: var(--cream); }
+  #sheet-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  #sheet-title { font-size: 22px; font-weight: 600; margin: 0; color: var(--cream); }
+
+  #sheet-goto-btn {
+    flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(74,144,217,0.18); border: 1px solid #4a90d9;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  #sheet-goto-btn.hidden { display: none; }
+  #sheet-goto-btn svg { width: 18px; height: 18px; stroke: #4a90d9; }
 
   #track-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 34vh; overflow-y: auto; }
   .track-row {
@@ -524,10 +533,13 @@
   #time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--cream-dim); margin-top: 6px; }
 
   #sheet-close {
-    position: absolute; top: 14px; right: 16px;
-    background: none; border: none; color: var(--cream-dim);
-    font-size: 22px; cursor: pointer; line-height: 1; padding: 6px;
+    position: absolute; top: 14px; right: 16px; z-index: 2;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--panel-2); border: none; color: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
   }
+  #sheet-close svg { width: 16px; height: 16px; stroke: var(--cream); }
 
   .no-audio-note {
     font-size: 12px; color: var(--cream-dim); margin-top: 10px; text-align: center;
@@ -674,7 +686,7 @@
       </div>
       <div id="nav-top-text">
         <div id="nav-top-distance">— m</div>
-        <div id="nav-top-sub">do punktu startowego</div>
+        <div id="nav-top-sub">—</div>
       </div>
       <button id="nav-top-close" aria-label="Zwiń nawigację">×</button>
     </div>
@@ -719,7 +731,9 @@
   <div id="sheet-backdrop"></div>
 
   <div id="sheet">
-    <button id="sheet-close" aria-label="Zamknij">×</button>
+    <button id="sheet-close" aria-label="Zwiń">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg>
+    </button>
     <div id="sheet-handle-zone">
       <div id="sheet-handle"></div>
     </div>
@@ -733,15 +747,16 @@
 
     <div id="sheet-full-content">
       <div id="sheet-kicker">Punkt główny</div>
-      <h2 id="sheet-title">—</h2>
-
-      <button id="sheet-nav-cta" class="hidden">
-        <svg id="sheet-nav-cta-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path>
-          <circle cx="12" cy="9" r="2.5"></circle>
-        </svg>
-        <span id="sheet-nav-cta-label">Nawiguj do startu</span>
-      </button>
+      <div id="sheet-title-row">
+        <h2 id="sheet-title">—</h2>
+        <button id="sheet-goto-btn" class="hidden" aria-label="Prowadź mnie tutaj">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="13" cy="4" r="2"></circle>
+            <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
+            <path d="M11 14l3 1 2 5"></path>
+          </svg>
+        </button>
+      </div>
 
       <div id="track-list"></div>
 
@@ -839,7 +854,7 @@ const TRANSLATIONS = {
     navigateBtn: "NAWIGUJ",
     navigatingText: "Nawigacja do startu",
     logoutBtn: "Wyloguj",
-    routeIntroKicker: "Zanim ruszysz"
+    routeIntroKicker: "Witamy w Krakowie"
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
@@ -867,7 +882,7 @@ const TRANSLATIONS = {
     navigateBtn: "НАВІГАЦІЯ",
     navigatingText: "Навігація до старту",
     logoutBtn: "Вийти",
-    routeIntroKicker: "Перш ніж вирушити"
+    routeIntroKicker: "Ласкаво просимо до Кракова"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -895,7 +910,7 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGATE",
     navigatingText: "Navigating to the start",
     logoutBtn: "Log out",
-    routeIntroKicker: "Before you start"
+    routeIntroKicker: "Welcome to Krakow"
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
@@ -923,7 +938,7 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGIEREN",
     navigatingText: "Navigation zum Start",
     logoutBtn: "Abmelden",
-    routeIntroKicker: "Bevor du losgehst"
+    routeIntroKicker: "Willkommen in Krakau"
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
@@ -951,7 +966,7 @@ const TRANSLATIONS = {
     navigateBtn: "NAVEGAR",
     navigatingText: "Navegando al inicio",
     logoutBtn: "Cerrar sesión",
-    routeIntroKicker: "Antes de empezar"
+    routeIntroKicker: "Bienvenido a Cracovia"
   }
 };
 
@@ -978,7 +993,6 @@ function applyTranslations() {
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
   document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
 
-  document.getElementById('sheet-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
   document.getElementById('locate-btn').setAttribute('aria-label', t('locateLabel'));
@@ -1003,7 +1017,7 @@ const ROUTE_INTRO_AUDIO = null; // np. "audio/trasa-krolewska-intro.mp3"
 // Dorzuć kolejne tracki do tej listy w dowolnym momencie, kolejność = kolejność na liście.
 const INTRO_POINT = {
   id: 'intro',
-  name: 'Zanim ruszysz',
+  name: 'Posłuchaj, zanim wyruszysz',
   type: 'intro',
   tracks: [
     { number: '0', label: 'Krótka historia Krakowa', audio: null },
@@ -1651,16 +1665,19 @@ if (ROUTE_LINE.length > 1) {
 ============================================================ */
 let gpsMarker = null;
 let guideLine = null;
-let navActive = false;      // czy aktywnie nawigujemy (pokazana magenta linia)
+let navActive = false;      // czy aktywnie nawigujemy (pokazana niebieska linia)
 let routeChosen = false;    // czy user wybrał konkretną trasę (nie "zwiedzaj bez trasy")
-let reachedStart = false;   // czy user dotarł już blisko punktu startowego
+let reachedNavTarget = false; // czy user dotarł już blisko aktualnego celu nawigacji
 const START_PROXIMITY_METERS = 10;
 let watching = false;
 let watchId = null;
 let lastRoutedLatLng = null;
 let routingInFlight = false;
 
-const startLatLng = [startPoint.lat, startPoint.lng];
+// cel nawigacji jest teraz dynamiczny — domyślnie punkt startowy trasy,
+// ale może to być dowolny punkt (patrz "Prowadź mnie tutaj" w trybie swobodnym)
+let navTargetLatLng = [startPoint.lat, startPoint.lng];
+let navTargetName = startPoint.name;
 
 /* ---------- Kompas: kierunek, w którym patrzy telefon ---------- */
 let compassStarted = false;
@@ -1758,7 +1775,7 @@ async function requestWalkingRoute(userLatLng) {
   routingInFlight = true;
   lastRoutedLatLng = userLatLng;
   // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
-  drawGuideLine([userLatLng, startLatLng]);
+  drawGuideLine([userLatLng, navTargetLatLng]);
   if (navTopDistance) navTopDistance.textContent = 'obliczanie…';
 
   // dwa niezależne serwery routingu pieszego (ten sam silnik OSRM, różne adresy) —
@@ -1771,10 +1788,10 @@ async function requestWalkingRoute(userLatLng) {
   let lastError = null;
   for (const base of endpoints) {
     try {
-      const result = await fetchWalkingRouteFrom(base, userLatLng, startLatLng);
+      const result = await fetchWalkingRouteFrom(base, userLatLng, navTargetLatLng);
       drawGuideLine(result.coords);
       if (navTopDistance) navTopDistance.textContent = formatNavDistance(result.distance);
-      if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration);
+      if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration) + ' · ' + navTargetName;
       success = true;
       break;
     } catch (e) {
@@ -1819,13 +1836,13 @@ function startLocationTracking(flyOnFirstFix) {
     }
     firstFix = false;
 
-    // czy user jest już blisko punktu startowego? auto-zatrzymujemy wtedy nawigację, bo dotarł
-    if (routeChosen) {
-      const distToStart = distMeters(userLatLng, [startPoint.lat, startPoint.lng]);
-      const nowReached = distToStart < START_PROXIMITY_METERS;
-      if (nowReached !== reachedStart) {
-        reachedStart = nowReached;
-        if (reachedStart && navActive) {
+    // czy user jest już blisko aktualnego celu nawigacji? auto-zatrzymujemy wtedy nawigację, bo dotarł
+    if (navActive) {
+      const distToTarget = distMeters(userLatLng, navTargetLatLng);
+      const nowReached = distToTarget < START_PROXIMITY_METERS;
+      if (nowReached !== reachedNavTarget) {
+        reachedNavTarget = nowReached;
+        if (reachedNavTarget) {
           stopNavigation();
           if (typeof setSheetPeek === 'function') setSheetPeek(false); // dotarł — pokazujemy z powrotem pełny panel z tracklami
         }
@@ -1855,9 +1872,16 @@ function showNavTopBar() {
 function hideNavTopBar() {
   navTopBar.classList.add('hidden');
 }
-function startNavigation() {
+function startNavigation(targetPoint) {
+  // targetPoint opcjonalny — domyślnie punkt startowy trasy (wywołanie automatyczne po wyborze trasy)
+  if (targetPoint) {
+    navTargetLatLng = [targetPoint.lat, targetPoint.lng];
+    navTargetName = targetPoint.name;
+  }
   navActive = true;
+  reachedNavTarget = false;
   showNavTopBar();
+  if (navTopSub) navTopSub.textContent = navTargetName; // od razu pokazujemy nazwę celu, zanim policzy się dystans/czas
   lastRoutedLatLng = null; // wymuś świeże przeliczenie trasy
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
@@ -1871,10 +1895,20 @@ function stopNavigation() {
 }
 
 document.getElementById('nav-top-close').addEventListener('click', () => {
-  navTopBar.classList.add('collapsed'); // zwija się W GÓRĘ (mały krążek), nawigacja dalej aktywna w tle
+  // X = realnie wyłącza nawigację (nie tylko chowa wizualnie) — zostaje mały krążek do ew. wznowienia
+  navActive = false;
+  if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+  navTopBar.classList.add('collapsed');
 });
 document.getElementById('nav-top-peek').addEventListener('click', () => {
-  navTopBar.classList.remove('collapsed');
+  // tapnięcie krążka wznawia nawigację do ostatniego celu
+  startNavigation();
+});
+
+document.getElementById('sheet-goto-btn').addEventListener('click', () => {
+  if (!currentPoint) return;
+  startNavigation(currentPoint);
+  setSheetPeek(true); // zwijamy panel audio, żeby nawigacja na górze była dobrze widoczna
 });
 
 document.getElementById('locate-btn').addEventListener('click', () => {
@@ -1917,7 +1951,7 @@ function selectDistrict(freeRoam, options) {
 
   // reset stanu nawigacji przy każdym (ponownym) wyborze
   routeChosen = !freeRoam;
-  reachedStart = false;
+  reachedNavTarget = false;
   navActive = false;
   hideNavTopBar();
   if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
@@ -1934,7 +1968,7 @@ function selectDistrict(freeRoam, options) {
     // trasa wybrana — od razu pokazujemy panel z nawigacją do startu + tracki wprowadzające,
     // żeby nikt nie musiał niczego szukać na mapie (to był realny problem testerów)
     openSheet(INTRO_POINT);
-    startNavigation(); // pasek nawigacji na górze odpala się automatycznie razem z panelem audio
+    startNavigation(startPoint); // pasek nawigacji na górze odpala się automatycznie razem z panelem audio
   } else {
     closeSheet();
   }
@@ -2058,6 +2092,9 @@ function setSheetPeek(state) {
   sheetPeek = state;
   sheet.classList.toggle('peek', state);
   sheetBackdrop.classList.toggle('peek', state);
+  const closeIcon = document.querySelector('#sheet-close svg polyline');
+  if (closeIcon) closeIcon.setAttribute('points', state ? '6,15 12,9 18,15' : '6,9 12,15 18,9');
+  document.getElementById('sheet-close').setAttribute('aria-label', state ? 'Rozwiń' : 'Zwiń');
   if (state && currentPoint) {
     const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
     const label = document.getElementById('sheet-peek-label');
@@ -2078,6 +2115,11 @@ function openSheet(point) {
   currentTrackIndex = 0;
   sheetTitle.textContent = point.name;
   sheetKicker.textContent = point.type === 'intro' ? t('routeIntroKicker') : (point.type === 'main' ? t('pointMain') : t('pointExtra'));
+
+  // "Prowadź mnie tutaj" — widoczny zawsze dla realnych punktów (w każdym trybie trasy)
+  const gotoBtn = document.getElementById('sheet-goto-btn');
+  gotoBtn.classList.toggle('hidden', point.type === 'intro');
+
   renderTrackList();
   loadTrack();
   setSheetPeek(false); // świeżo otwarty panel zawsze zaczyna w pełni rozwinięty
@@ -2092,7 +2134,7 @@ function closeSheet() {
   audioEl.pause();
 }
 
-document.getElementById('sheet-close').addEventListener('click', closeSheet);
+document.getElementById('sheet-close').addEventListener('click', () => setSheetPeek(!sheetPeek));
 sheetBackdrop.addEventListener('click', closeSheet);
 
 function renderTrackList() {
