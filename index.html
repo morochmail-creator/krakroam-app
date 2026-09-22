@@ -886,7 +886,6 @@ function applyTranslations() {
   document.getElementById('no-audio-note').textContent = t('noAudio');
   document.getElementById('change-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
   document.getElementById('change-lang-label').textContent = t('changeLang');
-  document.getElementById('nav-active-text').textContent = t('navigatingText');
   document.getElementById('logout-btn').textContent = t('logoutBtn');
   if (typeof setNavCtaState === 'function') setNavCtaState(navActive);
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
@@ -1682,12 +1681,13 @@ async function requestWalkingRoute(userLatLng) {
       console.error('Routing przez', base, 'nie powiodło się:', e);
     }
   }
-  const navActiveTextEl = document.getElementById('nav-active-text');
-  if (!success && navActiveTextEl) {
+  if (!success) {
     // tymczasowy widoczny komunikat diagnostyczny — żeby dało się zobaczyć, co faktycznie poszło nie tak
-    navActiveTextEl.textContent = 'Trasa: błąd (' + (lastError ? String(lastError.message || lastError) : 'nieznany') + ')';
-  } else if (success && navActiveTextEl) {
-    navActiveTextEl.textContent = t('navigatingText');
+    const errMsg = 'Trasa: błąd (' + (lastError ? String(lastError.message || lastError) : 'nieznany') + ')';
+    if (typeof sheetNavCtaLabel !== 'undefined' && sheetNavCtaLabel) {
+      sheetNavCtaLabel.textContent = errMsg;
+    }
+    console.error(errMsg);
   }
   routingInFlight = false;
 }
@@ -1907,16 +1907,6 @@ document.querySelectorAll('.lang-row').forEach(row => {
   });
 });
 
-// jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu
-const savedLang = localStorage.getItem('krakroam_lang');
-if (savedLang && TRANSLATIONS[savedLang]) {
-  currentLang = savedLang;
-  applyTranslations();
-  document.getElementById('lang-menu').classList.add('hidden');
-  const dm = document.getElementById('district-menu');
-  dm.classList.remove('hidden', 'entering');
-}
-
 // Środki (w przybliżeniu) poszczególnych dzielnic — do polecenia najbliższej trasy
 const staremiastoCenterLat = POINTS.reduce((s, p) => s + p.lat, 0) / POINTS.length;
 const staremiastoCenterLng = POINTS.reduce((s, p) => s + p.lng, 0) / POINTS.length;
@@ -2090,6 +2080,18 @@ function playAudioSrc(src) {
   audioEl.src = src;
   audioEl.play();
   setPlayIcon(true);
+}
+
+// jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu.
+// Ten blok musi być na samym końcu skryptu, żeby wszystkie zmienne (np. navActive), których
+// pośrednio używa applyTranslations(), były już na pewno zadeklarowane.
+const savedLang = localStorage.getItem('krakroam_lang');
+if (savedLang && TRANSLATIONS[savedLang]) {
+  currentLang = savedLang;
+  applyTranslations();
+  document.getElementById('lang-menu').classList.add('hidden');
+  const dm = document.getElementById('district-menu');
+  dm.classList.remove('hidden', 'entering');
 }
 </script>
 </body>
