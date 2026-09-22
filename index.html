@@ -1757,7 +1757,10 @@ document.getElementById('nav-go-btn').addEventListener('click', () => {
   navActiveBar.classList.remove('hidden');
   navActive = true;
   lastRoutedLatLng = null; // wymuś świeże przeliczenie trasy
-  if (gpsMarker) requestWalkingRoute(gpsMarker.getLatLng());
+  if (gpsMarker) {
+    const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
+    requestWalkingRoute([gll.lat, gll.lng]);
+  }
 });
 
 document.getElementById('nav-stop-btn').addEventListener('click', () => {
