@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KrakRoam</title>
 
+<!-- Ikona do "Dodaj do ekranu głównego" -->
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KrakRoam">
+<meta name="theme-color" content="#14110d">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
@@ -41,6 +50,42 @@
 
   /* ---------- Menu wyboru dzielnicy (ekran startowy) ---------- */
   /* ---------- Menu wyboru dzielnicy: mapa widoczna w tle, panel wysuwany z dołu ---------- */
+  /* ---------- Ekran hasła dostępu (pierwszy ze wszystkich) ---------- */
+  #pw-screen {
+    position: absolute; inset: 0; z-index: 200;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+  #pw-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #pw-inner {
+    width: 100%; max-width: 360px; text-align: center;
+  }
+  #pw-brand {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 30px; font-weight: 700;
+    color: var(--cream); margin-bottom: 8px;
+  }
+  #pw-brand span { color: var(--amber-soft); }
+  #pw-sub { color: var(--cream-dim); font-size: 14px; margin-bottom: 26px; }
+  #pw-input {
+    width: 100%; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 15px 16px;
+    color: var(--cream); font-size: 18px; text-align: center;
+    letter-spacing: 0.15em;
+    margin-bottom: 14px;
+  }
+  #pw-input:focus { outline: none; border-color: var(--amber); }
+  #pw-submit {
+    width: 100%; background: var(--amber); border: none;
+    color: #14110d; font-size: 15px; font-weight: 700;
+    padding: 14px; border-radius: 14px; cursor: pointer;
+  }
+  #pw-error {
+    color: #ff6b6b; font-size: 13px; margin-top: 12px; min-height: 16px;
+  }
+
   /* ---------- Ekran wyboru języka (pierwszy krok) ---------- */
   #lang-menu {
     position: absolute; inset: 0; z-index: 110;
@@ -158,9 +203,15 @@
   }
   #change-lang-btn {
     display: flex; align-items: center; justify-content: center; gap: 6px;
-    margin: 0 auto 22px; background: none; border: none;
+    margin: 0 auto 4px; background: none; border: none;
     color: var(--cream-dim); font-size: 12.5px; font-weight: 500;
     cursor: pointer; padding: 4px 8px;
+  }
+  #logout-btn {
+    display: block; margin: 0 auto 22px; background: none; border: none;
+    color: var(--cream-dim); font-size: 11.5px; font-weight: 500;
+    text-decoration: underline; text-underline-offset: 2px;
+    cursor: pointer; padding: 4px 8px; opacity: 0.7;
   }
   #change-lang-flag { font-size: 15px; }
   .district-row {
@@ -487,6 +538,16 @@
 <body>
 
 <div id="app">
+  <div id="pw-screen">
+    <div id="pw-inner">
+      <div id="pw-brand">Krak<span>Roam</span></div>
+      <div id="pw-sub">Wpisz kod dostępu, który otrzymałeś przy zakupie</div>
+      <input id="pw-input" type="text" inputmode="numeric" autocomplete="off" placeholder="••••" maxlength="12" />
+      <button id="pw-submit">Wejdź</button>
+      <div id="pw-error"></div>
+    </div>
+  </div>
+
   <div id="lang-menu">
     <div id="lang-scrim"></div>
     <div id="lang-menu-inner">
@@ -534,6 +595,7 @@
         <span id="change-lang-flag">🇵🇱</span>
         <span id="change-lang-label">Zmień język</span>
       </button>
+      <button id="logout-btn">Wyloguj</button>
 
       <div class="district-row" data-district="stare-miasto">
         <div class="district-row-icon">
@@ -615,9 +677,8 @@
     <div id="btn-stack">
       <button id="brand" aria-label="Wróć do wyboru trasy">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
+          <path d="M3 11.5 12 4l9 7.5"></path>
+          <path d="M5.5 10v9.5a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1V10"></path>
         </svg>
       </button>
       <button id="locate-btn" aria-label="Pokaż moją lokalizację">
@@ -688,6 +749,42 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <script>
 /* ============================================================
+   HASŁO DOSTĘPU
+   Trzymane w localStorage, żeby nie pytać za każdym razem —
+   raz wpisane hasło zostaje zapamiętane na tym telefonie.
+============================================================ */
+const ACCESS_PASSWORD = '2026';
+const pwScreen = document.getElementById('pw-screen');
+const pwInput = document.getElementById('pw-input');
+const pwError = document.getElementById('pw-error');
+
+function unlockApp() {
+  pwScreen.classList.add('hidden');
+}
+
+if (localStorage.getItem('krakroam_unlocked') === '1') {
+  unlockApp();
+}
+
+function tryUnlock() {
+  const val = (pwInput.value || '').trim();
+  if (val === ACCESS_PASSWORD) {
+    localStorage.setItem('krakroam_unlocked', '1');
+    pwError.textContent = '';
+    unlockApp();
+  } else {
+    pwError.textContent = 'Nieprawidłowy kod — spróbuj ponownie.';
+  }
+}
+document.getElementById('pw-submit').addEventListener('click', tryUnlock);
+pwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock(); });
+
+function lockApp() {
+  localStorage.removeItem('krakroam_unlocked');
+  location.reload();
+}
+
+/* ============================================================
    TŁUMACZENIA UI (menu, przyciski, komunikaty)
    UWAGA: to tłumaczy tylko interfejs apki — nazwy punktów i pliki
    audio w POINTS zostają na razie po polsku, dopóki nie dojdą
@@ -723,7 +820,8 @@ const TRANSLATIONS = {
     startPointLabel: "Punkt startowy",
     startHereTitle: "Zacznij tutaj",
     navigateBtn: "NAWIGUJ",
-    navigatingText: "Nawigacja do startu"
+    navigatingText: "Nawigacja do startu",
+    logoutBtn: "Wyloguj"
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
@@ -749,7 +847,8 @@ const TRANSLATIONS = {
     startPointLabel: "Початкова точка",
     startHereTitle: "Почніть тут",
     navigateBtn: "НАВІГАЦІЯ",
-    navigatingText: "Навігація до старту"
+    navigatingText: "Навігація до старту",
+    logoutBtn: "Вийти"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -775,7 +874,8 @@ const TRANSLATIONS = {
     startPointLabel: "Starting point",
     startHereTitle: "Start here",
     navigateBtn: "NAVIGATE",
-    navigatingText: "Navigating to the start"
+    navigatingText: "Navigating to the start",
+    logoutBtn: "Log out"
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
@@ -801,7 +901,8 @@ const TRANSLATIONS = {
     startPointLabel: "Startpunkt",
     startHereTitle: "Hier beginnen",
     navigateBtn: "NAVIGIEREN",
-    navigatingText: "Navigation zum Start"
+    navigatingText: "Navigation zum Start",
+    logoutBtn: "Abmelden"
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
@@ -827,7 +928,8 @@ const TRANSLATIONS = {
     startPointLabel: "Punto de partida",
     startHereTitle: "Empieza aquí",
     navigateBtn: "NAVEGAR",
-    navigatingText: "Navegando al inicio"
+    navigatingText: "Navegando al inicio",
+    logoutBtn: "Cerrar sesión"
   }
 };
 
@@ -853,6 +955,7 @@ function applyTranslations() {
   document.querySelector('#start-prompt-text .title').textContent = t('startHereTitle');
   document.getElementById('nav-go-btn').textContent = t('navigateBtn');
   document.getElementById('nav-active-text').textContent = t('navigatingText');
+  document.getElementById('logout-btn').textContent = t('logoutBtn');
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
   document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
@@ -1872,6 +1975,7 @@ document.getElementById('change-lang-btn').addEventListener('click', () => {
   menuInner.style.transform = 'translateY(0)';
   document.getElementById('lang-menu').classList.remove('hidden');
 });
+document.getElementById('logout-btn').addEventListener('click', lockApp);
 // delikatne wjechanie panelu z dołu zaraz po starcie, zamiast pojawienia się od razu na sztywno
 document.querySelectorAll('.lang-row').forEach(row => {
   row.addEventListener('click', () => {
