@@ -456,13 +456,13 @@
     transition: transform 0.3s cubic-bezier(.32,.72,0,1);
   }
   #sheet.open { transform: translateY(0); }
-  #sheet.peek { pointer-events: none; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  #sheet.peek { pointer-events: none; padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
   #sheet.peek #sheet-peek-bar,
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
   #sheet-peek-bar {
     display: none; align-items: center; gap: 12px;
-    padding: 8px 4px 2px; color: var(--cream); font-size: 14px; font-weight: 600;
+    padding: 14px 4px 6px; color: var(--cream); font-size: 14px; font-weight: 600;
     cursor: pointer;
   }
   #sheet.peek #sheet-peek-bar { display: flex; }
@@ -477,16 +477,22 @@
   }
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
-  #sheet-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  #sheet-title-row { margin-bottom: 4px; }
   #sheet-title { font-size: 22px; font-weight: 600; margin: 0; color: var(--cream); }
 
+  #sheet-goto-row { display: flex; justify-content: flex-end; margin-bottom: 10px; }
   #sheet-goto-btn {
-    flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
-    background: rgba(74,144,217,0.18); border: 1px solid #4a90d9;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(74,144,217,0.14); border: 1px solid #4a90d9;
+    color: #4a90d9; font-size: 12.5px; font-weight: 700;
+    padding: 7px 12px 7px 8px; border-radius: 999px; cursor: pointer;
   }
   #sheet-goto-btn.hidden { display: none; }
-  #sheet-goto-btn svg { width: 18px; height: 18px; stroke: #4a90d9; }
+  #sheet-goto-icon-wrap {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+    background: #4a90d9; display: flex; align-items: center; justify-content: center;
+  }
+  #sheet-goto-btn svg { width: 12px; height: 12px; stroke: #fff; }
 
   #track-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 34vh; overflow-y: auto; }
   .track-row {
@@ -665,7 +671,7 @@
   <div id="map"></div>
   <div id="map-tint"></div>
 
-  <div id="nav-top-bar" class="hidden">
+  <div id="nav-top-bar" class="collapsed">
     <div id="nav-top-full">
       <div id="nav-top-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -735,12 +741,18 @@
       <div id="sheet-kicker">Punkt główny</div>
       <div id="sheet-title-row">
         <h2 id="sheet-title">—</h2>
+      </div>
+
+      <div id="sheet-goto-row">
         <button id="sheet-goto-btn" class="hidden" aria-label="Prowadź mnie tutaj">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="13" cy="4" r="2"></circle>
-            <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
-            <path d="M11 14l3 1 2 5"></path>
-          </svg>
+          <span id="sheet-goto-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13" cy="4" r="2"></circle>
+              <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
+              <path d="M11 14l3 1 2 5"></path>
+            </svg>
+          </span>
+          <span id="sheet-goto-label">Prowadź mnie tutaj</span>
         </button>
       </div>
 
@@ -840,7 +852,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAWIGUJ",
     navigatingText: "Nawigacja do startu",
     logoutBtn: "Wyloguj",
-    routeIntroKicker: "Witamy w Krakowie"
+    routeIntroKicker: "Witamy w Krakowie",
+    gotoHereBtn: "Prowadź mnie tutaj"
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
@@ -868,7 +881,8 @@ const TRANSLATIONS = {
     navigateBtn: "НАВІГАЦІЯ",
     navigatingText: "Навігація до старту",
     logoutBtn: "Вийти",
-    routeIntroKicker: "Ласкаво просимо до Кракова"
+    routeIntroKicker: "Ласкаво просимо до Кракова",
+    gotoHereBtn: "Проведи мене сюди"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -896,7 +910,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGATE",
     navigatingText: "Navigating to the start",
     logoutBtn: "Log out",
-    routeIntroKicker: "Welcome to Krakow"
+    routeIntroKicker: "Welcome to Krakow",
+    gotoHereBtn: "Guide me here"
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
@@ -924,7 +939,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGIEREN",
     navigatingText: "Navigation zum Start",
     logoutBtn: "Abmelden",
-    routeIntroKicker: "Willkommen in Krakau"
+    routeIntroKicker: "Willkommen in Krakau",
+    gotoHereBtn: "Führe mich hierher"
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
@@ -952,7 +968,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVEGAR",
     navigatingText: "Navegando al inicio",
     logoutBtn: "Cerrar sesión",
-    routeIntroKicker: "Bienvenido a Cracovia"
+    routeIntroKicker: "Bienvenido a Cracovia",
+    gotoHereBtn: "Llévame aquí"
   }
 };
 
@@ -975,6 +992,7 @@ function applyTranslations() {
   document.getElementById('change-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
   document.getElementById('change-lang-label').textContent = t('changeLang');
   document.getElementById('logout-btn').textContent = t('logoutBtn');
+  document.getElementById('sheet-goto-label').textContent = t('gotoHereBtn');
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
   document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
@@ -1622,14 +1640,6 @@ POINTS.forEach(p => {
 
   marker.on('click', () => {
     openSheet(p);
-    const targetZoom = 18;
-    const sheetHeight = document.getElementById('sheet').getBoundingClientRect().height;
-    const availableHeight = window.innerHeight - sheetHeight;
-    const desiredScreenY = availableHeight * 0.65; // trochę niżej niż idealny środek
-    const verticalOffset = (window.innerHeight / 2) - desiredScreenY;
-    const targetPoint = map.project([p.lat, p.lng], targetZoom).add([0, verticalOffset]);
-    const targetLatLng = map.unproject(targetPoint, targetZoom);
-    map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
   });
 
   markersById[p.id] = marker;
@@ -1853,10 +1863,11 @@ const navTopDistance = document.getElementById('nav-top-distance');
 const navTopSub = document.getElementById('nav-top-sub');
 
 function showNavTopBar() {
-  navTopBar.classList.remove('hidden', 'collapsed');
+  navTopBar.classList.remove('collapsed');
 }
-function hideNavTopBar() {
-  navTopBar.classList.add('hidden');
+function collapseNavTopBar() {
+  // NIGDY nie chowamy paska całkiem — domyślnie zawsze widoczny jako mały krążek w rogu
+  navTopBar.classList.add('collapsed');
 }
 function startNavigation(targetPoint) {
   // targetPoint opcjonalny — domyślnie punkt startowy trasy (wywołanie automatyczne po wyborze trasy)
@@ -1876,7 +1887,7 @@ function startNavigation(targetPoint) {
 }
 function stopNavigation() {
   navActive = false;
-  hideNavTopBar();
+  collapseNavTopBar();
   if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
 }
 
@@ -1939,7 +1950,7 @@ function selectDistrict(freeRoam, options) {
   routeChosen = !freeRoam;
   reachedNavTarget = false;
   navActive = false;
-  hideNavTopBar();
+  collapseNavTopBar();
   if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
 
   if (routeLinePath) {
@@ -2084,10 +2095,26 @@ function setSheetPeek(state) {
   if (state && currentPoint) {
     const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
     const label = document.getElementById('sheet-peek-label');
-    label.textContent = track ? `${currentPoint.name} — ${track.label}` : currentPoint.name;
+    label.textContent = track ? track.label : currentPoint.name;
+  }
+  if (!state && currentPoint && currentPoint.type !== 'intro') {
+    // rozwinięcie panelu = mapa leci nad ten punkt, tak samo jak przy kliknięciu w pin
+    // (poza track 0 "Zanim wyruszysz" — to nie jest realny punkt geograficzny)
+    flyToPointBehindSheet(currentPoint);
   }
 }
 document.getElementById('sheet-peek-bar').addEventListener('click', () => setSheetPeek(false));
+
+function flyToPointBehindSheet(point) {
+  const targetZoom = 18;
+  const sheetHeight = document.getElementById('sheet').getBoundingClientRect().height;
+  const availableHeight = window.innerHeight - sheetHeight;
+  const desiredScreenY = availableHeight * 0.65; // trochę niżej niż idealny środek
+  const verticalOffset = (window.innerHeight / 2) - desiredScreenY;
+  const targetPoint = map.project([point.lat, point.lng], targetZoom).add([0, verticalOffset]);
+  const targetLatLng = map.unproject(targetPoint, targetZoom);
+  map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
+}
 
 function openSheet(point) {
   // jeśli menu dzielnic jest w stanie zwiniętym (peek) — chowamy je całkiem, żeby nie kolidowało z tym panelem
