@@ -269,43 +269,6 @@
   #locate-btn.active svg { stroke: var(--amber-soft); }
   #layers-btn.active svg { stroke: var(--amber-soft); }
 
-  /* ---------- Pasek "start trasy" (na dole, po dotknięciu pinezki start) ---------- */
-  #start-prompt-bar, #nav-active-bar {
-    position: absolute; left: 16px; right: 16px; bottom: 18px; z-index: 12;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 18px; padding: 14px 16px;
-    box-shadow: var(--shadow);
-    display: flex; align-items: center; gap: 12px;
-    transform: translateY(0); opacity: 1;
-    transition: transform 0.25s ease, opacity 0.25s ease;
-  }
-  #start-prompt-bar.hidden, #nav-active-bar.hidden {
-    transform: translateY(16px); opacity: 0; pointer-events: none;
-  }
-  #start-prompt-text { flex: 1; }
-  #start-prompt-text .label {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--amber-soft); margin-bottom: 2px;
-  }
-  #start-prompt-text .title { font-size: 14px; color: var(--cream); font-weight: 500; }
-  #nav-go-btn {
-    flex-shrink: 0; background: #4a90d9; border: none; color: #fff;
-    font-size: 13px; font-weight: 700; letter-spacing: 0.03em;
-    padding: 11px 18px; border-radius: 12px; cursor: pointer;
-  }
-  #nav-active-bar { border-color: #4a90d9; }
-  #nav-active-icon {
-    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(74,144,217,0.15); display: flex; align-items: center; justify-content: center;
-  }
-  #nav-active-icon svg { width: 16px; height: 16px; stroke: #4a90d9; }
-  #nav-active-text { flex: 1; font-size: 14px; color: var(--cream); font-weight: 500; }
-  #nav-stop-btn {
-    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
-    background: var(--panel-2); border: none; color: var(--cream-dim);
-    font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-
   #layers-menu {
     position: absolute; top: 108px; right: 54px; z-index: 15;
     background: var(--panel); border: 1px solid var(--line);
@@ -463,6 +426,17 @@
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
   #sheet-title { font-size: 22px; font-weight: 600; margin: 0 0 16px; color: var(--cream); }
+  #sheet-nav-cta {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: 100%; background: #4a90d9; border: none; color: #fff;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+    padding: 13px; border-radius: 14px; cursor: pointer;
+    margin-bottom: 16px;
+  }
+  #sheet-nav-cta.hidden { display: none; }
+  #sheet-nav-cta svg { width: 17px; height: 17px; stroke: #fff; flex-shrink: 0; }
+  #sheet-nav-cta.active { background: var(--panel-2); border: 1px solid #4a90d9; color: #4a90d9; }
+  #sheet-nav-cta.active svg { stroke: #4a90d9; }
 
   #track-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 34vh; overflow-y: auto; }
   .track-row {
@@ -667,24 +641,6 @@
     </div>
   </div>
 
-  <div id="start-prompt-bar" class="hidden">
-    <div id="start-prompt-text">
-      <div class="label">Punkt startowy</div>
-      <div class="title">Zacznij tutaj</div>
-    </div>
-    <button id="nav-go-btn">NAWIGUJ</button>
-  </div>
-
-  <div id="nav-active-bar" class="hidden">
-    <div id="nav-active-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 19c4-6 4-6 8-6s4 6 8 6" stroke-dasharray="2 4"></path>
-      </svg>
-    </div>
-    <div id="nav-active-text">Nawigacja do startu</div>
-    <button id="nav-stop-btn" aria-label="Zatrzymaj nawigację">×</button>
-  </div>
-
   <div id="sheet-backdrop"></div>
 
   <div id="sheet">
@@ -692,6 +648,14 @@
     <div id="sheet-handle"></div>
     <div id="sheet-kicker">Punkt główny</div>
     <h2 id="sheet-title">—</h2>
+
+    <button id="sheet-nav-cta" class="hidden">
+      <svg id="sheet-nav-cta-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path>
+        <circle cx="12" cy="9" r="2.5"></circle>
+      </svg>
+      <span id="sheet-nav-cta-label">Nawiguj do startu</span>
+    </button>
 
     <div id="track-list"></div>
 
@@ -787,7 +751,8 @@ const TRANSLATIONS = {
     startHereTitle: "Zacznij tutaj",
     navigateBtn: "NAWIGUJ",
     navigatingText: "Nawigacja do startu",
-    logoutBtn: "Wyloguj"
+    logoutBtn: "Wyloguj",
+    routeIntroKicker: "Zanim ruszysz"
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
@@ -814,7 +779,8 @@ const TRANSLATIONS = {
     startHereTitle: "Почніть тут",
     navigateBtn: "НАВІГАЦІЯ",
     navigatingText: "Навігація до старту",
-    logoutBtn: "Вийти"
+    logoutBtn: "Вийти",
+    routeIntroKicker: "Перш ніж вирушити"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -841,7 +807,8 @@ const TRANSLATIONS = {
     startHereTitle: "Start here",
     navigateBtn: "NAVIGATE",
     navigatingText: "Navigating to the start",
-    logoutBtn: "Log out"
+    logoutBtn: "Log out",
+    routeIntroKicker: "Before you start"
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
@@ -868,7 +835,8 @@ const TRANSLATIONS = {
     startHereTitle: "Hier beginnen",
     navigateBtn: "NAVIGIEREN",
     navigatingText: "Navigation zum Start",
-    logoutBtn: "Abmelden"
+    logoutBtn: "Abmelden",
+    routeIntroKicker: "Bevor du losgehst"
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
@@ -895,7 +863,8 @@ const TRANSLATIONS = {
     startHereTitle: "Empieza aquí",
     navigateBtn: "NAVEGAR",
     navigatingText: "Navegando al inicio",
-    logoutBtn: "Cerrar sesión"
+    logoutBtn: "Cerrar sesión",
+    routeIntroKicker: "Antes de empezar"
   }
 };
 
@@ -917,11 +886,9 @@ function applyTranslations() {
   document.getElementById('no-audio-note').textContent = t('noAudio');
   document.getElementById('change-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
   document.getElementById('change-lang-label').textContent = t('changeLang');
-  document.querySelector('#start-prompt-text .label').textContent = t('startPointLabel');
-  document.querySelector('#start-prompt-text .title').textContent = t('startHereTitle');
-  document.getElementById('nav-go-btn').textContent = t('navigateBtn');
   document.getElementById('nav-active-text').textContent = t('navigatingText');
   document.getElementById('logout-btn').textContent = t('logoutBtn');
+  if (typeof setNavCtaState === 'function') setNavCtaState(navActive);
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
   document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
@@ -946,6 +913,18 @@ function applyTranslations() {
    będą wybierać wariant na podstawie currentLang.
 ============================================================ */
 const ROUTE_INTRO_AUDIO = null; // np. "audio/trasa-krolewska-intro.mp3"
+
+// "Punkt" wprowadzenia do trasy — tracki 0, 0.1, 0.2... (historia Krakowa, jak korzystać z apki itd.)
+// Dorzuć kolejne tracki do tej listy w dowolnym momencie, kolejność = kolejność na liście.
+const INTRO_POINT = {
+  id: 'intro',
+  name: 'Zanim ruszysz',
+  type: 'intro',
+  tracks: [
+    { number: '0', label: 'Krótka historia Krakowa', audio: null },
+    { number: '0.1', label: 'Jak korzystać z aplikacji', audio: null }
+  ]
+};
 
 const POINTS = [
   {
@@ -1545,8 +1524,6 @@ const extraCluster = L.markerClusterGroup({
 
 const markersById = {};
 const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
-let startMarker = null;
-let startFlagMarker = null; // osobny, niezależny marker — sama flaga, nigdy nie klastruje się
 
 POINTS.forEach(p => {
   let className = 'marker-extra';
@@ -1559,8 +1536,6 @@ POINTS.forEach(p => {
   const marker = L.marker([p.lat, p.lng], { icon });
 
   marker.on('click', () => {
-    // uwaga: klikanie punktu startowego (zielona kropka) zawsze otwiera jego panel audio —
-    // to osobna flaga "START" (patrz startFlagMarker niżej) odpowiada za pasek "NAWIGUJ"
     openSheet(p);
     const targetZoom = 18;
     const sheetHeight = document.getElementById('sheet').getBoundingClientRect().height;
@@ -1573,35 +1548,10 @@ POINTS.forEach(p => {
   });
 
   markersById[p.id] = marker;
-  if (p.id === startPoint.id) startMarker = marker;
-  // punkt startowy to ZWYKŁY punkt — zawsze bierze udział w klastrowaniu jak każdy inny,
-  // niezależnie od tego, czy trasa jest wybrana. Flaga "start" to osobny, dodatkowy marker (patrz niżej)
   (p.type === 'main' ? mainCluster : extraCluster).addLayer(marker);
 });
 map.addLayer(mainCluster);
 map.addLayer(extraCluster);
-
-// niezależna flaga "START" — nie jest punktem, nigdy nie klastruje się, zawsze na wierzchu ponad wszystkim
-function updateStartMarkerIcon() {
-  const shouldShow = routeChosen && !reachedStart;
-  if (shouldShow) {
-    if (!startFlagMarker) {
-      startFlagMarker = L.marker([startPoint.lat, startPoint.lng], {
-        icon: L.divIcon({ className: '', html: '<div class="flag-only"></div>', iconSize: [4, 4], iconAnchor: [2, 4] }),
-        zIndexOffset: 3000,
-        interactive: true
-      });
-      startFlagMarker.on('click', () => {
-        openStartPrompt();
-        map.flyTo([startPoint.lat, startPoint.lng], 17, { duration: 1.1 });
-      });
-    }
-    if (!map.hasLayer(startFlagMarker)) startFlagMarker.addTo(map);
-  } else if (startFlagMarker && map.hasLayer(startFlagMarker)) {
-    map.removeLayer(startFlagMarker);
-  }
-}
-
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
 let routeLinePath = null;
@@ -1770,15 +1720,16 @@ function startLocationTracking(flyOnFirstFix) {
     }
     firstFix = false;
 
-    // czy user jest już blisko punktu startowego? (chowamy wtedy flagę "start")
+    // czy user jest już blisko punktu startowego? auto-zatrzymujemy wtedy nawigację, bo dotarł
     if (routeChosen) {
       const distToStart = distMeters(userLatLng, [startPoint.lat, startPoint.lng]);
       const nowReached = distToStart < START_PROXIMITY_METERS;
       if (nowReached !== reachedStart) {
         reachedStart = nowReached;
-        updateStartMarkerIcon();
-        if (reachedStart) {
-          closeStartPrompt();
+        if (reachedStart && navActive) {
+          navActive = false;
+          if (typeof setNavCtaState === 'function') setNavCtaState(false);
+          if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
         }
       }
     }
@@ -1794,29 +1745,31 @@ function startLocationTracking(flyOnFirstFix) {
 }
 
 /* ============================================================
-   PASEK "START TRASY" I NAWIGACJA DO PUNKTU STARTOWEGO
+   NAWIGACJA DO PUNKTU STARTOWEGO — przycisk wbudowany w panel
+   (zamiast osobnej flagi na mapie, którą trudno było znaleźć)
 ============================================================ */
-const startPromptBar = document.getElementById('start-prompt-bar');
-const navActiveBar = document.getElementById('nav-active-bar');
+const sheetNavCta = document.getElementById('sheet-nav-cta');
+const sheetNavCtaLabel = document.getElementById('sheet-nav-cta-label');
+const sheetNavCtaIcon = document.getElementById('sheet-nav-cta-icon');
 
-function openStartPrompt() {
-  // to samo zabezpieczenie co w openSheet — nie chcemy dwóch pasków na dole naraz
-  const dm = document.getElementById('district-menu');
-  if (dm.classList.contains('peek')) {
-    dm.classList.add('hidden');
-    dm.classList.remove('peek');
+function setNavCtaState(active) {
+  sheetNavCta.classList.toggle('active', active);
+  sheetNavCtaLabel.textContent = active ? t('navigatingText') : t('navigateBtn');
+  sheetNavCtaIcon.innerHTML = active
+    ? '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>'
+    : '<path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path><circle cx="12" cy="9" r="2.5"></circle>';
+}
+
+sheetNavCta.addEventListener('click', () => {
+  if (navActive) {
+    // zatrzymaj nawigację
+    navActive = false;
+    setNavCtaState(false);
+    if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+    return;
   }
-  navActiveBar.classList.add('hidden');
-  startPromptBar.classList.remove('hidden');
-}
-function closeStartPrompt() {
-  startPromptBar.classList.add('hidden');
-}
-
-document.getElementById('nav-go-btn').addEventListener('click', () => {
-  startPromptBar.classList.add('hidden');
-  navActiveBar.classList.remove('hidden');
   navActive = true;
+  setNavCtaState(true);
   lastRoutedLatLng = null; // wymuś świeże przeliczenie trasy
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
@@ -1826,15 +1779,6 @@ document.getElementById('nav-go-btn').addEventListener('click', () => {
     map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
   }
 });
-
-document.getElementById('nav-stop-btn').addEventListener('click', () => {
-  navActive = false;
-  navActiveBar.classList.add('hidden');
-  if (guideLine && map.hasLayer(guideLine)) {
-    map.removeLayer(guideLine);
-  }
-});
-
 
 document.getElementById('locate-btn').addEventListener('click', () => {
   if (!navigator.geolocation) {
@@ -1878,10 +1822,7 @@ function selectDistrict(freeRoam, options) {
   routeChosen = !freeRoam;
   reachedStart = false;
   navActive = false;
-  closeStartPrompt();
-  navActiveBar.classList.add('hidden');
   if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
-  updateStartMarkerIcon();
 
   if (routeLinePath) {
     if (freeRoam) {
@@ -1889,6 +1830,14 @@ function selectDistrict(freeRoam, options) {
     } else if (!map.hasLayer(routeLinePath)) {
       routeLinePath.addTo(map);
     }
+  }
+
+  if (!freeRoam) {
+    // trasa wybrana — od razu pokazujemy panel z nawigacją do startu + tracki wprowadzające,
+    // żeby nikt nie musiał niczego szukać na mapie (to był realny problem testerów)
+    openSheet(INTRO_POINT);
+  } else {
+    closeSheet();
   }
 
   if (skipCameraMove) return; // zamknięcie przez X/tło — nie ruszamy kamerą, zostawiamy widok jak był
@@ -2025,7 +1974,14 @@ function openSheet(point) {
   currentPoint = point;
   currentTrackIndex = 0;
   sheetTitle.textContent = point.name;
-  sheetKicker.textContent = point.type === 'main' ? t('pointMain') : t('pointExtra');
+  if (point.type === 'intro') {
+    sheetKicker.textContent = t('routeIntroKicker');
+    sheetNavCta.classList.remove('hidden');
+    setNavCtaState(navActive);
+  } else {
+    sheetKicker.textContent = point.type === 'main' ? t('pointMain') : t('pointExtra');
+    sheetNavCta.classList.add('hidden');
+  }
   renderTrackList();
   loadTrack();
   sheet.classList.add('open');
