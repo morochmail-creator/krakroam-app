@@ -425,11 +425,21 @@
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
   #sheet-peek-bar {
-    display: none; align-items: center; justify-content: center; gap: 8px;
-    padding: 6px 0 2px; color: var(--cream-dim); font-size: 13px; font-weight: 600;
+    display: none; align-items: center; gap: 12px;
+    padding: 4px 4px 2px; color: var(--cream); font-size: 14px; font-weight: 600;
+    cursor: pointer;
   }
   #sheet.peek #sheet-peek-bar { display: flex; }
-  #sheet-peek-bar svg { width: 15px; height: 15px; stroke: var(--amber-soft); }
+  #peek-play-btn {
+    flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--amber); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #peek-play-btn svg { width: 16px; height: 16px; fill: var(--bg); }
+  #sheet-peek-label {
+    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .peek-chevron { flex-shrink: 0; width: 16px; height: 16px; stroke: var(--cream-dim); }
 
   #sheet-handle-zone {
     padding: 8px 0 12px; margin: -10px -18px 0; cursor: pointer;
@@ -664,8 +674,11 @@
       <div id="sheet-handle"></div>
     </div>
     <div id="sheet-peek-bar">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"></polyline></svg>
+      <button id="peek-play-btn" aria-label="Odtwórz/Pauza">
+        <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+      </button>
       <span id="sheet-peek-label">—</span>
+      <svg class="peek-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"></polyline></svg>
     </div>
 
     <div id="sheet-full-content">
@@ -1987,7 +2000,9 @@ function setSheetPeek(state) {
   sheet.classList.toggle('peek', state);
   sheetBackdrop.classList.toggle('peek', state);
   if (state && currentPoint) {
-    document.getElementById('sheet-peek-label').textContent = currentPoint.name;
+    const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
+    const label = document.getElementById('sheet-peek-label');
+    label.textContent = track ? `${currentPoint.name} — ${track.label}` : currentPoint.name;
   }
 }
 document.getElementById('sheet-handle-zone').addEventListener('click', () => setSheetPeek(!sheetPeek));
@@ -2088,15 +2103,24 @@ function fmtTime(s) {
 }
 
 function setPlayIcon(isPlaying) {
-  playBtn.innerHTML = isPlaying
+  const icon = isPlaying
     ? '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16"></rect><rect x="14" y="4" width="5" height="16"></rect></svg>'
     : '<svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>';
+  playBtn.innerHTML = icon;
+  const peekPlayBtn = document.getElementById('peek-play-btn');
+  if (peekPlayBtn) peekPlayBtn.innerHTML = icon;
 }
 
-playBtn.addEventListener('click', () => {
+function togglePlayPause() {
   if (!audioEl.src) return;
   if (audioEl.paused) { audioEl.play(); setPlayIcon(true); }
   else { audioEl.pause(); setPlayIcon(false); }
+}
+
+playBtn.addEventListener('click', togglePlayPause);
+document.getElementById('peek-play-btn').addEventListener('click', (e) => {
+  e.stopPropagation(); // nie rozwijaj panelu przy okazji klikania w play
+  togglePlayPause();
 });
 
 audioEl.addEventListener('timeupdate', () => {
