@@ -488,7 +488,14 @@
   #sheet-goto-btn.hidden { display: none; }
   #sheet-goto-btn svg { width: 17px; height: 17px; stroke: #fff; }
 
-  #track-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 34vh; overflow-y: auto; }
+  #track-list {
+    display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;
+    max-height: 34vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  #track-list.scrollable {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
+  }
   .track-row {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 14px; border-radius: 12px;
@@ -1012,7 +1019,11 @@ const INTRO_POINT = {
   type: 'intro',
   tracks: [
     { number: '0', label: 'Krótka historia Krakowa', audio: null },
-    { number: '0.1', label: 'Jak korzystać z aplikacji', audio: null }
+    { number: '0.1', label: 'Jak korzystać z aplikacji', audio: null },
+    { number: '0.2', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null },
+    { number: '0.3', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null },
+    { number: '0.4', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null },
+    { number: '0.5', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null }
   ]
 };
 
@@ -2162,6 +2173,10 @@ function renderTrackList() {
       loadTrack();
     });
     trackListEl.appendChild(row);
+  });
+  // pokazujemy delikatny cień u dołu TYLKO jeśli lista faktycznie jest dłuższa niż widoczny obszar (jest co przewijać)
+  requestAnimationFrame(() => {
+    trackListEl.classList.toggle('scrollable', trackListEl.scrollHeight > trackListEl.clientHeight + 2);
   });
 }
 
