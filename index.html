@@ -253,6 +253,43 @@
     display: flex; align-items: center; justify-content: flex-end;
     padding: 16px 18px;
   }
+
+  /* ---------- Pasek nawigacji (na górze, niezależny od panelu audio na dole) ---------- */
+  #nav-top-bar {
+    position: absolute; top: 16px; left: 16px; z-index: 11;
+  }
+  #nav-top-bar.hidden { display: none; }
+  #nav-top-full {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--panel); border: 1px solid #4a90d9;
+    border-radius: 16px; padding: 11px 12px 11px 14px;
+    box-shadow: var(--shadow);
+    max-width: calc(100vw - 130px);
+  }
+  #nav-top-bar.collapsed #nav-top-full { display: none; }
+  #nav-top-icon {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(74,144,217,0.18); display: flex; align-items: center; justify-content: center;
+  }
+  #nav-top-icon svg { width: 17px; height: 17px; stroke: #4a90d9; }
+  #nav-top-text { min-width: 0; }
+  #nav-top-distance { font-size: 15px; font-weight: 700; color: var(--cream); white-space: nowrap; }
+  #nav-top-sub { font-size: 11px; color: var(--cream-dim); white-space: nowrap; }
+  #nav-top-close {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--panel-2); border: none; color: var(--cream-dim);
+    font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    margin-left: 2px;
+  }
+  #nav-top-peek {
+    display: none; background: var(--panel); border: 1px solid #4a90d9;
+    border-radius: 50%; width: 44px; height: 44px;
+    box-shadow: var(--shadow); cursor: pointer;
+    align-items: center; justify-content: center;
+  }
+  #nav-top-bar.collapsed #nav-top-peek { display: flex; }
+  #nav-top-peek svg { width: 18px; height: 18px; stroke: #4a90d9; }
+
   #brand:active { transform: scale(0.98); }
   #btn-stack {
     display: flex; flex-direction: column; gap: 10px;
@@ -451,17 +488,6 @@
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
   #sheet-title { font-size: 22px; font-weight: 600; margin: 0 0 16px; color: var(--cream); }
-  #sheet-nav-cta {
-    display: flex; align-items: center; justify-content: center; gap: 9px;
-    width: 100%; background: #4a90d9; border: none; color: #fff;
-    font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
-    padding: 13px; border-radius: 14px; cursor: pointer;
-    margin-bottom: 16px;
-  }
-  #sheet-nav-cta.hidden { display: none; }
-  #sheet-nav-cta svg { width: 17px; height: 17px; stroke: #fff; flex-shrink: 0; }
-  #sheet-nav-cta.active { background: var(--panel-2); border: 1px solid #4a90d9; color: #4a90d9; }
-  #sheet-nav-cta.active svg { stroke: #4a90d9; }
 
   #track-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 34vh; overflow-y: auto; }
   .track-row {
@@ -636,6 +662,30 @@
 
   <div id="map"></div>
   <div id="map-tint"></div>
+
+  <div id="nav-top-bar" class="hidden">
+    <div id="nav-top-full">
+      <div id="nav-top-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="13" cy="4" r="2"></circle>
+          <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
+          <path d="M11 14l3 1 2 5"></path>
+        </svg>
+      </div>
+      <div id="nav-top-text">
+        <div id="nav-top-distance">— m</div>
+        <div id="nav-top-sub">do punktu startowego</div>
+      </div>
+      <button id="nav-top-close" aria-label="Zwiń nawigację">×</button>
+    </div>
+    <button id="nav-top-peek" aria-label="Rozwiń nawigację">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="13" cy="4" r="2"></circle>
+        <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
+        <path d="M11 14l3 1 2 5"></path>
+      </svg>
+    </button>
+  </div>
 
   <div id="topbar">
     <div id="btn-stack">
@@ -924,7 +974,6 @@ function applyTranslations() {
   document.getElementById('change-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
   document.getElementById('change-lang-label').textContent = t('changeLang');
   document.getElementById('logout-btn').textContent = t('logoutBtn');
-  if (typeof setNavCtaState === 'function') setNavCtaState(navActive);
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
   document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
@@ -1686,9 +1735,21 @@ async function fetchWalkingRouteFrom(baseUrl, from, to) {
   if (!res.ok) throw new Error('routing HTTP ' + res.status);
   const data = await res.json();
   if (data.routes && data.routes[0]) {
-    return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    return {
+      coords: data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]),
+      distance: data.routes[0].distance, // metry
+      duration: data.routes[0].duration  // sekundy
+    };
   }
   throw new Error('no route in response');
+}
+
+function formatNavDistance(meters) {
+  return meters < 1000 ? Math.round(meters / 10) * 10 + ' m' : (meters / 1000).toFixed(1) + ' km';
+}
+function formatNavDuration(seconds) {
+  const min = Math.max(1, Math.round(seconds / 60));
+  return min + ' min pieszo';
 }
 
 async function requestWalkingRoute(userLatLng) {
@@ -1698,6 +1759,7 @@ async function requestWalkingRoute(userLatLng) {
   lastRoutedLatLng = userLatLng;
   // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
   drawGuideLine([userLatLng, startLatLng]);
+  if (navTopDistance) navTopDistance.textContent = 'obliczanie…';
 
   // dwa niezależne serwery routingu pieszego (ten sam silnik OSRM, różne adresy) —
   // jeśli pierwszy akurat zawiedzie (limit zapytań / przestój), próbujemy drugiego
@@ -1709,8 +1771,10 @@ async function requestWalkingRoute(userLatLng) {
   let lastError = null;
   for (const base of endpoints) {
     try {
-      const coords = await fetchWalkingRouteFrom(base, userLatLng, startLatLng);
-      drawGuideLine(coords);
+      const result = await fetchWalkingRouteFrom(base, userLatLng, startLatLng);
+      drawGuideLine(result.coords);
+      if (navTopDistance) navTopDistance.textContent = formatNavDistance(result.distance);
+      if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration);
       success = true;
       break;
     } catch (e) {
@@ -1720,11 +1784,9 @@ async function requestWalkingRoute(userLatLng) {
   }
   if (!success) {
     // tymczasowy widoczny komunikat diagnostyczny — żeby dało się zobaczyć, co faktycznie poszło nie tak
-    const errMsg = 'Trasa: błąd (' + (lastError ? String(lastError.message || lastError) : 'nieznany') + ')';
-    if (typeof sheetNavCtaLabel !== 'undefined' && sheetNavCtaLabel) {
-      sheetNavCtaLabel.textContent = errMsg;
-    }
-    console.error(errMsg);
+    const errMsg = 'błąd (' + (lastError ? String(lastError.message || lastError) : 'nieznany') + ')';
+    if (navTopDistance) navTopDistance.textContent = errMsg;
+    console.error('Trasa:', errMsg);
   }
   routingInFlight = false;
 }
@@ -1764,9 +1826,7 @@ function startLocationTracking(flyOnFirstFix) {
       if (nowReached !== reachedStart) {
         reachedStart = nowReached;
         if (reachedStart && navActive) {
-          navActive = false;
-          if (typeof setNavCtaState === 'function') setNavCtaState(false);
-          if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+          stopNavigation();
           if (typeof setSheetPeek === 'function') setSheetPeek(false); // dotarł — pokazujemy z powrotem pełny panel z tracklami
         }
       }
@@ -1783,41 +1843,38 @@ function startLocationTracking(flyOnFirstFix) {
 }
 
 /* ============================================================
-   NAWIGACJA DO PUNKTU STARTOWEGO — przycisk wbudowany w panel
-   (zamiast osobnej flagi na mapie, którą trudno było znaleźć)
+   PASEK NAWIGACJI NA GÓRZE — całkowicie niezależny od panelu audio na dole
 ============================================================ */
-const sheetNavCta = document.getElementById('sheet-nav-cta');
-const sheetNavCtaLabel = document.getElementById('sheet-nav-cta-label');
-const sheetNavCtaIcon = document.getElementById('sheet-nav-cta-icon');
+const navTopBar = document.getElementById('nav-top-bar');
+const navTopDistance = document.getElementById('nav-top-distance');
+const navTopSub = document.getElementById('nav-top-sub');
 
-function setNavCtaState(active) {
-  sheetNavCta.classList.toggle('active', active);
-  sheetNavCtaLabel.textContent = active ? t('navigatingText') : t('navigateBtn');
-  sheetNavCtaIcon.innerHTML = active
-    ? '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>'
-    : '<path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"></path><circle cx="12" cy="9" r="2.5"></circle>';
+function showNavTopBar() {
+  navTopBar.classList.remove('hidden', 'collapsed');
 }
-
-sheetNavCta.addEventListener('click', () => {
-  if (navActive) {
-    // zatrzymaj nawigację
-    navActive = false;
-    setNavCtaState(false);
-    if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
-    return;
-  }
+function hideNavTopBar() {
+  navTopBar.classList.add('hidden');
+}
+function startNavigation() {
   navActive = true;
-  setNavCtaState(true);
+  showNavTopBar();
   lastRoutedLatLng = null; // wymuś świeże przeliczenie trasy
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
     requestWalkingRoute([gll.lat, gll.lng]);
-    // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i punkt startowy naraz — jak w Google Maps
-    const bounds = L.latLngBounds([[gll.lat, gll.lng], [startPoint.lat, startPoint.lng]]);
-    map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
   }
-  // zwijamy panel do małego paska na dole, żeby było widać mapę i nawigację podczas chodzenia
-  setSheetPeek(true);
+}
+function stopNavigation() {
+  navActive = false;
+  hideNavTopBar();
+  if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+}
+
+document.getElementById('nav-top-close').addEventListener('click', () => {
+  navTopBar.classList.add('collapsed'); // zwija się W GÓRĘ (mały krążek), nawigacja dalej aktywna w tle
+});
+document.getElementById('nav-top-peek').addEventListener('click', () => {
+  navTopBar.classList.remove('collapsed');
 });
 
 document.getElementById('locate-btn').addEventListener('click', () => {
@@ -1862,6 +1919,7 @@ function selectDistrict(freeRoam, options) {
   routeChosen = !freeRoam;
   reachedStart = false;
   navActive = false;
+  hideNavTopBar();
   if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
 
   if (routeLinePath) {
@@ -1876,6 +1934,7 @@ function selectDistrict(freeRoam, options) {
     // trasa wybrana — od razu pokazujemy panel z nawigacją do startu + tracki wprowadzające,
     // żeby nikt nie musiał niczego szukać na mapie (to był realny problem testerów)
     openSheet(INTRO_POINT);
+    startNavigation(); // pasek nawigacji na górze odpala się automatycznie razem z panelem audio
   } else {
     closeSheet();
   }
@@ -2018,14 +2077,7 @@ function openSheet(point) {
   currentPoint = point;
   currentTrackIndex = 0;
   sheetTitle.textContent = point.name;
-  if (point.type === 'intro') {
-    sheetKicker.textContent = t('routeIntroKicker');
-    sheetNavCta.classList.remove('hidden');
-    setNavCtaState(navActive);
-  } else {
-    sheetKicker.textContent = point.type === 'main' ? t('pointMain') : t('pointExtra');
-    sheetNavCta.classList.add('hidden');
-  }
+  sheetKicker.textContent = point.type === 'intro' ? t('routeIntroKicker') : (point.type === 'main' ? t('pointMain') : t('pointExtra'));
   renderTrackList();
   loadTrack();
   setSheetPeek(false); // świeżo otwarty panel zawsze zaczyna w pełni rozwinięty
