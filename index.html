@@ -1760,6 +1760,9 @@ document.getElementById('nav-go-btn').addEventListener('click', () => {
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
     requestWalkingRoute([gll.lat, gll.lng]);
+    // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i punkt startowy naraz — jak w Google Maps
+    const bounds = L.latLngBounds([[gll.lat, gll.lng], [startPoint.lat, startPoint.lng]]);
+    map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
   }
 });
 
