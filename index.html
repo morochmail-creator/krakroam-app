@@ -457,13 +457,12 @@
   }
   #sheet.open { transform: translateY(0); }
   #sheet.peek { pointer-events: none; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
-  #sheet.peek #sheet-handle-zone,
   #sheet.peek #sheet-peek-bar,
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
   #sheet-peek-bar {
     display: none; align-items: center; gap: 12px;
-    padding: 4px 4px 2px; color: var(--cream); font-size: 14px; font-weight: 600;
+    padding: 8px 4px 2px; color: var(--cream); font-size: 14px; font-weight: 600;
     cursor: pointer;
   }
   #sheet.peek #sheet-peek-bar { display: flex; }
@@ -475,15 +474,6 @@
   #peek-play-btn svg { width: 16px; height: 16px; fill: var(--bg); }
   #sheet-peek-label {
     flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .peek-chevron { flex-shrink: 0; width: 16px; height: 16px; stroke: var(--cream-dim); }
-
-  #sheet-handle-zone {
-    padding: 8px 0 12px; margin: -10px -18px 0; cursor: pointer;
-  }
-  #sheet-handle {
-    width: 36px; height: 4px; border-radius: 2px;
-    background: var(--line); margin: 6px auto 0;
   }
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
@@ -734,15 +724,11 @@
     <button id="sheet-close" aria-label="Zwiń">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg>
     </button>
-    <div id="sheet-handle-zone">
-      <div id="sheet-handle"></div>
-    </div>
     <div id="sheet-peek-bar">
       <button id="peek-play-btn" aria-label="Odtwórz/Pauza">
         <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
       </button>
       <span id="sheet-peek-label">—</span>
-      <svg class="peek-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"></polyline></svg>
     </div>
 
     <div id="sheet-full-content">
@@ -2101,7 +2087,6 @@ function setSheetPeek(state) {
     label.textContent = track ? `${currentPoint.name} — ${track.label}` : currentPoint.name;
   }
 }
-document.getElementById('sheet-handle-zone').addEventListener('click', () => setSheetPeek(!sheetPeek));
 document.getElementById('sheet-peek-bar').addEventListener('click', () => setSheetPeek(false));
 
 function openSheet(point) {
