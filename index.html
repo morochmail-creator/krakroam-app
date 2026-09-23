@@ -270,6 +270,7 @@
   #nav-top-icon {
     flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
     background: rgba(74,144,217,0.18); display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
   }
   #nav-top-icon svg { width: 17px; height: 17px; stroke: #4a90d9; }
   #nav-top-text { min-width: 0; }
@@ -1902,6 +1903,11 @@ function collapseNavTopBar() {
 let navTargetPointRef = null; // pełny obiekt punktu-celu (do pokazania tracków w komunikacie "jesteś na miejscu")
 let navTargetMarker = null;
 
+function flyToNavTarget() {
+  if (!navTargetLatLng) return;
+  map.flyTo(navTargetLatLng, 18, { duration: 1.1 });
+}
+
 function showNavTargetMarker() {
   hideNavTargetMarker();
   if (!navTargetLatLng) return;
@@ -1913,9 +1919,10 @@ function showNavTargetMarker() {
     // czubek kropli zakotwiczony dokładnie w punkcie (iconAnchor = dół, środek) — reszta pinezki
     // "wystaje" do góry, więc nigdy nie zasłania markera punktu, który jest pod spodem
     icon: L.divIcon({ className: '', html: `<div class="nav-target-pin">${pinSvg}</div>`, iconSize: [34, 44], iconAnchor: [17, 44] }),
-    interactive: false,
+    interactive: true,
     zIndexOffset: 2500
   }).addTo(map);
+  navTargetMarker.on('click', flyToNavTarget); // kliknięcie w pinezkę = kamera leci nad cel
 }
 function hideNavTargetMarker() {
   if (navTargetMarker) { map.removeLayer(navTargetMarker); navTargetMarker = null; }
@@ -1977,6 +1984,8 @@ document.getElementById('nav-top-close').addEventListener('click', () => {
   // X = realnie wyłącza nawigację (nie tylko chowa wizualnie) — zostaje mały krążek do ew. wznowienia
   stopNavigation();
 });
+document.getElementById('nav-top-icon').addEventListener('click', flyToNavTarget); // ludzik na rozwiniętym pasku = kamera leci nad cel
+
 document.getElementById('nav-top-peek').addEventListener('click', () => {
   // tapnięcie krążka wznawia nawigację do ostatniego celu — ale tylko jeśli jakiś realnie jest ustawiony
   // (np. w trybie swobodnym zanim wybierzesz konkretny punkt "Prowadź mnie tutaj" — nie ma dokąd prowadzić)
