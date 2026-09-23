@@ -2072,10 +2072,13 @@ function selectDistrict(freeRoam, options) {
   if (!freeRoam) {
     // trasa wybrana — od razu pokazujemy panel z nawigacją do startu + tracki wprowadzające,
     // żeby nikt nie musiał niczego szukać na mapie (to był realny problem testerów)
+    INTRO_POINT.name = 'Odsłuchaj w drodze na start';
     openSheet(INTRO_POINT);
     startNavigation(startPoint); // pasek nawigacji na górze odpala się automatycznie razem z panelem audio
   } else {
-    closeSheet();
+    // tryb swobodny — też pokazujemy panel wprowadzający, ale z inną nazwą (bez konkretnego "startu")
+    INTRO_POINT.name = 'Odsłuchaj w drodze do historycznego centrum';
+    openSheet(INTRO_POINT);
   }
 
   if (skipCameraMove) return; // zamknięcie przez X/tło — nie ruszamy kamerą, zostawiamy widok jak był
