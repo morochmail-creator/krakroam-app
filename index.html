@@ -1935,6 +1935,7 @@ function startNavigation(targetPoint) {
     navTargetName = targetPoint.name;
     navTargetPointRef = targetPoint;
   }
+  if (typeof navTopIconShowsTarget !== 'undefined') navTopIconShowsTarget = true; // nowa nawigacja = pierwszy klik znów pokazuje cel
   navActive = true;
   reachedNavTarget = false;
   showNavTopBar();
@@ -1984,7 +1985,15 @@ document.getElementById('nav-top-close').addEventListener('click', () => {
   // X = realnie wyłącza nawigację (nie tylko chowa wizualnie) — zostaje mały krążek do ew. wznowienia
   stopNavigation();
 });
-document.getElementById('nav-top-icon').addEventListener('click', flyToNavTarget); // ludzik na rozwiniętym pasku = kamera leci nad cel
+let navTopIconShowsTarget = true; // na zmianę: pierwszy klik = cel, drugi klik = Ty
+document.getElementById('nav-top-icon').addEventListener('click', () => {
+  if (navTopIconShowsTarget) {
+    flyToNavTarget();
+  } else if (gpsMarker) {
+    map.flyTo(gpsMarker.getLatLng(), 18, { duration: 1.1 });
+  }
+  navTopIconShowsTarget = !navTopIconShowsTarget;
+});
 
 document.getElementById('nav-top-peek').addEventListener('click', () => {
   // tapnięcie krążka wznawia nawigację do ostatniego celu — ale tylko jeśli jakiś realnie jest ustawiony
