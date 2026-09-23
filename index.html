@@ -86,6 +86,59 @@
     color: #ff6b6b; font-size: 13px; margin-top: 12px; min-height: 16px;
   }
 
+  /* ---------- Ekran "dodaj do ekranu głównego" ---------- */
+  #a2hs-screen {
+    position: absolute; inset: 0; z-index: 109;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+  #a2hs-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #a2hs-scrim {
+    position: absolute; inset: 0;
+    background: rgba(15,12,9,0.72);
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  }
+  #a2hs-inner {
+    position: relative; width: 100%; max-width: 400px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 24px; padding: 30px 24px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  #a2hs-icon {
+    width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 16px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #a2hs-icon svg { width: 28px; height: 28px; stroke: var(--amber-soft); }
+  #a2hs-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 21px; font-weight: 700; color: var(--cream);
+    margin-bottom: 8px;
+  }
+  #a2hs-sub { color: var(--cream-dim); font-size: 13.5px; margin-bottom: 22px; line-height: 1.4; }
+  #a2hs-steps {
+    text-align: left; background: var(--panel-2); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 20px;
+  }
+  .a2hs-step {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13.5px; color: var(--cream); line-height: 1.4;
+  }
+  .a2hs-step + .a2hs-step { margin-top: 10px; }
+  .a2hs-step-num {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--amber); color: #14110d; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #a2hs-continue {
+    width: 100%; background: var(--amber); border: none;
+    color: #14110d; font-size: 14.5px; font-weight: 700;
+    padding: 14px; border-radius: 14px; cursor: pointer;
+  }
+
   /* ---------- Ekran wyboru języka (pierwszy krok) ---------- */
   #lang-menu {
     position: absolute; inset: 0; z-index: 110;
@@ -586,6 +639,22 @@
     </div>
   </div>
 
+  <div id="a2hs-screen" class="hidden">
+    <div id="a2hs-scrim"></div>
+    <div id="a2hs-inner">
+      <div id="a2hs-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg>
+      </div>
+      <div id="a2hs-title">Dodaj KrakRoam do ekranu głównego</div>
+      <div id="a2hs-sub">Otworzysz apkę jednym stuknięciem, na pełnym ekranie — bez paska adresu przeglądarki.</div>
+      <div id="a2hs-steps"></div>
+      <button id="a2hs-continue">Rozumiem, nie pokazuj więcej</button>
+    </div>
+  </div>
+
   <div id="lang-menu">
     <div id="lang-scrim"></div>
     <div id="lang-menu-inner">
@@ -854,6 +923,49 @@ function lockApp() {
 }
 
 /* ============================================================
+   "DODAJ DO EKRANU GŁÓWNEGO" — pokazuje się raz, po wyborze języka,
+   z instrukcją dopasowaną do iOS/Android. Pomijamy jeśli: apka już
+   działa w trybie standalone (już dodana), to nie telefon (desktop),
+   albo user już kiedyś kliknął "nie pokazuj więcej".
+============================================================ */
+function isRunningStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function getMobilePlatform() {
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  return null; // desktop albo nierozpoznana platforma — pomijamy
+}
+function maybeShowA2HS() {
+  if (localStorage.getItem('krakroam_a2hs_dismissed') === '1') return;
+  if (isRunningStandalone()) return;
+  const platform = getMobilePlatform();
+  if (!platform) return;
+
+  const stepsEl = document.getElementById('a2hs-steps');
+  document.getElementById('a2hs-title').textContent = t('a2hsTitle');
+  document.getElementById('a2hs-sub').textContent = t('a2hsSub');
+  document.getElementById('a2hs-continue').textContent = t('a2hsContinue');
+  if (platform === 'ios') {
+    stepsEl.innerHTML = `
+      <div class="a2hs-step"><span class="a2hs-step-num">1</span><span>${t('a2hsIos1')}</span></div>
+      <div class="a2hs-step"><span class="a2hs-step-num">2</span><span>${t('a2hsIos2')}</span></div>
+      <div class="a2hs-step"><span class="a2hs-step-num">3</span><span>${t('a2hsIos3')}</span></div>`;
+  } else {
+    stepsEl.innerHTML = `
+      <div class="a2hs-step"><span class="a2hs-step-num">1</span><span>${t('a2hsAndroid1')}</span></div>
+      <div class="a2hs-step"><span class="a2hs-step-num">2</span><span>${t('a2hsAndroid2')}</span></div>
+      <div class="a2hs-step"><span class="a2hs-step-num">3</span><span>${t('a2hsAndroid3')}</span></div>`;
+  }
+  document.getElementById('a2hs-screen').classList.remove('hidden');
+}
+document.getElementById('a2hs-continue').addEventListener('click', () => {
+  localStorage.setItem('krakroam_a2hs_dismissed', '1');
+  document.getElementById('a2hs-screen').classList.add('hidden');
+});
+
+/* ============================================================
    TŁUMACZENIA UI (menu, przyciski, komunikaty)
    UWAGA: to tłumaczy tylko interfejs apki — nazwy punktów i pliki
    audio w POINTS zostają na razie po polsku, dopóki nie dojdą
@@ -902,7 +1014,16 @@ const TRANSLATIONS = {
     arrivalTitle: "Jesteś na miejscu!",
     arrivalSub: "Odtwórz:",
     sheetExpandLabel: "Rozwiń",
-    sheetCollapseLabel: "Zwiń"
+    sheetCollapseLabel: "Zwiń",
+    a2hsTitle: "Dodaj KrakRoam do ekranu głównego",
+    a2hsSub: "Otworzysz apkę jednym stuknięciem, na pełnym ekranie — bez paska adresu przeglądarki.",
+    a2hsContinue: "Rozumiem, nie pokazuj więcej",
+    a2hsIos1: "Stuknij ikonę <strong>Udostępnij</strong> (kwadrat ze strzałką) na dolnym pasku Safari",
+    a2hsIos2: "Przewiń listę w dół i wybierz <strong>„Dodaj do ekranu początkowego”</strong>",
+    a2hsIos3: "Potwierdź, stukając <strong>„Dodaj”</strong> w prawym górnym rogu",
+    a2hsAndroid1: "Stuknij <strong>trzy kropki (⋮)</strong> w prawym górnym rogu przeglądarki",
+    a2hsAndroid2: "Wybierz <strong>„Zainstaluj aplikację”</strong> lub <strong>„Dodaj do ekranu głównego”</strong>",
+    a2hsAndroid3: "Potwierdź instalację"
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
@@ -941,7 +1062,16 @@ const TRANSLATIONS = {
     arrivalTitle: "Ти на місці!",
     arrivalSub: "Відтвори:",
     sheetExpandLabel: "Розгорнути",
-    sheetCollapseLabel: "Згорнути"
+    sheetCollapseLabel: "Згорнути",
+    a2hsTitle: "Додай KrakRoam на головний екран",
+    a2hsSub: "Відкриєш застосунок одним дотиком, на весь екран — без адресного рядка браузера.",
+    a2hsContinue: "Зрозуміло, більше не показувати",
+    a2hsIos1: "Натисни іконку <strong>Поділитися</strong> (квадрат зі стрілкою) на нижній панелі Safari",
+    a2hsIos2: "Прокрути список вниз і вибери <strong>«На екран Домівка»</strong>",
+    a2hsIos3: "Підтвердь, натиснувши <strong>«Додати»</strong> у правому верхньому куті",
+    a2hsAndroid1: "Натисни <strong>три крапки (⋮)</strong> у правому верхньому куті браузера",
+    a2hsAndroid2: "Вибери <strong>«Встановити застосунок»</strong> або <strong>«Додати на головний екран»</strong>",
+    a2hsAndroid3: "Підтвердь встановлення"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -980,7 +1110,16 @@ const TRANSLATIONS = {
     arrivalTitle: "You've arrived!",
     arrivalSub: "Play:",
     sheetExpandLabel: "Expand",
-    sheetCollapseLabel: "Collapse"
+    sheetCollapseLabel: "Collapse",
+    a2hsTitle: "Add KrakRoam to your Home Screen",
+    a2hsSub: "Open the app with one tap, full-screen — no browser address bar.",
+    a2hsContinue: "Got it, don't show again",
+    a2hsIos1: "Tap the <strong>Share</strong> icon (square with an arrow) in Safari's bottom bar",
+    a2hsIos2: "Scroll down the list and choose <strong>\"Add to Home Screen\"</strong>",
+    a2hsIos3: "Confirm by tapping <strong>\"Add\"</strong> in the top-right corner",
+    a2hsAndroid1: "Tap the <strong>three dots (⋮)</strong> in the top-right of your browser",
+    a2hsAndroid2: "Choose <strong>\"Install app\"</strong> or <strong>\"Add to Home screen\"</strong>",
+    a2hsAndroid3: "Confirm the installation"
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
@@ -1019,7 +1158,16 @@ const TRANSLATIONS = {
     arrivalTitle: "Du bist angekommen!",
     arrivalSub: "Abspielen:",
     sheetExpandLabel: "Ausklappen",
-    sheetCollapseLabel: "Einklappen"
+    sheetCollapseLabel: "Einklappen",
+    a2hsTitle: "KrakRoam zum Startbildschirm hinzufügen",
+    a2hsSub: "Öffne die App mit einem Tippen, im Vollbild — ohne Adressleiste des Browsers.",
+    a2hsContinue: "Verstanden, nicht mehr anzeigen",
+    a2hsIos1: "Tippe auf das Symbol <strong>Teilen</strong> (Quadrat mit Pfeil) in der unteren Safari-Leiste",
+    a2hsIos2: "Scrolle die Liste nach unten und wähle <strong>„Zum Home-Bildschirm”</strong>",
+    a2hsIos3: "Bestätige mit <strong>„Hinzufügen”</strong> oben rechts",
+    a2hsAndroid1: "Tippe auf die <strong>drei Punkte (⋮)</strong> oben rechts im Browser",
+    a2hsAndroid2: "Wähle <strong>„App installieren”</strong> oder <strong>„Zum Startbildschirm hinzufügen”</strong>",
+    a2hsAndroid3: "Bestätige die Installation"
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
@@ -1058,7 +1206,16 @@ const TRANSLATIONS = {
     arrivalTitle: "¡Has llegado!",
     arrivalSub: "Reproducir:",
     sheetExpandLabel: "Expandir",
-    sheetCollapseLabel: "Contraer"
+    sheetCollapseLabel: "Contraer",
+    a2hsTitle: "Añade KrakRoam a tu pantalla de inicio",
+    a2hsSub: "Abre la app con un toque, a pantalla completa — sin la barra de direcciones del navegador.",
+    a2hsContinue: "Entendido, no volver a mostrar",
+    a2hsIos1: "Toca el icono <strong>Compartir</strong> (cuadrado con flecha) en la barra inferior de Safari",
+    a2hsIos2: "Desplázate hacia abajo y elige <strong>«Añadir a pantalla de inicio»</strong>",
+    a2hsIos3: "Confirma tocando <strong>«Añadir»</strong> en la esquina superior derecha",
+    a2hsAndroid1: "Toca los <strong>tres puntos (⋮)</strong> en la esquina superior derecha del navegador",
+    a2hsAndroid2: "Elige <strong>«Instalar aplicación»</strong> o <strong>«Añadir a pantalla de inicio»</strong>",
+    a2hsAndroid3: "Confirma la instalación"
   }
 };
 
@@ -2235,6 +2392,7 @@ document.querySelectorAll('.lang-row').forEach(row => {
     requestAnimationFrame(() => {
       setTimeout(() => dm.classList.remove('entering'), 60);
     });
+    maybeShowA2HS(); // no-op jeśli user już to odrzucił wcześniej albo zmienia język w trakcie, nie pierwszy raz
   });
 });
 
@@ -2468,6 +2626,7 @@ if (savedLang && TRANSLATIONS[savedLang]) {
   document.getElementById('lang-menu').classList.add('hidden');
   const dm = document.getElementById('district-menu');
   dm.classList.remove('hidden', 'entering');
+  maybeShowA2HS();
 }
 </script>
 </body>
