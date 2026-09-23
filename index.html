@@ -461,7 +461,7 @@
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
   #sheet-peek-bar {
-    display: none; align-items: flex-end; gap: 12px;
+    display: none; align-items: flex-start; gap: 12px;
     min-height: 150px;
     padding: 16px 4px 14px; color: var(--cream); font-size: 14px; font-weight: 600;
     cursor: pointer;
@@ -475,6 +475,7 @@
   #peek-play-btn svg { width: 19px; height: 19px; fill: var(--bg); }
   #sheet-peek-label {
     flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    align-self: center;
   }
 
   #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
@@ -1882,6 +1883,13 @@ function startNavigation(targetPoint) {
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
     requestWalkingRoute([gll.lat, gll.lng]);
+    // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i cel nawigacji naraz — jak w Google Maps,
+    // niezależnie czy cel to start trasy, czy dowolny punkt wybrany przez "Prowadź mnie tutaj"
+    const bounds = L.latLngBounds([[gll.lat, gll.lng], navTargetLatLng]);
+    map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
+  } else {
+    // brak jeszcze pozycji GPS — przynajmniej pokazujemy sam cel
+    map.flyTo(navTargetLatLng, 17, { duration: 1.2 });
   }
 }
 function stopNavigation() {
@@ -1905,7 +1913,9 @@ document.getElementById('nav-top-peek').addEventListener('click', () => {
 
 document.getElementById('sheet-goto-btn').addEventListener('click', () => {
   if (!currentPoint) return;
-  startNavigation(currentPoint);
+  // track 0 "Zanim wyruszysz" nie ma własnych współrzędnych — ten przycisk prowadzi wtedy do startu trasy
+  const target = currentPoint.type === 'intro' ? startPoint : currentPoint;
+  startNavigation(target);
   setSheetPeek(true); // zwijamy panel audio, żeby nawigacja na górze była dobrze widoczna
 });
 
@@ -1989,15 +1999,8 @@ function selectDistrict(freeRoam, options) {
       padding: [36, 36],
       duration: 1.8
     });
-  } else {
-    // trasa wybrana — pokazujemy całą trasę na raz (nie tylko punkt startowy),
-    // ale ciaśniejszy zapas niż wcześniej, żeby nie oddalać za bardzo na telefonie
-    const bounds = L.latLngBounds(ROUTE_LINE);
-    map.flyToBounds(bounds, {
-      padding: [24, 24],
-      duration: 1.8
-    });
   }
+  // dla wybranej trasy kamerą zajmuje się już startNavigation() (pokazuje Ciebie + cel razem) — bez dublowania
 }
 
 document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', () => selectDistrict(false));
@@ -2104,11 +2107,10 @@ function setSheetPeek(state) {
     const label = document.getElementById('sheet-peek-label');
     label.textContent = track ? track.label : currentPoint.name;
   }
-  if (!state && currentPoint) {
-    // rozwinięcie panelu = mapa leci nad ten punkt, tak samo jak przy kliknięciu w pin.
-    // Track 0 "Zanim wyruszysz" nie ma własnych współrzędnych — leci wtedy nad punkt startowy trasy
-    const target = currentPoint.type === 'intro' ? startPoint : currentPoint;
-    flyToPointBehindSheet(target);
+  if (!state && currentPoint && currentPoint.type !== 'intro') {
+    // rozwinięcie panelu = mapa leci nad ten punkt, tak samo jak przy kliknięciu w pin
+    // (poza track 0 "Zanim wyruszysz" — to nie jest realny punkt geograficzny)
+    flyToPointBehindSheet(currentPoint);
   }
 }
 document.getElementById('sheet-peek-bar').addEventListener('click', () => setSheetPeek(false));
@@ -2136,9 +2138,9 @@ function openSheet(point) {
   sheetTitle.textContent = point.name;
   sheetKicker.textContent = point.type === 'intro' ? t('routeIntroKicker') : (point.type === 'main' ? t('pointMain') : t('pointExtra'));
 
-  // "Prowadź mnie tutaj" — widoczny zawsze dla realnych punktów (w każdym trybie trasy)
+  // "Prowadź mnie tutaj" — widoczny zawsze, dla każdego punktu (w tym tracka 0, gdzie prowadzi do startu trasy)
   const gotoBtn = document.getElementById('sheet-goto-btn');
-  gotoBtn.classList.toggle('hidden', point.type === 'intro');
+  gotoBtn.classList.remove('hidden');
 
   renderTrackList();
   loadTrack();
@@ -2155,7 +2157,7 @@ function closeSheet() {
 }
 
 document.getElementById('sheet-close').addEventListener('click', () => setSheetPeek(!sheetPeek));
-sheetBackdrop.addEventListener('click', closeSheet);
+sheetBackdrop.addEventListener('click', () => setSheetPeek(true)); // kliknięcie w tło tylko ZWIJA panel, nigdy nie zamyka go całkiem
 
 function renderTrackList() {
   trackListEl.innerHTML = '';
