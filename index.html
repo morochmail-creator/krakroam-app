@@ -892,7 +892,17 @@ const TRANSLATIONS = {
     navigatingText: "Nawigacja do startu",
     logoutBtn: "Wyloguj",
     routeIntroKicker: "Witamy w Krakowie",
-    gotoHereBtn: "Prowadź mnie tutaj"
+    gotoHereBtn: "Prowadź mnie tutaj",
+    introTitleRoute: "Odsłuchaj w drodze na start",
+    introTitleFreeRoam: "Odsłuchaj w drodze do historycznego centrum",
+    introTrack0Label: "Krótka historia Krakowa",
+    introTrack01Label: "Jak korzystać z aplikacji",
+    navMinWalk: " min pieszo",
+    navCalculating: "obliczanie…",
+    arrivalTitle: "Jesteś na miejscu!",
+    arrivalSub: "Odtwórz:",
+    sheetExpandLabel: "Rozwiń",
+    sheetCollapseLabel: "Zwiń"
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
@@ -921,7 +931,17 @@ const TRANSLATIONS = {
     navigatingText: "Навігація до старту",
     logoutBtn: "Вийти",
     routeIntroKicker: "Ласкаво просимо до Кракова",
-    gotoHereBtn: "Проведи мене сюди"
+    gotoHereBtn: "Проведи мене сюди",
+    introTitleRoute: "Послухай в дорозі до старту",
+    introTitleFreeRoam: "Послухай в дорозі до історичного центру",
+    introTrack0Label: "Коротка історія Кракова",
+    introTrack01Label: "Як користуватися додатком",
+    navMinWalk: " хв пішки",
+    navCalculating: "обчислення…",
+    arrivalTitle: "Ти на місці!",
+    arrivalSub: "Відтвори:",
+    sheetExpandLabel: "Розгорнути",
+    sheetCollapseLabel: "Згорнути"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -950,7 +970,17 @@ const TRANSLATIONS = {
     navigatingText: "Navigating to the start",
     logoutBtn: "Log out",
     routeIntroKicker: "Welcome to Krakow",
-    gotoHereBtn: "Guide me here"
+    gotoHereBtn: "Guide me here",
+    introTitleRoute: "Listen on your way to the start",
+    introTitleFreeRoam: "Listen on your way to the historic centre",
+    introTrack0Label: "A short history of Krakow",
+    introTrack01Label: "How to use the app",
+    navMinWalk: " min walk",
+    navCalculating: "calculating…",
+    arrivalTitle: "You've arrived!",
+    arrivalSub: "Play:",
+    sheetExpandLabel: "Expand",
+    sheetCollapseLabel: "Collapse"
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
@@ -979,7 +1009,17 @@ const TRANSLATIONS = {
     navigatingText: "Navigation zum Start",
     logoutBtn: "Abmelden",
     routeIntroKicker: "Willkommen in Krakau",
-    gotoHereBtn: "Führe mich hierher"
+    gotoHereBtn: "Führe mich hierher",
+    introTitleRoute: "Hör zu, während du zum Start gehst",
+    introTitleFreeRoam: "Hör zu, während du zum historischen Zentrum gehst",
+    introTrack0Label: "Eine kurze Geschichte Krakaus",
+    introTrack01Label: "So benutzt du die App",
+    navMinWalk: " Min. zu Fuß",
+    navCalculating: "wird berechnet…",
+    arrivalTitle: "Du bist angekommen!",
+    arrivalSub: "Abspielen:",
+    sheetExpandLabel: "Ausklappen",
+    sheetCollapseLabel: "Einklappen"
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
@@ -1008,7 +1048,17 @@ const TRANSLATIONS = {
     navigatingText: "Navegando al inicio",
     logoutBtn: "Cerrar sesión",
     routeIntroKicker: "Bienvenido a Cracovia",
-    gotoHereBtn: "Llévame aquí"
+    gotoHereBtn: "Llévame aquí",
+    introTitleRoute: "Escucha de camino al inicio",
+    introTitleFreeRoam: "Escucha de camino al centro histórico",
+    introTrack0Label: "Una breve historia de Cracovia",
+    introTrack01Label: "Cómo usar la aplicación",
+    navMinWalk: " min a pie",
+    navCalculating: "calculando…",
+    arrivalTitle: "¡Has llegado!",
+    arrivalSub: "Reproducir:",
+    sheetExpandLabel: "Expandir",
+    sheetCollapseLabel: "Contraer"
   }
 };
 
@@ -1809,7 +1859,7 @@ function formatNavDistance(meters) {
 }
 function formatNavDuration(seconds) {
   const min = Math.max(1, Math.round(seconds / 60));
-  return min + ' min pieszo';
+  return min + t('navMinWalk');
 }
 
 async function requestWalkingRoute(userLatLng) {
@@ -1819,7 +1869,7 @@ async function requestWalkingRoute(userLatLng) {
   lastRoutedLatLng = userLatLng;
   // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
   drawGuideLine([userLatLng, navTargetLatLng]);
-  if (navTopDistance) navTopDistance.textContent = 'obliczanie…';
+  if (navTopDistance) navTopDistance.textContent = t('navCalculating');
 
   // dwa niezależne serwery routingu pieszego (ten sam silnik OSRM, różne adresy) —
   // jeśli pierwszy akurat zawiedzie (limit zapytań / przestój), próbujemy drugiego
@@ -1982,6 +2032,8 @@ function stopNavigation() {
 let arrivalToastTimer = null;
 function showArrivalToast(point) {
   const toast = document.getElementById('arrival-toast');
+  document.getElementById('arrival-toast-title').textContent = t('arrivalTitle');
+  document.getElementById('arrival-toast-sub').firstChild.textContent = t('arrivalSub') + ' ';
   const track = point && point.tracks && point.tracks[0];
   document.getElementById('arrival-toast-track').textContent = track ? track.label : (point ? point.name : '');
   toast.classList.remove('hidden');
@@ -2087,15 +2139,20 @@ function selectDistrict(freeRoam, options) {
     }
   }
 
+  // etykiety pierwszych dwóch (prawdziwych) tracków wprowadzających — tłumaczone; ewentualne
+  // dalsze wpisy testowe (TEST — placeholder) w INTRO_POINT.tracks zostają bez zmian
+  if (INTRO_POINT.tracks[0]) INTRO_POINT.tracks[0].label = t('introTrack0Label');
+  if (INTRO_POINT.tracks[1]) INTRO_POINT.tracks[1].label = t('introTrack01Label');
+
   if (!freeRoam) {
     // trasa wybrana — od razu pokazujemy panel z nawigacją do startu + tracki wprowadzające,
     // żeby nikt nie musiał niczego szukać na mapie (to był realny problem testerów)
-    INTRO_POINT.name = 'Odsłuchaj w drodze na start';
+    INTRO_POINT.name = t('introTitleRoute');
     openSheet(INTRO_POINT);
     startNavigation(startPoint); // pasek nawigacji na górze odpala się automatycznie razem z panelem audio
   } else {
     // tryb swobodny — też pokazujemy panel wprowadzający, ale z inną nazwą (bez konkretnego "startu")
-    INTRO_POINT.name = 'Odsłuchaj w drodze do historycznego centrum';
+    INTRO_POINT.name = t('introTitleFreeRoam');
     openSheet(INTRO_POINT);
   }
 
@@ -2219,7 +2276,7 @@ function setSheetPeek(state) {
   sheetBackdrop.classList.toggle('peek', state);
   const closeIcon = document.querySelector('#sheet-close svg polyline');
   if (closeIcon) closeIcon.setAttribute('points', state ? '6,15 12,9 18,15' : '6,9 12,15 18,9');
-  document.getElementById('sheet-close').setAttribute('aria-label', state ? 'Rozwiń' : 'Zwiń');
+  document.getElementById('sheet-close').setAttribute('aria-label', state ? t('sheetExpandLabel') : t('sheetCollapseLabel'));
   if (state && currentPoint) {
     const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
     const label = document.getElementById('sheet-peek-label');
