@@ -2072,10 +2072,26 @@ document.getElementById('nav-top-peek').addEventListener('click', () => {
   startNavigation();
 });
 
+function findNearestMainPoint() {
+  if (!gpsMarker) return startPoint; // brak GPS — bezpieczny domyślny wybór
+  const userPos = gpsMarker.getLatLng();
+  let nearest = startPoint, nearestDist = Infinity;
+  POINTS.forEach(p => {
+    if (p.type !== 'main') return; // tylko punkty główne, nie dodatkowe
+    const dist = distMeters([userPos.lat, userPos.lng], [p.lat, p.lng]);
+    if (dist < nearestDist) { nearestDist = dist; nearest = p; }
+  });
+  return nearest;
+}
+
 document.getElementById('sheet-goto-btn').addEventListener('click', () => {
   if (!currentPoint) return;
-  // track 0 "Zanim wyruszysz" nie ma własnych współrzędnych — ten przycisk prowadzi wtedy do startu trasy
-  const target = currentPoint.type === 'intro' ? startPoint : currentPoint;
+  let target = currentPoint;
+  if (currentPoint.type === 'intro') {
+    // track 0 nie ma własnych współrzędnych — w trasie prowadzi do startu, a w trybie swobodnym
+    // do najbliższego user'owi punktu głównego (bez konkretnej trasy "start" nie ma sensu)
+    target = routeChosen ? startPoint : findNearestMainPoint();
+  }
   startNavigation(target);
   setSheetPeek(true); // zwijamy panel audio, żeby nawigacja na górze była dobrze widoczna
 });
