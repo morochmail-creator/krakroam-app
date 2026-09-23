@@ -413,6 +413,11 @@
     background: var(--amber);
     border: 3px solid #14110d;
     box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .marker-num {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 800;
+    color: #14110d; line-height: 1; user-select: none;
   }
   .marker-start {
     width: 26px; height: 26px; border-radius: 50%;
@@ -629,7 +634,7 @@
 <body>
 
 <div id="app">
-  <div id="pw-screen">
+  <div id="pw-screen" class="hidden">
     <div id="pw-inner">
       <div id="pw-brand">Krak<span>Roam</span></div>
       <div id="pw-sub">Wpisz kod dostępu, który otrzymałeś przy zakupie. Znajdziesz go w swojej skrzynce e-mail.</div>
@@ -896,11 +901,14 @@ const pwInput = document.getElementById('pw-input');
 const pwError = document.getElementById('pw-error');
 
 function unlockApp() {
+  // hasło to teraz DRUGI krok (po wyborze języka) — po sukcesie pokazujemy od razu menu tras + ekran homescreen
   pwScreen.classList.add('hidden');
-}
-
-if (localStorage.getItem('krakroam_unlocked') === '1') {
-  unlockApp();
+  const dm = document.getElementById('district-menu');
+  dm.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    setTimeout(() => dm.classList.remove('entering'), 60);
+  });
+  if (typeof maybeShowA2HS === 'function') maybeShowA2HS();
 }
 
 function tryUnlock() {
@@ -910,7 +918,7 @@ function tryUnlock() {
     pwError.textContent = '';
     unlockApp();
   } else {
-    pwError.textContent = 'Nieprawidłowy kod — spróbuj ponownie.';
+    pwError.textContent = t('pwError');
   }
 }
 document.getElementById('pw-submit').addEventListener('click', tryUnlock);
@@ -1023,7 +1031,10 @@ const TRANSLATIONS = {
     a2hsIos3: "Potwierdź, stukając <strong>„Dodaj”</strong> w prawym górnym rogu",
     a2hsAndroid1: "Stuknij <strong>trzy kropki (⋮)</strong> w prawym górnym rogu przeglądarki",
     a2hsAndroid2: "Wybierz <strong>„Zainstaluj aplikację”</strong> lub <strong>„Dodaj do ekranu głównego”</strong>",
-    a2hsAndroid3: "Potwierdź instalację"
+    a2hsAndroid3: "Potwierdź instalację",
+    pwSub: "Wpisz kod dostępu, który otrzymałeś przy zakupie. Znajdziesz go w swojej skrzynce e-mail.",
+    pwSubmit: "Wejdź",
+    pwError: "Nieprawidłowy kod — spróbuj ponownie."
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
@@ -1071,7 +1082,10 @@ const TRANSLATIONS = {
     a2hsIos3: "Підтвердь, натиснувши <strong>«Додати»</strong> у правому верхньому куті",
     a2hsAndroid1: "Натисни <strong>три крапки (⋮)</strong> у правому верхньому куті браузера",
     a2hsAndroid2: "Вибери <strong>«Встановити застосунок»</strong> або <strong>«Додати на головний екран»</strong>",
-    a2hsAndroid3: "Підтвердь встановлення"
+    a2hsAndroid3: "Підтвердь встановлення",
+    pwSub: "Введи код доступу, який отримав при покупці. Знайдеш його у своїй поштовій скриньці.",
+    pwSubmit: "Увійти",
+    pwError: "Невірний код — спробуй ще раз."
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -1119,7 +1133,10 @@ const TRANSLATIONS = {
     a2hsIos3: "Confirm by tapping <strong>\"Add\"</strong> in the top-right corner",
     a2hsAndroid1: "Tap the <strong>three dots (⋮)</strong> in the top-right of your browser",
     a2hsAndroid2: "Choose <strong>\"Install app\"</strong> or <strong>\"Add to Home screen\"</strong>",
-    a2hsAndroid3: "Confirm the installation"
+    a2hsAndroid3: "Confirm the installation",
+    pwSub: "Enter the access code you received when you purchased. You'll find it in your email inbox.",
+    pwSubmit: "Enter",
+    pwError: "Incorrect code — please try again."
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
@@ -1167,7 +1184,10 @@ const TRANSLATIONS = {
     a2hsIos3: "Bestätige mit <strong>„Hinzufügen”</strong> oben rechts",
     a2hsAndroid1: "Tippe auf die <strong>drei Punkte (⋮)</strong> oben rechts im Browser",
     a2hsAndroid2: "Wähle <strong>„App installieren”</strong> oder <strong>„Zum Startbildschirm hinzufügen”</strong>",
-    a2hsAndroid3: "Bestätige die Installation"
+    a2hsAndroid3: "Bestätige die Installation",
+    pwSub: "Gib den Zugangscode ein, den du beim Kauf erhalten hast. Du findest ihn in deinem E-Mail-Postfach.",
+    pwSubmit: "Los geht's",
+    pwError: "Falscher Code — bitte versuch es erneut."
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
@@ -1215,7 +1235,10 @@ const TRANSLATIONS = {
     a2hsIos3: "Confirma tocando <strong>«Añadir»</strong> en la esquina superior derecha",
     a2hsAndroid1: "Toca los <strong>tres puntos (⋮)</strong> en la esquina superior derecha del navegador",
     a2hsAndroid2: "Elige <strong>«Instalar aplicación»</strong> o <strong>«Añadir a pantalla de inicio»</strong>",
-    a2hsAndroid3: "Confirma la instalación"
+    a2hsAndroid3: "Confirma la instalación",
+    pwSub: "Introduce el código de acceso que recibiste al comprar. Lo encontrarás en tu correo electrónico.",
+    pwSubmit: "Entrar",
+    pwError: "Código incorrecto — inténtalo de nuevo."
   }
 };
 
@@ -1225,6 +1248,8 @@ function t(key) {
 }
 
 function applyTranslations() {
+  document.getElementById('pw-sub').textContent = t('pwSub');
+  document.getElementById('pw-submit').textContent = t('pwSubmit');
   document.getElementById('district-menu-title').textContent = t('menuTitle');
   document.querySelector('.district-row[data-district="stare-miasto"] .dr-title').textContent = t('stareMiastoTitle');
   document.querySelector('.district-row[data-district="stare-miasto"] .dr-desc').textContent = t('stareMiastoDesc');
@@ -1848,8 +1873,9 @@ document.querySelectorAll('.layer-option').forEach(el => {
   el.addEventListener('click', () => setMapMode(el.dataset.mode));
 });
 
-function makeDivIcon(className, size) {
-  return L.divIcon({ className: '', html: `<div class="${className}"></div>`, iconSize: [size, size] });
+function makeDivIcon(className, size, label) {
+  const inner = (label !== undefined && label !== null) ? `<span class="marker-num">${label}</span>` : '';
+  return L.divIcon({ className: '', html: `<div class="${className}">${inner}</div>`, iconSize: [size, size] });
 }
 
 function clusterIconFactory(cssClass) {
@@ -1882,14 +1908,20 @@ const extraCluster = L.markerClusterGroup({
 const markersById = {};
 const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
 
+// numer kolejny każdego punktu głównego na trasie (1, 2, 3...) — tylko punkty typu "main"
+let mainPointCounter = 0;
+const mainPointNumbers = {}; // p.id -> numer
+
 POINTS.forEach(p => {
   let className = 'marker-extra';
   let size = 16;
   if (p.type === 'main') {
     className = 'marker-main';
     size = 26;
+    mainPointCounter += 1;
+    mainPointNumbers[p.id] = mainPointCounter;
   }
-  const icon = makeDivIcon(className, size);
+  const icon = makeDivIcon(className, size); // bez numeru na start — pokazujemy go dopiero gdy wybrana jest trasa
   const marker = L.marker([p.lat, p.lng], { icon });
 
   marker.on('click', () => {
@@ -1901,6 +1933,18 @@ POINTS.forEach(p => {
 });
 map.addLayer(mainCluster);
 map.addLayer(extraCluster);
+
+// pokazuje numery kolejne na punktach głównych TYLKO gdy wybrana jest konkretna trasa —
+// w trybie swobodnym (bez trasy) numery kolejności nie mają sensu, więc znikają
+function updateMainMarkerNumbers() {
+  POINTS.forEach(p => {
+    if (p.type !== 'main') return;
+    const marker = markersById[p.id];
+    if (!marker) return;
+    const label = routeChosen ? mainPointNumbers[p.id] : null;
+    marker.setIcon(makeDivIcon('marker-main', 26, label));
+  });
+}
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
 let routeLinePath = null;
@@ -2293,6 +2337,7 @@ function selectDistrict(freeRoam, options) {
 
   // reset stanu nawigacji przy każdym (ponownym) wyborze
   routeChosen = !freeRoam;
+  updateMainMarkerNumbers();
   reachedNavTarget = false;
   navActive = false;
   collapseNavTopBar();
@@ -2386,13 +2431,21 @@ document.querySelectorAll('.lang-row').forEach(row => {
     localStorage.setItem('krakroam_lang', currentLang);
     applyTranslations();
     document.getElementById('lang-menu').classList.add('hidden');
+
+    const alreadyUnlocked = localStorage.getItem('krakroam_unlocked') === '1';
+    if (!alreadyUnlocked) {
+      // pierwsze uruchomienie — po wyborze języka pokazujemy ekran hasła (teraz już w wybranym języku)
+      document.getElementById('pw-screen').classList.remove('hidden');
+      return;
+    }
+
+    // user już wcześniej wpisał hasło — to tylko zmiana języka w trakcie korzystania, wracamy do menu tras
     const dm = document.getElementById('district-menu');
     dm.classList.remove('hidden');
     menuInner.style.transform = 'translateY(0)';
     requestAnimationFrame(() => {
       setTimeout(() => dm.classList.remove('entering'), 60);
     });
-    maybeShowA2HS(); // no-op jeśli user już to odrzucił wcześniej albo zmienia język w trakcie, nie pierwszy raz
   });
 });
 
@@ -2619,15 +2672,31 @@ function playAudioSrc(src) {
 // jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu.
 // Ten blok musi być na samym końcu skryptu, żeby wszystkie zmienne (np. navActive), których
 // pośrednio używa applyTranslations(), były już na pewno zadeklarowane.
+// Kolejność ekranów startowych: JĘZYK -> HASŁO -> APKA. Ten blok ustala, gdzie dokładnie
+// wraca powracający user, w zależności od tego, co ma już zapamiętane.
 const savedLang = localStorage.getItem('krakroam_lang');
+const savedUnlocked = localStorage.getItem('krakroam_unlocked') === '1';
+
 if (savedLang && TRANSLATIONS[savedLang]) {
   currentLang = savedLang;
   applyTranslations();
   document.getElementById('lang-menu').classList.add('hidden');
+}
+
+if (savedUnlocked) {
+  document.getElementById('pw-screen').classList.add('hidden');
+}
+
+if (savedLang && savedUnlocked) {
+  // ma i język, i hasło — prosto do apki
   const dm = document.getElementById('district-menu');
   dm.classList.remove('hidden', 'entering');
   maybeShowA2HS();
+} else if (savedLang && !savedUnlocked) {
+  // wybrał już język wcześniej, ale nie wpisał jeszcze hasła (np. zamknął apkę w trakcie) — pokaż ekran hasła
+  document.getElementById('pw-screen').classList.remove('hidden');
 }
+// jeśli brak zapamiętanego języka — ekran wyboru języka zostaje domyślnie widoczny, nic więcej nie robimy
 </script>
 </body>
 </html>
