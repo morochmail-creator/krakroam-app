@@ -358,40 +358,61 @@
     display: flex; flex-direction: column; gap: 10px;
     position: relative;
   }
-  #brand, #locate-btn, #layers-btn, #settings-btn {
+  #brand, #locate-btn, #settings-btn {
     width: 44px; height: 44px; border-radius: 50%;
     background: var(--panel); border: 1px solid var(--line);
     box-shadow: var(--shadow);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #brand svg, #locate-btn svg, #layers-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--cream); color: var(--cream); }
+  #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--cream); color: var(--cream); }
   #locate-btn.active svg { stroke: var(--amber-soft); }
   #layers-btn.active svg { stroke: var(--amber-soft); }
 
+  /* ---------- Ustawienia — wyśrodkowany modal (widok mapy + język + wyloguj) ---------- */
+  #settings-screen {
+    position: absolute; inset: 0; z-index: 115;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  #settings-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #settings-scrim {
+    position: absolute; inset: 0;
+    background: rgba(15,12,9,0.72);
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  }
+  #settings-inner {
+    position: relative; width: 100%; max-width: 380px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 24px; padding: 26px 22px;
+    box-shadow: var(--shadow);
+  }
+  #settings-close {
+    position: absolute; top: 16px; right: 16px; z-index: 2;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--panel-2); border: none; color: var(--cream);
+    font-size: 20px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #settings-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 20px; font-weight: 700; color: var(--cream);
+    margin-bottom: 20px;
+  }
+  .settings-section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--amber-soft); margin: 18px 0 8px;
+  }
+  .settings-section-label:first-of-type { margin-top: 0; }
   #layers-menu {
-    position: absolute; top: 108px; right: 54px; z-index: 15;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 14px; box-shadow: var(--shadow);
-    padding: 6px; min-width: 150px;
-    display: none;
-    flex-direction: column; gap: 2px;
+    display: flex; flex-direction: column; gap: 2px;
   }
-  #layers-menu.open { display: flex; }
-
-  #settings-menu {
-    position: absolute; top: 162px; right: 54px; z-index: 15;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 14px; box-shadow: var(--shadow);
-    padding: 6px; min-width: 170px;
-    display: none;
-    flex-direction: column; gap: 2px;
-  }
-  #settings-menu.open { display: flex; }
   .settings-row {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px 12px; border-radius: 10px; cursor: pointer;
-    color: var(--cream); font-size: 13.5px; font-weight: 500;
+    padding: 12px 12px; border-radius: 12px; cursor: pointer;
+    color: var(--cream); font-size: 14px; font-weight: 500;
   }
   .settings-row:active { background: var(--panel-2); }
   #settings-lang-flag { font-size: 16px; }
@@ -633,7 +654,7 @@
 </head>
 <body>
 
-<div id="app">
+<div id="app" data-map-mode="satellite">
   <div id="pw-screen" class="hidden">
     <div id="pw-inner">
       <div id="pw-brand">Krak<span>Roam</span></div>
@@ -815,31 +836,34 @@
           <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
         </svg>
       </button>
-      <button id="layers-btn" aria-label="Wybierz widok mapy">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12,2 2,7 12,12 22,7"></polygon>
-          <polyline points="2,17 12,22 22,17"></polyline>
-          <polyline points="2,12 12,17 22,12"></polyline>
-        </svg>
-      </button>
-      <div id="layers-menu">
-        <div class="layer-option active" data-mode="dark"><span class="dot"></span><span class="lo-label">Ciemna</span></div>
-        <div class="layer-option" data-mode="light"><span class="dot"></span><span class="lo-label">Jasna</span></div>
-        <div class="layer-option" data-mode="satellite"><span class="dot"></span><span class="lo-label">Satelita</span></div>
-      </div>
-      <button id="settings-btn" aria-label="Opcje">
+      <button id="settings-btn" aria-label="Ustawienia">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </button>
-      <div id="settings-menu">
-        <div class="settings-row" id="settings-lang-row">
-          <span id="settings-lang-flag">🇵🇱</span>
-          <span id="settings-lang-text">Zmień język</span>
-        </div>
-        <div class="settings-row" id="settings-logout-row">Wyloguj</div>
+    </div>
+  </div>
+
+  <div id="settings-screen" class="hidden">
+    <div id="settings-scrim"></div>
+    <div id="settings-inner">
+      <button id="settings-close" aria-label="Zamknij">×</button>
+      <div id="settings-title">Ustawienia</div>
+
+      <div class="settings-section-label">Widok mapy</div>
+      <div id="layers-menu">
+        <div class="layer-option" data-mode="dark"><span class="dot"></span><span class="lo-label">Ciemna</span></div>
+        <div class="layer-option" data-mode="light"><span class="dot"></span><span class="lo-label">Jasna</span></div>
+        <div class="layer-option active" data-mode="satellite"><span class="dot"></span><span class="lo-label">Satelita</span></div>
       </div>
+
+      <div class="settings-section-label">Konto</div>
+      <div class="settings-row" id="settings-lang-row">
+        <span id="settings-lang-flag">🇵🇱</span>
+        <span id="settings-lang-text">Zmień język</span>
+      </div>
+      <div class="settings-row" id="settings-logout-row">Wyloguj</div>
     </div>
   </div>
 
@@ -1270,7 +1294,6 @@ function applyTranslations() {
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
   document.getElementById('locate-btn').setAttribute('aria-label', t('locateLabel'));
-  document.getElementById('layers-btn').setAttribute('aria-label', t('layersLabel'));
 }
 
 /* ============================================================
@@ -1763,7 +1786,7 @@ const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/servic
   keepBuffer: isSlowConnection ? 1 : 3
 });
 
-osmLayer.addTo(map);
+satLayer.addTo(map);
 
 /* ============================================================
    WSTĘPNE DOŁADOWANIE KAFELKÓW DLA CAŁEGO OBSZARU CENTRUM
@@ -1794,10 +1817,8 @@ function prefetchTilesForArea() {
     return Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, z));
   }
 
-  // tylko warstwa mapy (nie satelita — dociąga się dopiero, jak user faktycznie ją włączy), tylko 2 poziomy zoomu
+  // satelita to teraz domyślna warstwa — właśnie ją doładowujemy w tle, tylko 2 poziomy zoomu
   const zooms = [16, 17];
-  const osmSubdomains = ['a', 'b', 'c'];
-  let sdIndex = 0;
   const queue = [];
 
   zooms.forEach(z => {
@@ -1816,9 +1837,8 @@ function prefetchTilesForArea() {
     const batch = queue.slice(i, i + 4);
     if (!batch.length) return;
     batch.forEach(t => {
-      const sd = osmSubdomains[sdIndex++ % osmSubdomains.length];
       const img = new Image();
-      img.src = `https://${sd}.tile.openstreetmap.org/${t.z}/${t.x}/${t.y}.png`;
+      img.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${t.z}/${t.y}/${t.x}`;
     });
     i += 4;
     setTimeout(loadNext, 200);
@@ -1833,22 +1853,16 @@ setTimeout(prefetchTilesForArea, 800);
    WIDOK MAPY (ciemna / jasna / satelita)
 ============================================================ */
 const appEl = document.getElementById('app');
-const layersBtn = document.getElementById('layers-btn');
-const layersMenu = document.getElementById('layers-menu');
-const settingsMenuEl = document.getElementById('settings-menu');
+const settingsScreenEl = document.getElementById('settings-screen');
 
-layersBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  layersMenu.classList.toggle('open');
-  settingsMenuEl.classList.remove('open'); // nie dwa menu naraz
+document.getElementById('settings-btn').addEventListener('click', () => {
+  settingsScreenEl.classList.remove('hidden');
 });
-document.addEventListener('click', (e) => {
-  if (!layersMenu.contains(e.target) && e.target !== layersBtn) {
-    layersMenu.classList.remove('open');
-  }
-  if (!settingsMenuEl.contains(e.target) && e.target !== document.getElementById('settings-btn') && !document.getElementById('settings-btn').contains(e.target)) {
-    settingsMenuEl.classList.remove('open');
-  }
+document.getElementById('settings-close').addEventListener('click', () => {
+  settingsScreenEl.classList.add('hidden');
+});
+document.getElementById('settings-scrim').addEventListener('click', () => {
+  settingsScreenEl.classList.add('hidden');
 });
 
 function setMapMode(mode) {
@@ -1866,7 +1880,6 @@ function setMapMode(mode) {
     if (!map.hasLayer(osmLayer)) osmLayer.addTo(map);
     appEl.style.setProperty('--map-bg', mode === 'light' ? '#eef0ec' : '#14110d');
   }
-  layersMenu.classList.remove('open');
 }
 
 document.querySelectorAll('.layer-option').forEach(el => {
@@ -2341,6 +2354,7 @@ function selectDistrict(freeRoam, options) {
   reachedNavTarget = false;
   navActive = false;
   collapseNavTopBar();
+  hideNavTargetMarker(); // ważne: inaczej stara pinezka celu zostaje na mapie po zmianie trasy
   if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
   if (freeRoam) {
     // tryb swobodny — czyścimy zapamiętany cel, żeby kropka nawigacji nic nie robiła,
@@ -2412,13 +2426,8 @@ function closeDistrictMenu() {
 }
 document.getElementById('district-menu-close').addEventListener('click', closeDistrictMenu);
 document.getElementById('district-scrim').addEventListener('click', closeDistrictMenu);
-document.getElementById('settings-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  document.getElementById('settings-menu').classList.toggle('open');
-  layersMenu.classList.remove('open'); // nie dwa menu naraz
-});
 document.getElementById('settings-lang-row').addEventListener('click', () => {
-  document.getElementById('settings-menu').classList.remove('open');
+  settingsScreenEl.classList.add('hidden');
   document.getElementById('district-menu').classList.add('hidden');
   menuInner.style.transform = 'translateY(0)';
   document.getElementById('lang-menu').classList.remove('hidden');
