@@ -284,6 +284,66 @@
   }
   #gps-hint.hidden { display: none; }
 
+  /* ---------- Ekran "co zobaczysz" — wyskakuje po wyborze konkretnej trasy, zanim przeniesie na mapę ---------- */
+  #route-intro-screen {
+    position: absolute; inset: 0; z-index: 105;
+    background: var(--paper);
+    display: flex; flex-direction: column;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.35s cubic-bezier(.32,.72,0,1);
+  }
+  #route-intro-screen.hidden {
+    opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(14px);
+  }
+  #route-intro-close {
+    position: absolute; top: 14px; right: 16px; z-index: 2;
+    background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
+    width: 36px; height: 36px; border-radius: 50%;
+    font-size: 22px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #route-intro-body {
+    flex: 1; overflow-y: auto; padding: 56px 24px 12px;
+  }
+  #route-intro-icon {
+    width: 56px; height: 56px; border-radius: 16px; margin-bottom: 18px;
+    background: var(--brass-tint);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #route-intro-icon svg { width: 27px; height: 27px; stroke: var(--brass-deep); }
+  #route-intro-eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--brass-deep); margin-bottom: 6px;
+  }
+  #route-intro-title {
+    font-size: 25px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink);
+    margin-bottom: 8px;
+  }
+  #route-intro-meta { font-size: 13px; color: var(--ink-dim); margin-bottom: 18px; }
+  #route-intro-desc { font-size: 14.5px; color: var(--ink); line-height: 1.55; margin-bottom: 22px; }
+  #route-intro-highlights-label {
+    font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px;
+  }
+  #route-intro-highlights { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  #route-intro-highlights li {
+    display: flex; align-items: center; gap: 11px;
+    font-size: 14px; color: var(--ink); background: var(--paper-2);
+    border-radius: 12px; padding: 11px 13px;
+  }
+  #route-intro-highlights li::before {
+    content: ""; flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--brass);
+  }
+  #route-intro-footer {
+    padding: 12px 24px calc(18px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line); background: var(--paper);
+  }
+  #route-intro-start-btn {
+    width: 100%; background: var(--ink); border: none;
+    color: var(--paper); font-size: 15.5px; font-weight: 700;
+    padding: 16px; border-radius: 14px; cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+  #route-intro-start-btn:active { transform: scale(0.98); }
+
   /* ---------- Warstwy 3D: #map-stage (perspektywa) > #map-tilt (pochylenie kamery, powiększona płyta) > #map-spin (obrót wg kierunku marszu) > #map
      Leaflet mierzy swój WŁASNY rozmiar na #map, więc samo obracanie/skalowanie transformem (bez zmiany realnego
      rozmiaru pudełka) zostawiało w trybie 3D ogromną czarną dziurę nad mapą — po pochyleniu (rotateX) górna
@@ -858,6 +918,34 @@
     </div>
   </div>
 
+  <div id="route-intro-screen" class="hidden">
+    <button id="route-intro-close" aria-label="Wstecz">×</button>
+    <div id="route-intro-body">
+      <div id="route-intro-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 21V8.5l2-5 2 5V21"></path>
+          <path d="M15.5 21v-8a2 2 0 1 1 4 0v8"></path>
+          <path d="M9 21v-5.5a3 3 0 0 1 6 0V21"></path>
+          <path d="M3 21h18"></path>
+        </svg>
+      </div>
+      <div id="route-intro-eyebrow">Trasa</div>
+      <div id="route-intro-title">Stare Miasto</div>
+      <div id="route-intro-meta">12 przystanków · ok. 1,5 godziny · 2,3 km</div>
+      <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Barbakanu, przez Rynek Główny, aż po Wawel. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
+      <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
+      <ul id="route-intro-highlights">
+        <li>Barbakan i Brama Floriańska</li>
+        <li>Rynek Główny i Sukiennice</li>
+        <li>Bazylika Mariacka</li>
+        <li>Wzgórze Wawelskie</li>
+      </ul>
+    </div>
+    <div id="route-intro-footer">
+      <button id="route-intro-start-btn">Zaczynamy!</button>
+    </div>
+  </div>
+
   <div id="map-stage">
     <div id="map-tilt">
       <div id="map-spin">
@@ -900,9 +988,8 @@
     <div id="btn-stack">
       <button id="brand" aria-label="Wróć do wyboru trasy">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="6" cy="6" r="2.3" fill="currentColor" stroke="none"></circle>
-          <circle cx="18" cy="18" r="2.3" fill="currentColor" stroke="none"></circle>
-          <path d="M8 7c3 0 3 4 6 4s3 6 6 6" stroke-dasharray="2 3.2"></path>
+          <path d="M3.5 11.5 12 4l8.5 7.5"></path>
+          <path d="M5.5 9.5V19a1 1 0 0 0 1 1H9.5a1 1 0 0 0 1-1V15a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1H17.5a1 1 0 0 0 1-1V9.5"></path>
         </svg>
       </button>
       <button id="locate-btn" aria-label="Pokaż moją lokalizację">
@@ -2583,7 +2670,49 @@ function selectDistrict(freeRoam, options) {
   // dla wybranej trasy kamerą zajmuje się już startNavigation() (pokazuje Ciebie + cel razem) — bez dublowania
 }
 
-document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', () => selectDistrict(false));
+/* ---------- Ekran "co zobaczysz" — wstawiony między wyborem trasy a przejściem na mapę.
+   Treść na razie jest testowa/placeholder (tylko Stare Miasto ma realną trasę) — docelowo
+   każda trasa powinna mieć własny, przetłumaczony opis zamiast ROUTE_INTRO_CONTENT. ---------- */
+const ROUTE_INTRO_CONTENT = {
+  'stare-miasto': {
+    eyebrow: 'Trasa',
+    title: 'Stare Miasto',
+    meta: '12 przystanków · ok. 1,5 godziny · 2,3 km',
+    desc: 'Spacer po sercu średniowiecznego Krakowa — od Barbakanu, przez Rynek Główny, aż po Wawel. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.',
+    highlights: ['Barbakan i Brama Floriańska', 'Rynek Główny i Sukiennice', 'Bazylika Mariacka', 'Wzgórze Wawelskie']
+  }
+};
+const routeIntroEl = document.getElementById('route-intro-screen');
+
+function openRouteIntro(districtKey) {
+  const data = ROUTE_INTRO_CONTENT[districtKey];
+  if (!data) { selectDistrict(false); return; } // zabezpieczenie — brak opisu nie powinien blokować wejścia na trasę
+  document.getElementById('route-intro-eyebrow').textContent = data.eyebrow;
+  document.getElementById('route-intro-title').textContent = data.title;
+  document.getElementById('route-intro-meta').textContent = data.meta;
+  document.getElementById('route-intro-desc').textContent = data.desc;
+  const list = document.getElementById('route-intro-highlights');
+  list.innerHTML = '';
+  data.highlights.forEach(h => {
+    const li = document.createElement('li');
+    li.textContent = h;
+    list.appendChild(li);
+  });
+  routeIntroEl.dataset.district = districtKey;
+  routeIntroEl.classList.remove('hidden');
+}
+
+function closeRouteIntro() {
+  routeIntroEl.classList.add('hidden');
+}
+
+document.getElementById('route-intro-close').addEventListener('click', closeRouteIntro);
+document.getElementById('route-intro-start-btn').addEventListener('click', () => {
+  closeRouteIntro();
+  selectDistrict(false);
+});
+
+document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', () => openRouteIntro('stare-miasto'));
 document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => selectDistrict(true));
 
 document.getElementById('brand').addEventListener('click', () => {
@@ -2664,7 +2793,7 @@ nearestBtn.addEventListener('click', () => {
   const nearestLabel = t(nearest.labelKey);
   if (nearest.available) {
     nearestFeedback.textContent = t('nearestFound')(nearestLabel);
-    setTimeout(() => selectDistrict(false), 500);
+    setTimeout(() => openRouteIntro(nearestKey), 500);
   } else {
     nearestFeedback.textContent = t('nearestUnavailable')(nearestLabel);
   }
