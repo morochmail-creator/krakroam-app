@@ -284,6 +284,31 @@
   }
   #gps-hint.hidden { display: none; }
 
+  /* ---------- Warstwy 3D: #map-stage (perspektywa) > #map-tilt (pochylenie kamery) > #map-spin (obrót wg kierunku marszu) > #map
+     Leaflet zarządza tylko #map — opakowania nad nim są czysto wizualne (transform nie zmienia layoutu/rozmiaru),
+     więc wewnętrzna matematyka pikseli Leaflet zostaje nietknięta niezależnie od włączonego trybu. ---------- */
+  #map-stage {
+    position: absolute; inset: 0; z-index: 1; overflow: hidden;
+    background: var(--map-bg);
+    perspective: 1000px;
+    perspective-origin: 50% 70%;
+  }
+  #map-tilt {
+    position: absolute; inset: 0;
+    transform-origin: 50% 100%;
+    transition: transform 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  #app[data-view-mode="3d"] #map-tilt {
+    transform: translateY(13%) scale(1.75) rotateX(58deg);
+  }
+  #map-spin {
+    position: absolute; inset: 0;
+    transform-origin: 50% 50%;
+  }
+  #app[data-view-mode="3d"] #map-spin {
+    transform: rotateZ(calc(var(--heading, 0) * -1deg));
+    transition: transform 0.2s linear;
+  }
   #map { position: absolute; inset: 0; z-index: 1; background: var(--map-bg); transition: background 0.3s ease; }
   .leaflet-container { background: var(--map-bg); transition: background 0.3s ease; }
   .leaflet-tile { will-change: auto; }
@@ -373,18 +398,21 @@
     display: flex; flex-direction: column; gap: 10px;
     position: relative;
   }
-  #brand, #locate-btn, #settings-btn {
+  #brand, #locate-btn, #settings-btn, #view-toggle-btn {
     width: 46px; height: 46px; border-radius: 50%;
     background: var(--ink); border: 1.5px solid var(--line-strong);
     box-shadow: var(--shadow-float);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: transform 0.1s ease;
+    transition: transform 0.1s ease, background 0.15s ease;
   }
-  #brand:active, #locate-btn:active, #settings-btn:active { transform: scale(0.94); }
+  #brand:active, #locate-btn:active, #settings-btn:active, #view-toggle-btn:active { transform: scale(0.94); }
   #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--paper); color: var(--paper); }
   #locate-btn.active { background: var(--route); }
   #locate-btn.active svg { stroke: #fff; color: #fff; }
+  #view-toggle-label { font-size: 12px; font-weight: 800; color: var(--paper); letter-spacing: -0.02em; }
+  #view-toggle-btn.active { background: var(--brass); border-color: var(--brass-deep); }
+  #view-toggle-btn.active #view-toggle-label { color: #14110d; }
 
   /* ---------- Ustawienia — wyśrodkowany modal (widok mapy + język + wyloguj) ---------- */
   #settings-screen {
@@ -513,19 +541,34 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.5);
   }
 
-  /* ---------- Klastry (bąbelki grupujące piny przy oddaleniu) ---------- */
+  /* ---------- Klastry (bąbelki grupujące piny przy oddaleniu) ----------
+     Celowo NIE wyglądają jak pojedynczy numerowany punkt (okrągły znacznik z cyfrą) —
+     inaczej liczba na klastrze (ile punktów w grupie) myli się z numerem przystanku
+     na pojedynczym punkcie. Klaster ma podwójną obwódkę "halo" + białą ramkę rdzenia,
+     punkt pojedynczy ma cienką ciemną ramkę bez halo — rozpoznawalne na pierwszy rzut oka. */
+  .cluster-wrap {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cluster-halo {
+    position: absolute; inset: -7px;
+    border-radius: 50%;
+  }
+  .cluster-main-halo { background: rgba(169,128,47,0.28); }
+  .cluster-extra-halo { background: rgba(113,107,96,0.22); }
   .cluster-main, .cluster-extra {
+    position: relative;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     color: #14110d; font-weight: 800; font-family: 'Inter', sans-serif;
-    border: 2.5px solid #14110d;
+    border: 2.5px solid #fff;
     box-shadow: 0 3px 12px rgba(0,0,0,0.5);
   }
   .cluster-main { background: var(--brass); color: #14110d; }
-  .cluster-extra { background: #d8d2c4; color: #14110d; }
-  .cluster-sm { width: 34px; height: 34px; font-size: 13px; }
-  .cluster-md { width: 42px; height: 42px; font-size: 15px; }
-  .cluster-lg { width: 50px; height: 50px; font-size: 16px; }
+  .cluster-extra { background: #8f887a; color: #fff; }
+  .cluster-sm { width: 32px; height: 32px; font-size: 12.5px; }
+  .cluster-md { width: 38px; height: 38px; font-size: 14px; }
+  .cluster-lg { width: 44px; height: 44px; font-size: 15px; }
 
   .marker-extra {
     width: 15px; height: 15px; border-radius: 50%;
@@ -811,7 +854,13 @@
     </div>
   </div>
 
-  <div id="map"></div>
+  <div id="map-stage">
+    <div id="map-tilt">
+      <div id="map-spin">
+        <div id="map"></div>
+      </div>
+    </div>
+  </div>
   <div id="map-tint"></div>
 
   <div id="nav-top-bar" class="collapsed">
@@ -857,6 +906,9 @@
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
         </svg>
+      </button>
+      <button id="view-toggle-btn" aria-label="Przełącz widok 3D">
+        <span id="view-toggle-label">3D</span>
       </button>
       <button id="settings-btn" aria-label="Ustawienia">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1051,6 +1103,7 @@ const TRANSLATIONS = {
     layerDark: "Ciemna", layerLight: "Jasna", layerSat: "Satelita",
     settingsMapView: "Widok mapy", settingsAccount: "Konto",
     gpsHint: "Potrzebujemy Twojej lokalizacji, żeby pokazywać, gdzie jesteś, i liczyć trasę do kolejnych punktów.",
+    view3dOn: "Włącz widok 3D", view3dOff: "Wyłącz widok 3D",
     closeLabel: "Zamknij", backToMenu: "Wróć do wyboru trasy",
     locateLabel: "Pokaż moją lokalizację", layersLabel: "Wybierz widok mapy",
     navToggleLabel: "Pokaż/ukryj trasę do startu",
@@ -1104,6 +1157,7 @@ const TRANSLATIONS = {
     layerDark: "Темна", layerLight: "Світла", layerSat: "Супутник",
     settingsMapView: "Вигляд карти", settingsAccount: "Обліковий запис",
     gpsHint: "Потрібне твоє місцезнаходження, щоб показувати, де ти, і рахувати маршрут до наступних точок.",
+    view3dOn: "Увімкнути вигляд 3D", view3dOff: "Вимкнути вигляд 3D",
     closeLabel: "Закрити", backToMenu: "Повернутися до вибору маршруту",
     locateLabel: "Показати моє місцезнаходження", layersLabel: "Обрати вигляд карти",
     navToggleLabel: "Показати/приховати маршрут до старту",
@@ -1157,6 +1211,7 @@ const TRANSLATIONS = {
     layerDark: "Dark", layerLight: "Light", layerSat: "Satellite",
     settingsMapView: "Map view", settingsAccount: "Account",
     gpsHint: "We need your location to show where you are and work out the route to each stop.",
+    view3dOn: "Turn on 3D view", view3dOff: "Turn off 3D view",
     closeLabel: "Close", backToMenu: "Back to route selection",
     locateLabel: "Show my location", layersLabel: "Choose map view",
     navToggleLabel: "Show/hide the route to the start",
@@ -1210,6 +1265,7 @@ const TRANSLATIONS = {
     layerDark: "Dunkel", layerLight: "Hell", layerSat: "Satellit",
     settingsMapView: "Kartenansicht", settingsAccount: "Konto",
     gpsHint: "Wir benötigen deinen Standort, um zu zeigen, wo du bist, und die Route zu den Stationen zu berechnen.",
+    view3dOn: "3D-Ansicht einschalten", view3dOff: "3D-Ansicht ausschalten",
     closeLabel: "Schließen", backToMenu: "Zurück zur Routenauswahl",
     locateLabel: "Meinen Standort anzeigen", layersLabel: "Kartenansicht wählen",
     navToggleLabel: "Route zum Start ein-/ausblenden",
@@ -1263,6 +1319,7 @@ const TRANSLATIONS = {
     layerDark: "Oscuro", layerLight: "Claro", layerSat: "Satélite",
     settingsMapView: "Vista del mapa", settingsAccount: "Cuenta",
     gpsHint: "Necesitamos tu ubicación para mostrar dónde estás y calcular la ruta a cada parada.",
+    view3dOn: "Activar vista 3D", view3dOff: "Desactivar vista 3D",
     closeLabel: "Cerrar", backToMenu: "Volver a elegir ruta",
     locateLabel: "Mostrar mi ubicación", layersLabel: "Elegir vista del mapa",
     navToggleLabel: "Mostrar/ocultar la ruta al inicio",
@@ -1939,8 +1996,10 @@ function clusterIconFactory(cssClass) {
   return function (cluster) {
     const count = cluster.getChildCount();
     const sizeClass = count < 5 ? 'cluster-sm' : count < 12 ? 'cluster-md' : 'cluster-lg';
+    // halo + rdzeń z białą obwódką — celowo NIE wygląda jak pojedynczy numerowany punkt,
+    // żeby liczba zgrupowanych punktów nigdy nie była mylona z numerem przystanku
     return L.divIcon({
-      html: `<div class="${cssClass} ${sizeClass}">${count}</div>`,
+      html: `<div class="cluster-wrap ${sizeClass}"><div class="cluster-halo ${cssClass}-halo"></div><div class="${cssClass} ${sizeClass}">${count}</div></div>`,
       className: '',
       iconSize: L.point(40, 40)
     });
@@ -2016,6 +2075,7 @@ if (ROUTE_LINE.length > 1) {
 ============================================================ */
 let gpsMarker = null;
 let guideLine = null;
+let guideLineCasing = null; // jasna "obwódka" pod linią nawigacji — dociąga kontrast na KAŻDYM tle (ciemna/jasna mapa, satelita)
 let navActive = false;      // czy aktywnie nawigujemy (pokazana niebieska linia)
 let routeChosen = false;    // czy user wybrał konkretną trasę (nie "zwiedzaj bez trasy")
 let reachedNavTarget = false; // czy user dotarł już blisko aktualnego celu nawigacji
@@ -2033,6 +2093,7 @@ let navTargetName = null;
 /* ---------- Kompas: kierunek, w którym patrzy telefon ---------- */
 let compassStarted = false;
 let currentBeamRotation = -35; // aktualna wartość kąta zastosowana do transformu (może przekraczać 0-360, żeby liczyć "najkrótszą drogę")
+let currentMapHeadingRotation = 0; // to samo, ale dla obrotu CAŁEJ mapy w trybie 3D (heading-up)
 
 function updateBeamRotation(heading) {
   if (!gpsMarker) return;
@@ -2048,6 +2109,13 @@ function updateBeamRotation(heading) {
   beam.style.transform = `rotate(${currentBeamRotation}deg)`;
 }
 
+function updateMapHeadingRotation(heading) {
+  // liczymy najkrótszą drogę tak samo jak dla stożka GPS, żeby mapa nigdy nie zrobiła "pełnego obrotu" przy 359→0
+  let diff = ((heading - currentMapHeadingRotation + 540) % 360) - 180;
+  currentMapHeadingRotation += diff;
+  appEl.style.setProperty('--heading', currentMapHeadingRotation);
+}
+
 function handleOrientation(e) {
   let heading;
   if (typeof e.webkitCompassHeading === 'number') {
@@ -2057,7 +2125,12 @@ function handleOrientation(e) {
   } else {
     return;
   }
-  updateBeamRotation(heading);
+  if (viewMode3D) {
+    // w trybie 3D cała mapa obraca się pod Tobą (heading-up) — stożek GPS zostaje zwrócony "do góry" (patrz setViewMode3D)
+    updateMapHeadingRotation(heading);
+  } else {
+    updateBeamRotation(heading);
+  }
 }
 
 function startCompass() {
@@ -2077,17 +2150,77 @@ function startCompass() {
   }
 }
 
+/* ============================================================
+   WIDOK 3D — "kamera za userem", jak w nawigacji Google Maps.
+   To NIE jest prawdziwe 3D (brak brył budynków) — to płaska mapa
+   pochylona i obracana czystym CSS (transform/perspective) nad tymi
+   samymi darmowymi kafelkami co zawsze. Leaflet o niczym "nie wie":
+   opakowania #map-stage/#map-tilt/#map-spin tylko wizualnie
+   przekształcają już wyrenderowaną mapę, więc jej wewnętrzna
+   matematyka pikseli (przesuwanie, zoom, markery) zostaje nietknięta.
+============================================================ */
+let viewMode3D = false;
+const VIEW3D_ZOOM = 18.5;
+const view3DBtn = document.getElementById('view-toggle-btn');
+const view3DLabel = document.getElementById('view-toggle-label');
+
+function follow3D() {
+  // w 3D mapa podąża za Tobą automatycznie (jak w nawigacji) — ręczne przeciąganie
+  // pod przechyloną/obróconą mapą czułoby się "krzywo", więc jest wyłączone w tym trybie
+  if (!viewMode3D || !gpsMarker) return;
+  map.setView(gpsMarker.getLatLng(), Math.max(map.getZoom(), VIEW3D_ZOOM), { animate: true, duration: 0.5 });
+}
+
+function setViewMode3D(on) {
+  viewMode3D = on;
+  appEl.dataset.viewMode = on ? '3d' : '2d';
+  view3DBtn.classList.toggle('active', on);
+  view3DLabel.textContent = on ? '2D' : '3D';
+  view3DBtn.setAttribute('aria-label', on ? t('view3dOff') : t('view3dOn'));
+
+  if (on) {
+    startCompass(); // w ramach tego samego kliknięcia — właściwy moment na iOS, żeby poprosić o zgodę na kompas
+    currentMapHeadingRotation = 0;
+    appEl.style.setProperty('--heading', 0);
+    map.dragging.disable(); // patrz follow3D() — w 3D kamera sama podąża za Tobą
+    if (gpsMarker) {
+      map.setView(gpsMarker.getLatLng(), VIEW3D_ZOOM, { animate: true });
+    }
+  } else {
+    map.dragging.enable();
+  }
+}
+
+view3DBtn.addEventListener('click', () => setViewMode3D(!viewMode3D));
+
 function drawGuideLine(latlngs) {
+  // linia-cel: gruba, w pełni kryjąca, biała obwódka pod spodem + jaskrawy niebieski na wierzchu —
+  // poprzednia wersja (cienka, przerywana, półprzezroczysta) ginęła na satelicie i ciemnej mapie
+  if (guideLineCasing) {
+    guideLineCasing.setLatLngs(latlngs);
+  } else {
+    guideLineCasing = L.polyline(latlngs, {
+      color: '#ffffff', weight: 10, opacity: 0.95, lineCap: 'round', lineJoin: 'round'
+    });
+  }
   if (guideLine) {
     guideLine.setLatLngs(latlngs);
   } else {
     guideLine = L.polyline(latlngs, {
-      color: '#4a90d9', weight: 5, opacity: 0.9, dashArray: '2,12', lineCap: 'round'
+      color: '#1f6fe0', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round'
     });
   }
-  if (navActive && !map.hasLayer(guideLine)) {
-    guideLine.addTo(map);
+  if (navActive) {
+    if (!map.hasLayer(guideLineCasing)) guideLineCasing.addTo(map);
+    if (!map.hasLayer(guideLine)) guideLine.addTo(map);
+    // obwódka zawsze pod spodem — gdyby kolejność dodawania się zmieniła, podnosimy właściwą linię na wierzch
+    guideLine.bringToFront();
   }
+}
+
+function removeGuideLine() {
+  if (guideLineCasing && map.hasLayer(guideLineCasing)) map.removeLayer(guideLineCasing);
+  if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
 }
 
 function distMeters(a, b) {
@@ -2194,7 +2327,9 @@ function startLocationTracking(flyOnFirstFix) {
       gpsMarker.setLatLng(userLatLng);
     }
     document.getElementById('gps-hint').classList.add('hidden'); // zgoda uzyskana — tłumaczący tekst już niepotrzebny
-    if (firstFix && flyOnFirstFix) {
+    if (viewMode3D) {
+      follow3D(); // w 3D kamera sama podąża za Tobą przy każdej aktualizacji pozycji
+    } else if (firstFix && flyOnFirstFix) {
       map.flyTo(userLatLng, 17, { duration: 1.4 });
     }
     firstFix = false;
@@ -2284,10 +2419,16 @@ function startNavigation(targetPoint) {
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
     requestWalkingRoute([gll.lat, gll.lng]);
-    // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i cel nawigacji naraz — jak w Google Maps,
-    // niezależnie czy cel to start trasy, czy dowolny punkt wybrany przez "Prowadź mnie tutaj"
-    const bounds = L.latLngBounds([[gll.lat, gll.lng], navTargetLatLng]);
-    map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
+    if (viewMode3D) {
+      // w 3D zostajemy blisko Ciebie (kamera "za plecami") zamiast oddalać widok — tak jak w nawigacji
+      // samochodowej/pieszej Google Maps; dopasowanie obu punktów naraz zepsułoby ten efekt
+      follow3D();
+    } else {
+      // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i cel nawigacji naraz — jak w Google Maps,
+      // niezależnie czy cel to start trasy, czy dowolny punkt wybrany przez "Prowadź mnie tutaj"
+      const bounds = L.latLngBounds([[gll.lat, gll.lng], navTargetLatLng]);
+      map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
+    }
   } else {
     // brak jeszcze pozycji GPS — przynajmniej pokazujemy sam cel
     map.flyTo(navTargetLatLng, 17, { duration: 1.2 });
@@ -2297,7 +2438,7 @@ function stopNavigation() {
   navActive = false;
   collapseNavTopBar();
   hideNavTargetMarker();
-  if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+  removeGuideLine();
 }
 
 let arrivalToastTimer = null;
@@ -2408,7 +2549,7 @@ function selectDistrict(freeRoam, options) {
   navActive = false;
   collapseNavTopBar();
   hideNavTargetMarker(); // ważne: inaczej stara pinezka celu zostaje na mapie po zmianie trasy
-  if (guideLine && map.hasLayer(guideLine)) map.removeLayer(guideLine);
+  removeGuideLine();
   if (freeRoam) {
     // tryb swobodny — czyścimy zapamiętany cel, żeby kropka nawigacji nic nie robiła,
     // dopóki user sam nie wybierze konkretnego punktu przez "Prowadź mnie tutaj"
