@@ -480,10 +480,6 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.5);
     display: flex; align-items: center; justify-content: center;
   }
-  .marker-num {
-    font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 800;
-    color: #14110d; line-height: 1; user-select: none;
-  }
   .marker-start {
     width: 27px; height: 27px; border-radius: 50%;
     background: var(--ok);
@@ -1987,9 +1983,8 @@ document.querySelectorAll('.layer-option').forEach(el => {
   el.addEventListener('click', () => setMapMode(el.dataset.mode));
 });
 
-function makeDivIcon(className, size, label) {
-  const inner = (label !== undefined && label !== null) ? `<span class="marker-num">${label}</span>` : '';
-  return L.divIcon({ className: '', html: `<div class="${className}">${inner}</div>`, iconSize: [size, size] });
+function makeDivIcon(className, size) {
+  return L.divIcon({ className: '', html: `<div class="${className}"></div>`, iconSize: [size, size] });
 }
 
 function clusterIconFactory(cssClass) {
@@ -2024,20 +2019,14 @@ const extraCluster = L.markerClusterGroup({
 const markersById = {};
 const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
 
-// numer kolejny każdego punktu głównego na trasie (1, 2, 3...) — tylko punkty typu "main"
-let mainPointCounter = 0;
-const mainPointNumbers = {}; // p.id -> numer
-
+// UWAGA: punkty główne na mapie celowo NIE pokazują numeru kolejności (1, 2, 3...) —
+// kolejność i tak pokazuje niebieska linia prowadząca, a numer na pinie wyglądał identycznie
+// jak liczba na bąbelku klastra (ile punktów się zgrupowało), co było mylące. Kolejność jest
+// za to widoczna w liście tracków w panelu punktu (tr-num), gdzie nie koliduje z niczym.
 POINTS.forEach(p => {
-  let className = 'marker-extra';
-  let size = 16;
-  if (p.type === 'main') {
-    className = 'marker-main';
-    size = 26;
-    mainPointCounter += 1;
-    mainPointNumbers[p.id] = mainPointCounter;
-  }
-  const icon = makeDivIcon(className, size); // bez numeru na start — pokazujemy go dopiero gdy wybrana jest trasa
+  const className = p.type === 'main' ? 'marker-main' : 'marker-extra';
+  const size = p.type === 'main' ? 26 : 16;
+  const icon = makeDivIcon(className, size);
   const marker = L.marker([p.lat, p.lng], { icon });
 
   marker.on('click', () => {
@@ -2049,18 +2038,6 @@ POINTS.forEach(p => {
 });
 map.addLayer(mainCluster);
 map.addLayer(extraCluster);
-
-// pokazuje numery kolejne na punktach głównych TYLKO gdy wybrana jest konkretna trasa —
-// w trybie swobodnym (bez trasy) numery kolejności nie mają sensu, więc znikają
-function updateMainMarkerNumbers() {
-  POINTS.forEach(p => {
-    if (p.type !== 'main') return;
-    const marker = markersById[p.id];
-    if (!marker) return;
-    const label = routeChosen ? mainPointNumbers[p.id] : null;
-    marker.setIcon(makeDivIcon('marker-main', 26, label));
-  });
-}
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
 let routeLinePath = null;
@@ -2544,7 +2521,6 @@ function selectDistrict(freeRoam, options) {
 
   // reset stanu nawigacji przy każdym (ponownym) wyborze
   routeChosen = !freeRoam;
-  updateMainMarkerNumbers();
   reachedNavTarget = false;
   navActive = false;
   collapseNavTopBar();
