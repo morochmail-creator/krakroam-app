@@ -12,39 +12,48 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="KrakRoam">
-<meta name="theme-color" content="#14110d">
+<meta name="theme-color" content="#fafaf8">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --bg: #14110d;
+    /* Wayfinding system: paper + ink + two meaning-coded accents.
+       Brass = places/content. Slate-blue = movement/navigation. Never mixed. */
+    --paper: #fafaf8;
+    --paper-2: #f1efe9;
+    --ink: #1b1a17;
+    --ink-dim: #716b60;
+    --line: #e4e0d6;
+    --line-strong: #1b1a17;
+    --brass: #a9802f;
+    --brass-deep: #8a6823;
+    --brass-tint: #f3e6c8;
+    --route: #3b5f8a;
+    --route-tint: #e4ecf5;
+    --ok: #3f8a5c;
+    --danger: #c2452f;
     --map-bg: #14110d;
-    --panel: #1f1a13;
-    --panel-2: #262019;
-    --line: #362e22;
-    --cream: #f3ead9;
-    --cream-dim: #cabfa9;
-    --amber: #c9932c;
-    --amber-soft: #e0ac48;
-    --moss: #5c7a63;
-    --moss-soft: #7c9b83;
-    --shadow: 0 12px 32px rgba(0,0,0,0.45);
+    --shadow-plate: 0 1px 0 rgba(27,26,23,0.06), 0 10px 24px rgba(27,26,23,0.14);
+    --shadow-float: 0 6px 20px rgba(27,26,23,0.18);
+    --radius-card: 20px;
+    --radius-pill: 999px;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0; padding: 0; height: 100%; overflow: hidden;
-    background: var(--bg);
+    background: var(--map-bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: var(--cream);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; }
+  button { font-family: inherit; }
 
   #app { position: relative; width: 100%; height: 100dvh; }
 
@@ -53,37 +62,39 @@
   /* ---------- Ekran hasła dostępu (pierwszy ze wszystkich) ---------- */
   #pw-screen {
     position: absolute; inset: 0; z-index: 200;
-    background: var(--bg);
+    background: var(--paper);
     display: flex; align-items: center; justify-content: center;
     padding: 24px;
     transition: opacity 0.35s ease, visibility 0.35s ease;
   }
   #pw-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   #pw-inner {
-    width: 100%; max-width: 360px; text-align: center;
+    width: 100%; max-width: 340px; text-align: center;
   }
   #pw-brand {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 30px; font-weight: 700;
-    color: var(--cream); margin-bottom: 8px;
+    font-size: 26px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--ink); margin-bottom: 10px;
   }
-  #pw-brand span { color: var(--amber-soft); }
-  #pw-sub { color: var(--cream-dim); font-size: 14px; margin-bottom: 26px; }
+  #pw-brand span { color: var(--brass); }
+  #pw-sub { color: var(--ink-dim); font-size: 14.5px; line-height: 1.5; margin-bottom: 28px; }
   #pw-input {
-    width: 100%; background: var(--panel); border: 1px solid var(--line);
-    border-radius: 14px; padding: 15px 16px;
-    color: var(--cream); font-size: 18px; text-align: center;
-    letter-spacing: 0.15em;
+    width: 100%; background: var(--paper); border: 1.5px solid var(--line-strong);
+    border-radius: 14px; padding: 16px;
+    color: var(--ink); font-size: 19px; font-weight: 600; text-align: center;
+    letter-spacing: 0.2em;
     margin-bottom: 14px;
   }
-  #pw-input:focus { outline: none; border-color: var(--amber); }
+  #pw-input::placeholder { color: var(--ink-dim); font-weight: 400; letter-spacing: 0.2em; }
+  #pw-input:focus { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px var(--brass-tint); }
   #pw-submit {
-    width: 100%; background: var(--amber); border: none;
-    color: #14110d; font-size: 15px; font-weight: 700;
-    padding: 14px; border-radius: 14px; cursor: pointer;
+    width: 100%; background: var(--ink); border: none;
+    color: var(--paper); font-size: 15px; font-weight: 700;
+    padding: 15px; border-radius: 14px; cursor: pointer;
+    transition: transform 0.1s ease;
   }
+  #pw-submit:active { transform: scale(0.98); }
   #pw-error {
-    color: #ff6b6b; font-size: 13px; margin-top: 12px; min-height: 16px;
+    color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 16px; font-weight: 500;
   }
 
   /* ---------- Ekran "dodaj do ekranu głównego" ---------- */
@@ -96,47 +107,46 @@
   #a2hs-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   #a2hs-scrim {
     position: absolute; inset: 0;
-    background: rgba(15,12,9,0.72);
-    backdrop-filter: blur(6px) saturate(1.05);
-    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    background: rgba(27,26,23,0.5);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
   }
   #a2hs-inner {
-    position: relative; width: 100%; max-width: 400px;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 24px; padding: 30px 24px;
-    box-shadow: var(--shadow);
+    position: relative; width: 100%; max-width: 380px;
+    background: var(--paper); border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-card); padding: 28px 24px;
+    box-shadow: var(--shadow-plate);
     text-align: center;
   }
   #a2hs-icon {
-    width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 16px;
-    background: var(--panel-2); border: 1px solid var(--line);
+    width: 52px; height: 52px; margin: 0 auto 18px; border-radius: 14px;
+    background: var(--ink);
     display: flex; align-items: center; justify-content: center;
   }
-  #a2hs-icon svg { width: 28px; height: 28px; stroke: var(--amber-soft); }
+  #a2hs-icon svg { width: 24px; height: 24px; stroke: var(--paper); }
   #a2hs-title {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 21px; font-weight: 700; color: var(--cream);
-    margin-bottom: 8px;
+    font-size: 19px; font-weight: 800; color: var(--ink);
+    margin-bottom: 8px; letter-spacing: -0.01em;
   }
-  #a2hs-sub { color: var(--cream-dim); font-size: 13.5px; margin-bottom: 22px; line-height: 1.4; }
+  #a2hs-sub { color: var(--ink-dim); font-size: 13.5px; margin-bottom: 22px; line-height: 1.5; }
   #a2hs-steps {
-    text-align: left; background: var(--panel-2); border-radius: 14px;
+    text-align: left; background: var(--paper-2); border-radius: 14px;
     padding: 14px 16px; margin-bottom: 20px;
   }
   .a2hs-step {
     display: flex; align-items: flex-start; gap: 10px;
-    font-size: 13.5px; color: var(--cream); line-height: 1.4;
+    font-size: 13.5px; color: var(--ink); line-height: 1.45;
   }
   .a2hs-step + .a2hs-step { margin-top: 10px; }
   .a2hs-step-num {
     flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
-    background: var(--amber); color: #14110d; font-size: 11px; font-weight: 700;
+    background: var(--ink); color: var(--paper); font-size: 11px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
   }
   #a2hs-continue {
-    width: 100%; background: var(--amber); border: none;
-    color: #14110d; font-size: 14.5px; font-weight: 700;
-    padding: 14px; border-radius: 14px; cursor: pointer;
+    width: 100%; background: var(--ink); border: none;
+    color: var(--paper); font-size: 14.5px; font-weight: 700;
+    padding: 15px; border-radius: 14px; cursor: pointer;
   }
 
   /* ---------- Ekran wyboru języka (pierwszy krok) ---------- */
@@ -149,38 +159,37 @@
   #lang-menu.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   #lang-scrim {
     position: absolute; inset: 0;
-    background: rgba(15,12,9,0.72);
-    backdrop-filter: blur(6px) saturate(1.05);
-    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    background: rgba(27,26,23,0.5);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
   }
   #lang-menu-inner {
-    position: relative; width: 100%; max-width: 420px;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 24px; padding: 32px 22px;
-    box-shadow: var(--shadow);
+    position: relative; width: 100%; max-width: 400px;
+    background: var(--paper); border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-card); padding: 30px 20px;
+    box-shadow: var(--shadow-plate);
     text-align: center;
   }
   #lang-menu-brand {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 26px; font-weight: 700;
-    color: var(--cream); margin-bottom: 6px;
+    font-size: 24px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--ink); margin-bottom: 6px;
   }
-  #lang-menu-brand span { color: var(--amber-soft); }
-  #lang-menu-sub { color: var(--cream-dim); font-size: 14px; margin-bottom: 22px; }
+  #lang-menu-brand span { color: var(--brass); }
+  #lang-menu-sub { color: var(--ink-dim); font-size: 14px; margin-bottom: 20px; }
   .lang-row {
     display: flex; align-items: center; gap: 14px;
-    padding: 12px 12px; border-radius: 14px;
+    padding: 13px 12px; border-radius: 14px;
     cursor: pointer; transition: background 0.15s ease; text-align: left;
   }
-  .lang-row:active { background: var(--panel-2); }
+  .lang-row:active { background: var(--paper-2); }
   .lang-row + .lang-row { margin-top: 2px; }
   .lang-row-flag {
-    flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
-    background: var(--panel-2); border: 1px solid var(--line);
+    flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--paper-2); border: 1px solid var(--line);
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
+    font-size: 19px;
   }
-  .lang-row-name { flex: 1; font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--cream); }
+  .lang-row-name { flex: 1; font-size: 16px; font-weight: 600; color: var(--ink); }
 
   #district-menu {
     position: absolute; inset: 0; z-index: 100;
@@ -190,9 +199,9 @@
   #district-menu.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   #district-scrim {
     position: absolute; inset: 0;
-    background: rgba(15,12,9,0.55);
-    backdrop-filter: blur(3px) saturate(1.05);
-    -webkit-backdrop-filter: blur(3px) saturate(1.05);
+    background: rgba(27,26,23,0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     transition: opacity 0.3s ease;
   }
   #district-menu.peek #district-scrim {
@@ -200,73 +209,80 @@
   }
   #district-menu-inner {
     position: relative; width: 100%; max-width: 480px;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 26px 26px 0 0;
-    box-shadow: 0 -20px 60px rgba(0,0,0,0.6);
-    padding: 20px 22px calc(26px + env(safe-area-inset-bottom, 0px));
+    background: var(--paper); border: 1.5px solid var(--line-strong); border-bottom: none;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -16px 44px rgba(27,26,23,0.28);
+    padding: 14px 20px calc(24px + env(safe-area-inset-bottom, 0px));
     transform: translateY(0);
     transition: transform 0.4s cubic-bezier(.32,.72,0,1);
   }
   #district-menu.entering #district-menu-inner { transform: translateY(100%); }
+  #district-menu-inner::before {
+    /* grab-handle affordance — purely visual signal that this is a sheet, no drag behaviour attached */
+    content: ""; display: block; width: 36px; height: 4px; border-radius: 2px;
+    background: var(--line); margin: 0 auto 14px;
+  }
   #district-menu-close {
-    position: absolute; top: 16px; right: 16px;
-    background: var(--panel-2); border: none; color: var(--cream);
-    width: 44px; height: 44px; border-radius: 50%;
-    font-size: 26px; cursor: pointer; line-height: 1;
+    position: absolute; top: 14px; right: 16px;
+    background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
+    width: 36px; height: 36px; border-radius: 50%;
+    font-size: 22px; cursor: pointer; line-height: 1;
     display: flex; align-items: center; justify-content: center;
     z-index: 2;
   }
-  #district-menu-eyebrow {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--amber-soft); text-align: center; margin: 6px 0 6px;
-  }
+  #district-menu-eyebrow { display: none; }
   #district-menu-title {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 24px; font-weight: 600; text-align: center;
-    color: var(--cream); margin-bottom: 20px;
+    font-size: 21px; font-weight: 800; letter-spacing: -0.01em; text-align: left;
+    color: var(--ink); margin: 4px 0 18px;
   }
   .district-row {
     display: flex; align-items: center; gap: 14px;
-    padding: 14px 14px; border-radius: 16px;
+    padding: 14px; border-radius: 16px;
     cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
     position: relative;
-    background: var(--panel-2); border: 1px solid var(--line);
+    background: var(--paper); border: 1.5px solid var(--line);
   }
-  .district-row:not(.disabled):active { background: var(--line); }
-  .district-row + .district-row { margin-top: 10px; }
+  .district-row:not(.disabled):active { background: var(--paper-2); }
+  .district-row + .district-row { margin-top: 8px; }
   .district-row-icon {
-    flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
-    background: var(--panel); border: 1px solid var(--line);
+    flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px;
+    background: var(--brass-tint); border: none;
     display: flex; align-items: center; justify-content: center;
   }
-  .district-row-icon svg { width: 20px; height: 20px; stroke: var(--amber-soft); }
-  .district-row.disabled .district-row-icon svg { stroke: var(--cream-dim); }
+  .district-row-icon svg { width: 20px; height: 20px; stroke: var(--brass-deep); }
+  .district-row.disabled .district-row-icon { background: var(--paper-2); }
+  .district-row.disabled .district-row-icon svg { stroke: var(--ink-dim); }
   .district-row-mid { flex: 1; min-width: 0; }
-  .dr-title { font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--cream); }
-  .district-row.disabled .dr-title { color: var(--cream-dim); }
-  .dr-desc { font-size: 12.5px; color: var(--cream-dim); margin-top: 2px; }
+  .dr-title { font-size: 15.5px; font-weight: 700; color: var(--ink); }
+  .district-row.disabled .dr-title { color: var(--ink-dim); }
+  .dr-desc { font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; line-height: 1.35; }
   .district-row.disabled { cursor: not-allowed; }
-  .dr-chevron { flex-shrink: 0; width: 18px; height: 18px; stroke: var(--cream-dim); }
+  .dr-chevron { flex-shrink: 0; width: 18px; height: 18px; stroke: var(--ink-dim); }
   .dr-badge {
-    flex-shrink: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--cream-dim); border: 1px solid var(--line);
+    flex-shrink: 0; font-size: 10.5px; font-weight: 600;
+    color: var(--ink-dim); border: 1px solid var(--line);
     border-radius: 999px; padding: 4px 10px;
   }
   #district-menu-divider {
-    height: 1px; background: var(--line); margin: 16px 0 12px;
+    height: 1px; background: var(--line); margin: 14px 0 10px;
   }
   #nearest-route-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     width: 100%; background: none; border: none;
-    color: var(--amber-soft); font-size: 13px; font-weight: 600;
+    color: var(--brass-deep); font-size: 13.5px; font-weight: 700;
     padding: 10px; cursor: pointer;
   }
-  #nearest-route-btn svg { width: 15px; height: 15px; stroke: var(--amber-soft); }
-  #nearest-route-btn:active { opacity: 0.7; }
+  #nearest-route-btn svg { width: 15px; height: 15px; stroke: var(--brass-deep); }
+  #nearest-route-btn:active { opacity: 0.6; }
   #nearest-feedback {
-    text-align: center; font-size: 12px; color: var(--cream-dim);
+    text-align: center; font-size: 12.5px; color: var(--ink-dim);
     min-height: 14px; margin-top: 2px;
   }
+  #gps-hint {
+    text-align: center; font-size: 12px; color: var(--ink-dim);
+    line-height: 1.4; margin: -6px 0 14px; padding: 0 6px;
+  }
+  #gps-hint.hidden { display: none; }
 
   #map { position: absolute; inset: 0; z-index: 1; background: var(--map-bg); transition: background 0.3s ease; }
   .leaflet-container { background: var(--map-bg); transition: background 0.3s ease; }
@@ -280,12 +296,12 @@
     filter: none;
   }
   #app[data-map-mode="light"] #map-tint {
-    background: linear-gradient(180deg, rgba(20,17,13,0.15) 0%, rgba(20,17,13,0) 18%, rgba(20,17,13,0) 70%, rgba(20,17,13,0.25) 100%);
+    background: linear-gradient(180deg, rgba(20,17,13,0.12) 0%, rgba(20,17,13,0) 18%, rgba(20,17,13,0) 70%, rgba(20,17,13,0.2) 100%);
   }
 
   #map-tint {
     position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    background: linear-gradient(180deg, rgba(20,17,13,0.35) 0%, rgba(20,17,13,0) 18%, rgba(20,17,13,0) 70%, rgba(20,17,13,0.55) 100%);
+    background: linear-gradient(180deg, rgba(20,17,13,0.3) 0%, rgba(20,17,13,0) 18%, rgba(20,17,13,0) 70%, rgba(20,17,13,0.5) 100%);
   }
 
   #topbar {
@@ -301,48 +317,48 @@
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
-    background: var(--panel); border: 1px solid #4a90d9;
+    background: var(--route); border: 1.5px solid var(--line-strong);
     border-radius: 16px; padding: 11px 12px 11px 14px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-float);
     max-width: calc(100vw - 130px);
   }
   #nav-top-bar.collapsed #nav-top-full { display: none; }
   #nav-top-icon {
     flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(74,144,217,0.18); display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #nav-top-icon svg { width: 17px; height: 17px; stroke: #4a90d9; }
+  #nav-top-icon svg { width: 17px; height: 17px; stroke: #fff; }
   #nav-top-text { min-width: 0; }
-  #nav-top-distance { font-size: 15px; font-weight: 700; color: var(--cream); white-space: nowrap; }
-  #nav-top-sub { font-size: 11px; color: var(--cream-dim); white-space: nowrap; }
+  #nav-top-distance { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; }
+  #nav-top-sub { font-size: 11px; color: rgba(255,255,255,0.8); white-space: nowrap; }
   #nav-top-close {
     flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
-    background: var(--panel-2); border: none; color: var(--cream-dim);
+    background: rgba(255,255,255,0.18); border: none; color: #fff;
     font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
     margin-left: 2px;
   }
   #nav-top-peek {
-    display: none; background: var(--panel); border: 1px solid #4a90d9;
-    border-radius: 50%; width: 44px; height: 44px;
-    box-shadow: var(--shadow); cursor: pointer;
+    display: none; background: var(--route); border: 1.5px solid var(--line-strong);
+    border-radius: 50%; width: 46px; height: 46px;
+    box-shadow: var(--shadow-float); cursor: pointer;
     align-items: center; justify-content: center;
   }
   #nav-top-bar.collapsed #nav-top-peek { display: flex; }
-  #nav-top-peek svg { width: 18px; height: 18px; stroke: #4a90d9; }
+  #nav-top-peek svg { width: 19px; height: 19px; stroke: #fff; }
 
   /* ---------- Komunikat "jesteś na miejscu" ---------- */
   #arrival-toast {
     position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
     z-index: 40; max-width: calc(100vw - 32px);
-    background: #4a90d9; border-radius: 16px;
-    padding: 12px 18px; text-align: center; cursor: pointer;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    background: var(--route); border-radius: 16px; border: 1.5px solid var(--line-strong);
+    padding: 13px 18px; text-align: center; cursor: pointer;
+    box-shadow: var(--shadow-float);
     transition: opacity 0.25s ease, transform 0.25s ease;
   }
   #arrival-toast.hidden { opacity: 0; transform: translateX(-50%) translateY(-12px); pointer-events: none; }
   #arrival-toast-title { color: #fff; font-size: 15px; font-weight: 700; }
-  #arrival-toast-sub { color: rgba(255,255,255,0.9); font-size: 12.5px; margin-top: 2px; }
+  #arrival-toast-sub { color: rgba(255,255,255,0.85); font-size: 12.5px; margin-top: 2px; }
 
   /* ---------- Pinezka celu nawigacji na mapie (czysto wizualna, nieklikalna) ---------- */
   /* prawdziwy kształt "kropli", zakotwiczony czubkiem w punkcie, żeby "brzuch" pinezki
@@ -353,21 +369,22 @@
   }
   .nav-target-pin svg { width: 100%; height: 100%; display: block; }
 
-  #brand:active { transform: scale(0.98); }
   #btn-stack {
     display: flex; flex-direction: column; gap: 10px;
     position: relative;
   }
   #brand, #locate-btn, #settings-btn {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: var(--panel); border: 1px solid var(--line);
-    box-shadow: var(--shadow);
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--ink); border: 1.5px solid var(--line-strong);
+    box-shadow: var(--shadow-float);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
+    transition: transform 0.1s ease;
   }
-  #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--cream); color: var(--cream); }
-  #locate-btn.active svg { stroke: var(--amber-soft); }
-  #layers-btn.active svg { stroke: var(--amber-soft); }
+  #brand:active, #locate-btn:active, #settings-btn:active { transform: scale(0.94); }
+  #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--paper); color: var(--paper); }
+  #locate-btn.active { background: var(--route); }
+  #locate-btn.active svg { stroke: #fff; color: #fff; }
 
   /* ---------- Ustawienia — wyśrodkowany modal (widok mapy + język + wyloguj) ---------- */
   #settings-screen {
@@ -379,72 +396,71 @@
   #settings-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   #settings-scrim {
     position: absolute; inset: 0;
-    background: rgba(15,12,9,0.72);
-    backdrop-filter: blur(6px) saturate(1.05);
-    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    background: rgba(27,26,23,0.5);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
   }
   #settings-inner {
-    position: relative; width: 100%; max-width: 380px;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 24px; padding: 26px 22px;
-    box-shadow: var(--shadow);
+    position: relative; width: 100%; max-width: 360px;
+    background: var(--paper); border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-card); padding: 24px 20px;
+    box-shadow: var(--shadow-plate);
   }
   #settings-close {
-    position: absolute; top: 16px; right: 16px; z-index: 2;
+    position: absolute; top: 14px; right: 14px; z-index: 2;
     width: 34px; height: 34px; border-radius: 50%;
-    background: var(--panel-2); border: none; color: var(--cream);
-    font-size: 20px; cursor: pointer; line-height: 1;
+    background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
+    font-size: 19px; cursor: pointer; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
   #settings-title {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 20px; font-weight: 700; color: var(--cream);
-    margin-bottom: 20px;
+    font-size: 19px; font-weight: 800; color: var(--ink);
+    margin-bottom: 18px; letter-spacing: -0.01em;
   }
   .settings-section-label {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--amber-soft); margin: 18px 0 8px;
+    font-size: 12px; font-weight: 700;
+    color: var(--ink-dim); margin: 18px 0 8px;
   }
   .settings-section-label:first-of-type { margin-top: 0; }
   #layers-menu {
     display: flex; flex-direction: column; gap: 2px;
   }
   .settings-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 12px 12px; border-radius: 12px; cursor: pointer;
-    color: var(--cream); font-size: 14px; font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px; border-radius: 12px; cursor: pointer;
+    color: var(--ink); font-size: 14.5px; font-weight: 600;
   }
-  .settings-row:active { background: var(--panel-2); }
+  .settings-row:active { background: var(--paper-2); }
   #settings-lang-flag { font-size: 16px; }
   .layer-option {
     display: flex; align-items: center; gap: 10px;
-    padding: 9px 10px; border-radius: 9px;
-    cursor: pointer; font-size: 13px; color: var(--cream-dim);
+    padding: 10px; border-radius: 10px;
+    cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--ink-dim);
   }
-  .layer-option:hover { background: var(--panel-2); }
-  .layer-option.active { background: var(--panel-2); color: var(--cream); font-weight: 600; }
+  .layer-option:hover { background: var(--paper-2); }
+  .layer-option.active { background: var(--brass-tint); color: var(--brass-deep); font-weight: 700; }
   .layer-option .dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--line); flex-shrink: 0;
   }
-  .layer-option.active .dot { background: var(--amber-soft); }
+  .layer-option.active .dot { background: var(--brass-deep); }
 
   .marker-main {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--amber);
-    border: 3px solid #14110d;
+    width: 27px; height: 27px; border-radius: 50%;
+    background: var(--brass);
+    border: 2.5px solid #14110d;
     box-shadow: 0 3px 10px rgba(0,0,0,0.5);
     display: flex; align-items: center; justify-content: center;
   }
   .marker-num {
-    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 800;
+    font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 800;
     color: #14110d; line-height: 1; user-select: none;
   }
   .marker-start {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: #2fd16f;
-    border: 3px solid #14110d;
-    box-shadow: 0 0 0 5px rgba(47,209,111,0.35), 0 3px 10px rgba(0,0,0,0.5);
+    width: 27px; height: 27px; border-radius: 50%;
+    background: var(--ok);
+    border: 2.5px solid #14110d;
+    box-shadow: 0 0 0 5px rgba(63,138,92,0.3), 0 3px 10px rgba(0,0,0,0.5);
     display: flex; align-items: center; justify-content: center;
     position: relative;
   }
@@ -453,14 +469,14 @@
     position: absolute;
     bottom: 100%; left: 50%; transform: translateX(-50%);
     width: 2px; height: 24px;
-    background: var(--cream);
+    background: #fff;
     box-shadow: 0 0 4px rgba(0,0,0,0.5);
   }
   .marker-start::after {
     content: "START";
     position: absolute;
     bottom: calc(100% + 22px); left: 50%; transform: translateX(-50%);
-    background: #4a90d9;
+    background: var(--route);
     color: #fff;
     font-family: 'Inter', sans-serif;
     font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
@@ -481,14 +497,14 @@
        żeby nie "wjeżdżał" wizualnie w sam punkt */
     bottom: 13px; left: 50%; transform: translateX(-50%);
     width: 2px; height: 20px;
-    background: var(--cream);
+    background: #fff;
     box-shadow: 0 0 4px rgba(0,0,0,0.5);
   }
   .flag-only::after {
     content: "START";
     position: absolute;
     bottom: 33px; left: 50%; transform: translateX(-50%);
-    background: #4a90d9;
+    background: var(--route);
     color: #fff;
     font-family: 'Inter', sans-serif;
     font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
@@ -501,19 +517,19 @@
   .cluster-main, .cluster-extra {
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: #14110d; font-weight: 700; font-family: 'Inter', sans-serif;
-    border: 3px solid #14110d;
+    color: #14110d; font-weight: 800; font-family: 'Inter', sans-serif;
+    border: 2.5px solid #14110d;
     box-shadow: 0 3px 12px rgba(0,0,0,0.5);
   }
-  .cluster-main { background: var(--amber); color: #14110d; }
-  .cluster-extra { background: var(--cream-dim); color: #14110d; }
+  .cluster-main { background: var(--brass); color: #14110d; }
+  .cluster-extra { background: #d8d2c4; color: #14110d; }
   .cluster-sm { width: 34px; height: 34px; font-size: 13px; }
   .cluster-md { width: 42px; height: 42px; font-size: 15px; }
   .cluster-lg { width: 50px; height: 50px; font-size: 16px; }
 
   .marker-extra {
-    width: 16px; height: 16px; border-radius: 50%;
-    background: var(--cream-dim);
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #d8d2c4;
     border: 2px solid #14110d;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   }
@@ -527,7 +543,7 @@
     position: absolute; top: 50%; left: 50%;
     width: 90px; height: 90px;
     margin-top: -45px; margin-left: -45px;
-    background: conic-gradient(from 0deg, rgba(74,144,217,0.5) 0deg, rgba(74,144,217,0.5) 70deg, rgba(74,144,217,0) 70deg, rgba(74,144,217,0) 360deg);
+    background: conic-gradient(from 0deg, rgba(59,95,138,0.55) 0deg, rgba(59,95,138,0.55) 70deg, rgba(59,95,138,0) 70deg, rgba(59,95,138,0) 360deg);
     border-radius: 50%;
     transform: rotate(-35deg);
     transition: transform 0.2s linear;
@@ -537,14 +553,14 @@
   .gps-dot {
     position: relative; z-index: 2;
     width: 18px; height: 18px; border-radius: 50%;
-    background: #4a90d9;
+    background: var(--route);
     border: 3px solid #fff;
-    box-shadow: 0 0 0 6px rgba(74,144,217,0.25), 0 2px 6px rgba(0,0,0,0.4);
+    box-shadow: 0 0 0 6px rgba(59,95,138,0.28), 0 2px 6px rgba(0,0,0,0.4);
   }
 
   #sheet-backdrop {
     position: absolute; inset: 0; z-index: 19;
-    background: rgba(10,8,6,0.45);
+    background: rgba(27,26,23,0.35);
     opacity: 0; pointer-events: none;
     transition: opacity 0.25s ease;
   }
@@ -553,13 +569,17 @@
 
   #sheet {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
-    background: var(--panel);
-    border-top: 1px solid var(--line);
+    background: var(--paper);
+    border-top: 1.5px solid var(--line-strong);
     border-radius: 22px 22px 0 0;
-    box-shadow: 0 -12px 40px rgba(0,0,0,0.55);
-    padding: 10px 18px 22px;
+    box-shadow: 0 -14px 36px rgba(27,26,23,0.3);
+    padding: 12px 18px 22px;
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(.32,.72,0,1);
+  }
+  #sheet::before {
+    content: ""; display: block; width: 36px; height: 4px; border-radius: 2px;
+    background: var(--line); margin: 0 auto 10px;
   }
   #sheet.open { transform: translateY(0); }
   #sheet.peek { pointer-events: none; padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
@@ -567,30 +587,30 @@
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
   #sheet-peek-bar {
-    display: none; align-items: flex-start; gap: 12px;
-    min-height: 150px;
-    padding: 16px 4px 14px; color: var(--cream); font-size: 14px; font-weight: 600;
+    display: none; align-items: center; gap: 12px;
+    min-height: 56px;
+    padding: 4px 4px 10px; color: var(--ink); font-size: 14.5px; font-weight: 700;
     cursor: pointer;
   }
   #sheet.peek #sheet-peek-bar { display: flex; }
   #peek-play-btn {
-    flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
-    background: var(--amber); border: none; cursor: pointer;
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
+    background: var(--brass); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
-  #peek-play-btn svg { width: 19px; height: 19px; fill: var(--bg); }
+  #peek-play-btn svg { width: 18px; height: 18px; fill: #14110d; }
   #sheet-peek-label {
     flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     align-self: center;
   }
 
-  #sheet-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber-soft); margin-bottom: 4px; }
+  #sheet-kicker { font-size: 12px; font-weight: 700; color: var(--brass-deep); margin-bottom: 4px; }
   #sheet-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-  #sheet-title { font-size: 22px; font-weight: 600; margin: 0; color: var(--cream); }
+  #sheet-title { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: var(--ink); }
 
   #sheet-goto-btn {
     flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
-    background: #4a90d9; border: none;
+    background: var(--route); border: none;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   #sheet-goto-btn.hidden { display: none; }
@@ -607,48 +627,49 @@
   .track-row {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 14px; border-radius: 12px;
-    background: var(--panel-2); border: 1px solid var(--line);
+    background: var(--paper-2); border: 1.5px solid transparent;
     cursor: pointer; text-align: left;
+    transition: background 0.12s ease, border-color 0.12s ease;
   }
-  .track-row.active { background: var(--amber); border-color: var(--amber); }
+  .track-row:active { background: var(--line); }
+  .track-row.active { background: var(--brass-tint); border-color: var(--brass); }
   .track-row .tr-num {
-    flex-shrink: 0; font-family: 'Fraunces', Georgia, serif;
-    font-size: 15px; font-weight: 600; color: var(--amber-soft);
-    min-width: 28px;
+    flex-shrink: 0;
+    font-size: 15px; font-weight: 800; color: var(--brass-deep);
+    min-width: 26px;
   }
-  .track-row.active .tr-num { color: rgba(20,17,13,0.65); }
-  .track-row .tr-name { font-size: 14px; font-weight: 500; color: var(--cream); flex: 1; }
-  .track-row.active .tr-name { color: var(--bg); }
-  .track-row .tr-icon { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.6; }
-  .track-row.active .tr-icon { opacity: 0.75; }
+  .track-row.active .tr-num { color: var(--brass-deep); }
+  .track-row .tr-name { font-size: 14px; font-weight: 600; color: var(--ink); flex: 1; }
+  .track-row .tr-icon { flex-shrink: 0; width: 16px; height: 16px; color: var(--ink-dim); }
+  .track-row.active .tr-icon { color: var(--brass-deep); }
 
   #player {
     display: flex; align-items: center; gap: 14px;
-    background: var(--panel-2); border-radius: 16px; padding: 12px 14px;
+    background: var(--paper-2); border-radius: 16px; padding: 12px 14px;
   }
   #play-btn {
     flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
-    background: var(--amber); border: none; cursor: pointer;
+    background: var(--brass); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
-  #play-btn svg { width: 18px; height: 18px; fill: var(--bg); }
+  #play-btn svg { width: 18px; height: 18px; fill: #14110d; }
   #player-mid { flex: 1; min-width: 0; }
-  #progress-track { height: 4px; background: var(--line); border-radius: 2px; position: relative; cursor: pointer; }
-  #progress-fill { height: 100%; width: 0%; background: var(--amber-soft); border-radius: 2px; }
-  #time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--cream-dim); margin-top: 6px; }
+  #progress-track { height: 5px; background: var(--line); border-radius: 3px; position: relative; cursor: pointer; }
+  #progress-fill { height: 100%; width: 0%; background: var(--brass-deep); border-radius: 3px; }
+  #time-row { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 500; color: var(--ink-dim); margin-top: 6px; }
 
   #sheet-close {
-    position: absolute; top: -56px; right: 16px; z-index: 2;
+    position: absolute; top: -58px; right: 16px; z-index: 2;
     width: 48px; height: 48px; border-radius: 50%;
-    background: var(--panel); border: 1px solid var(--line);
-    box-shadow: var(--shadow); color: var(--cream);
+    background: var(--ink); border: 1.5px solid var(--line-strong);
+    box-shadow: var(--shadow-float); color: var(--paper);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #sheet-close svg { width: 22px; height: 22px; stroke: var(--cream); }
+  #sheet-close svg { width: 22px; height: 22px; stroke: var(--paper); }
 
   .no-audio-note {
-    font-size: 12px; color: var(--cream-dim); margin-top: 10px; text-align: center;
+    font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; text-align: center;
   }
 </style>
 </head>
@@ -777,6 +798,7 @@
         </svg>
       </div>
 
+      <div id="gps-hint" class="hidden"></div>
       <div id="district-menu-divider"></div>
       <button id="nearest-route-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -851,14 +873,14 @@
       <button id="settings-close" aria-label="Zamknij">×</button>
       <div id="settings-title">Ustawienia</div>
 
-      <div class="settings-section-label">Widok mapy</div>
+      <div class="settings-section-label" id="settings-map-label">Widok mapy</div>
       <div id="layers-menu">
         <div class="layer-option" data-mode="dark"><span class="dot"></span><span class="lo-label">Ciemna</span></div>
         <div class="layer-option" data-mode="light"><span class="dot"></span><span class="lo-label">Jasna</span></div>
         <div class="layer-option active" data-mode="satellite"><span class="dot"></span><span class="lo-label">Satelita</span></div>
       </div>
 
-      <div class="settings-section-label">Konto</div>
+      <div class="settings-section-label" id="settings-account-label">Konto</div>
       <div class="settings-row" id="settings-lang-row">
         <span id="settings-lang-flag">🇵🇱</span>
         <span id="settings-lang-text">Zmień język</span>
@@ -933,6 +955,7 @@ function unlockApp() {
     setTimeout(() => dm.classList.remove('entering'), 60);
   });
   if (typeof maybeShowA2HS === 'function') maybeShowA2HS();
+  if (typeof beginLocationFlow === 'function') beginLocationFlow(); // dopiero TERAZ user realnie wszedł do apki
 }
 
 function tryUnlock() {
@@ -1026,6 +1049,8 @@ const TRANSLATIONS = {
     pointExtra: "Punkt dodatkowy",
     noAudio: "Plik audio jeszcze nie został dodany dla tego punktu.",
     layerDark: "Ciemna", layerLight: "Jasna", layerSat: "Satelita",
+    settingsMapView: "Widok mapy", settingsAccount: "Konto",
+    gpsHint: "Potrzebujemy Twojej lokalizacji, żeby pokazywać, gdzie jesteś, i liczyć trasę do kolejnych punktów.",
     closeLabel: "Zamknij", backToMenu: "Wróć do wyboru trasy",
     locateLabel: "Pokaż moją lokalizację", layersLabel: "Wybierz widok mapy",
     navToggleLabel: "Pokaż/ukryj trasę do startu",
@@ -1077,6 +1102,8 @@ const TRANSLATIONS = {
     pointExtra: "Додаткова зупинка",
     noAudio: "Аудіофайл для цієї точки ще не додано.",
     layerDark: "Темна", layerLight: "Світла", layerSat: "Супутник",
+    settingsMapView: "Вигляд карти", settingsAccount: "Обліковий запис",
+    gpsHint: "Потрібне твоє місцезнаходження, щоб показувати, де ти, і рахувати маршрут до наступних точок.",
     closeLabel: "Закрити", backToMenu: "Повернутися до вибору маршруту",
     locateLabel: "Показати моє місцезнаходження", layersLabel: "Обрати вигляд карти",
     navToggleLabel: "Показати/приховати маршрут до старту",
@@ -1128,6 +1155,8 @@ const TRANSLATIONS = {
     pointExtra: "Extra stop",
     noAudio: "No audio file has been added for this stop yet.",
     layerDark: "Dark", layerLight: "Light", layerSat: "Satellite",
+    settingsMapView: "Map view", settingsAccount: "Account",
+    gpsHint: "We need your location to show where you are and work out the route to each stop.",
     closeLabel: "Close", backToMenu: "Back to route selection",
     locateLabel: "Show my location", layersLabel: "Choose map view",
     navToggleLabel: "Show/hide the route to the start",
@@ -1179,6 +1208,8 @@ const TRANSLATIONS = {
     pointExtra: "Zusatzstation",
     noAudio: "Für diese Station wurde noch keine Audiodatei hinzugefügt.",
     layerDark: "Dunkel", layerLight: "Hell", layerSat: "Satellit",
+    settingsMapView: "Kartenansicht", settingsAccount: "Konto",
+    gpsHint: "Wir benötigen deinen Standort, um zu zeigen, wo du bist, und die Route zu den Stationen zu berechnen.",
     closeLabel: "Schließen", backToMenu: "Zurück zur Routenauswahl",
     locateLabel: "Meinen Standort anzeigen", layersLabel: "Kartenansicht wählen",
     navToggleLabel: "Route zum Start ein-/ausblenden",
@@ -1230,6 +1261,8 @@ const TRANSLATIONS = {
     pointExtra: "Parada adicional",
     noAudio: "Todavía no se ha añadido ningún archivo de audio para este punto.",
     layerDark: "Oscuro", layerLight: "Claro", layerSat: "Satélite",
+    settingsMapView: "Vista del mapa", settingsAccount: "Cuenta",
+    gpsHint: "Necesitamos tu ubicación para mostrar dónde estás y calcular la ruta a cada parada.",
     closeLabel: "Cerrar", backToMenu: "Volver a elegir ruta",
     locateLabel: "Mostrar mi ubicación", layersLabel: "Elegir vista del mapa",
     navToggleLabel: "Mostrar/ocultar la ruta al inicio",
@@ -1290,10 +1323,25 @@ function applyTranslations() {
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
   document.querySelector('.layer-option[data-mode="satellite"] .lo-label').textContent = t('layerSat');
+  document.getElementById('settings-map-label').textContent = t('settingsMapView');
+  document.getElementById('settings-account-label').textContent = t('settingsAccount');
+  document.getElementById('gps-hint').textContent = t('gpsHint');
 
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
   document.getElementById('locate-btn').setAttribute('aria-label', t('locateLabel'));
+  document.getElementById('nav-top-close').setAttribute('aria-label', t('sheetCollapseLabel'));
+
+  // jeśli panel punktu jest akurat otwarty w trakcie zmiany języka — odśwież jego teksty też,
+  // żeby nie zostały "zamrożone" w poprzednio wybranym języku
+  if (typeof currentPoint !== 'undefined' && currentPoint) {
+    sheetKicker.textContent = currentPoint.type === 'intro' ? t('routeIntroKicker') : (currentPoint.type === 'main' ? t('pointMain') : t('pointExtra'));
+    if (typeof renderTrackList === 'function') renderTrackList();
+    if (sheetPeek) {
+      const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
+      document.getElementById('sheet-peek-label').textContent = track ? track.label : currentPoint.name;
+    }
+  }
 }
 
 /* ============================================================
@@ -1318,11 +1366,7 @@ const INTRO_POINT = {
   type: 'intro',
   tracks: [
     { number: '0', label: 'Krótka historia Krakowa', audio: null },
-    { number: '0.1', label: 'Jak korzystać z aplikacji', audio: null },
-    { number: '0.2', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null },
-    { number: '0.3', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null },
-    { number: '0.4', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null },
-    { number: '0.5', label: 'TEST — placeholder do sprawdzenia scrolla', audio: null }
+    { number: '0.1', label: 'Jak korzystać z aplikacji', audio: null }
   ]
 };
 
@@ -2115,6 +2159,17 @@ async function requestWalkingRoute(userLatLng) {
   routingInFlight = false;
 }
 
+// Lokalizacja startuje dopiero, gdy user faktycznie DOTRZE do apki (menu tras widoczne),
+// nigdy wcześniej (nie za ekranem hasła/języka) — to był powód, dla którego pytanie o zgodę
+// wyglądało jakby "wyskakiwało znikąd": przeglądarka prosiła o GPS zanim user w ogóle zobaczył apkę.
+let locationFlowStarted = false;
+function beginLocationFlow() {
+  if (locationFlowStarted) return;
+  locationFlowStarted = true;
+  document.getElementById('gps-hint').classList.remove('hidden');
+  startLocationTracking(false);
+}
+
 function startLocationTracking(flyOnFirstFix) {
   if (!navigator.geolocation) {
     alert('Twoja przeglądarka nie obsługuje lokalizacji GPS.');
@@ -2138,6 +2193,7 @@ function startLocationTracking(flyOnFirstFix) {
     } else {
       gpsMarker.setLatLng(userLatLng);
     }
+    document.getElementById('gps-hint').classList.add('hidden'); // zgoda uzyskana — tłumaczący tekst już niepotrzebny
     if (firstFix && flyOnFirstFix) {
       map.flyTo(userLatLng, 17, { duration: 1.4 });
     }
@@ -2164,6 +2220,7 @@ function startLocationTracking(flyOnFirstFix) {
     // cichy fallback — na starcie apki nie chcemy straszyć alertem, jeśli user jeszcze nie zdążył kliknąć "zezwól"
     btn.classList.remove('active');
     watching = false;
+    document.getElementById('gps-hint').classList.add('hidden');
   }, { enableHighAccuracy: true });
 }
 
@@ -2330,10 +2387,6 @@ document.getElementById('locate-btn').addEventListener('click', () => {
   startLocationTracking(true);
 });
 
-// GPS startuje automatycznie od razu przy wejściu do apki — nie trzeba klikać przycisku.
-// Kompas (kierunek telefonu) i tak wymaga osobnej zgody w ramach dotknięcia ekranu (patrz: menu dzielnic).
-startLocationTracking(false);
-
 /* ============================================================
    MENU WYBORU DZIELNICY
 ============================================================ */
@@ -2371,8 +2424,7 @@ function selectDistrict(freeRoam, options) {
     }
   }
 
-  // etykiety pierwszych dwóch (prawdziwych) tracków wprowadzających — tłumaczone; ewentualne
-  // dalsze wpisy testowe (TEST — placeholder) w INTRO_POINT.tracks zostają bez zmian
+  // etykiety tracków wprowadzających — tłumaczone na bieżąco przy wyborze trasy/języka
   if (INTRO_POINT.tracks[0]) INTRO_POINT.tracks[0].label = t('introTrack0Label');
   if (INTRO_POINT.tracks[1]) INTRO_POINT.tracks[1].label = t('introTrack01Label');
 
@@ -2485,7 +2537,7 @@ nearestBtn.addEventListener('click', () => {
   const nearestLabel = t(nearest.labelKey);
   if (nearest.available) {
     nearestFeedback.textContent = t('nearestFound')(nearestLabel);
-    setTimeout(selectDistrict, 500);
+    setTimeout(() => selectDistrict(false), 500);
   } else {
     nearestFeedback.textContent = t('nearestUnavailable')(nearestLabel);
   }
@@ -2644,8 +2696,18 @@ function setPlayIcon(isPlaying) {
 
 function togglePlayPause() {
   if (!audioEl.src) return;
-  if (audioEl.paused) { audioEl.play(); setPlayIcon(true); }
-  else { audioEl.pause(); setPlayIcon(false); }
+  if (audioEl.paused) {
+    setPlayIcon(true);
+    // play() zwraca Promise, który może odrzucić (zablokowany autoplay, zepsuty plik) —
+    // bez obsłużenia tego ikona zostawała na "pauza" mimo że dźwięk w ogóle nie leciał
+    const p = audioEl.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => setPlayIcon(false));
+    }
+  } else {
+    audioEl.pause();
+    setPlayIcon(false);
+  }
 }
 
 playBtn.addEventListener('click', togglePlayPause);
@@ -2664,6 +2726,7 @@ audioEl.addEventListener('loadedmetadata', () => {
   timeTotal.textContent = fmtTime(audioEl.duration);
 });
 audioEl.addEventListener('ended', () => setPlayIcon(false));
+audioEl.addEventListener('error', () => setPlayIcon(false)); // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
 
 progressTrack.addEventListener('click', (e) => {
   if (!audioEl.duration) return;
@@ -2671,12 +2734,6 @@ progressTrack.addEventListener('click', (e) => {
   const pct = (e.clientX - rect.left) / rect.width;
   audioEl.currentTime = pct * audioEl.duration;
 });
-
-function playAudioSrc(src) {
-  audioEl.src = src;
-  audioEl.play();
-  setPlayIcon(true);
-}
 
 // jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu.
 // Ten blok musi być na samym końcu skryptu, żeby wszystkie zmienne (np. navActive), których
@@ -2701,6 +2758,7 @@ if (savedLang && savedUnlocked) {
   const dm = document.getElementById('district-menu');
   dm.classList.remove('hidden', 'entering');
   maybeShowA2HS();
+  beginLocationFlow(); // apka pokazana od razu na starcie — to jest ten moment "wejścia", nie wcześniej
 } else if (savedLang && !savedUnlocked) {
   // wybrał już język wcześniej, ale nie wpisał jeszcze hasła (np. zamknął apkę w trakcie) — pokaż ekran hasła
   document.getElementById('pw-screen').classList.remove('hidden');
