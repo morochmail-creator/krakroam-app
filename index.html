@@ -284,14 +284,21 @@
   }
   #gps-hint.hidden { display: none; }
 
-  /* ---------- Warstwy 3D: #map-stage (perspektywa) > #map-tilt (pochylenie kamery) > #map-spin (obrót wg kierunku marszu) > #map
-     Leaflet zarządza tylko #map — opakowania nad nim są czysto wizualne (transform nie zmienia layoutu/rozmiaru),
-     więc wewnętrzna matematyka pikseli Leaflet zostaje nietknięta niezależnie od włączonego trybu. ---------- */
+  /* ---------- Warstwy 3D: #map-stage (perspektywa) > #map-tilt (pochylenie kamery, powiększona płyta) > #map-spin (obrót wg kierunku marszu) > #map
+     Leaflet mierzy swój WŁASNY rozmiar na #map, więc samo obracanie/skalowanie transformem (bez zmiany realnego
+     rozmiaru pudełka) zostawiało w trybie 3D ogromną czarną dziurę nad mapą — po pochyleniu (rotateX) górna
+     krawędź zwykłego, "ekranowej wielkości" prostokąta ucieka w perspektywie w głąb kadru i kończy się daleko
+     przed górną krawędzią telefonu, bo fizycznie nie ma tam już żadnych kafelków do pokazania.
+     Rozwiązanie: #map-tilt w trybie 3D jest realnie większy niż ekran (szerszy i dużo wyższy, zakotwiczony
+     dołem o pivot obrotu), więc Leaflet renderuje kafelki na cały ten obszar, a po rotateX ta nadwyżka
+     "ucieka" dokładnie tam, gdzie wcześniej była czarna dziura — płyta wypełnia kadr aż po sam szczyt.
+     Transform dalej nie rusza wewnętrznej matematyki pikseli Leaflet (pinezki/klik/pan działają normalnie),
+     ale zmiana REALNEGO rozmiaru #map-tilt przy przełączaniu trybu wymaga map.invalidateSize() (patrz setViewMode3D). ---------- */
   #map-stage {
     position: absolute; inset: 0; z-index: 1; overflow: hidden;
     background: var(--map-bg);
-    perspective: 1000px;
-    perspective-origin: 50% 70%;
+    perspective: 2200px;
+    perspective-origin: 50% 100%;
   }
   #map-tilt {
     position: absolute; inset: 0;
@@ -299,7 +306,8 @@
     transition: transform 0.6s cubic-bezier(.4,0,.2,1);
   }
   #app[data-view-mode="3d"] #map-tilt {
-    transform: translateY(13%) scale(1.75) rotateX(58deg);
+    left: -15%; right: auto; width: 130%; top: auto; bottom: 0; height: 200%;
+    transform: rotateX(42deg);
   }
   #map-spin {
     position: absolute; inset: 0;
@@ -2160,11 +2168,13 @@ function setViewMode3D(on) {
     currentMapHeadingRotation = 0;
     appEl.style.setProperty('--heading', 0);
     map.dragging.disable(); // patrz follow3D() — w 3D kamera sama podąża za Tobą
+    map.invalidateSize({ animate: false }); // #map-tilt w 3D jest realnie większy (patrz CSS) — bez tego Leaflet nie doładuje kafelków na nowy obszar i góra ekranu zostaje czarna
     if (gpsMarker) {
       map.setView(gpsMarker.getLatLng(), VIEW3D_ZOOM, { animate: true });
     }
   } else {
     map.dragging.enable();
+    map.invalidateSize({ animate: false }); // wracamy do normalnego rozmiaru kontenera
   }
 }
 
