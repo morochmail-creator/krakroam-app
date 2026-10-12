@@ -365,8 +365,13 @@
     transform-origin: 50% 100%;
     transition: transform 0.6s cubic-bezier(.4,0,.2,1);
   }
+  /* Płyta w 3D to KWADRAT wyliczany w layout3DPlate() (zmienne --plate-*): na tyle duży, że po pochyleniu
+     i po obrocie wg kompasu (dowolny kierunek) wciąż zakrywa cały ekran. Poprzedni wąski prostokąt (130% x 200%)
+     po obróceniu o np. 90° zostawiał czarne pola — widać było tylko "kawałek" mapy wokół usera. */
   #app[data-view-mode="3d"] #map-tilt {
-    left: -15%; right: auto; width: 130%; top: auto; bottom: 0; height: 200%;
+    left: var(--plate-left, -15%); right: auto; top: var(--plate-top, -100%); bottom: auto;
+    width: var(--plate-size, 130%); height: var(--plate-size, 200%);
+    transform-origin: 50% var(--plate-pivot, 100%);
     transform: rotateX(42deg);
   }
   #map-spin {
@@ -541,6 +546,8 @@
   }
   .layer-option.active .dot { background: var(--brass-deep); }
 
+  /* większe, niewidoczne pole dotyku wokół pinezki — mały punkt (15px) łatwo było "nie trafić" palcem */
+  .marker-hit { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
   .marker-main {
     width: 27px; height: 27px; border-radius: 50%;
     background: var(--brass);
@@ -671,7 +678,9 @@
     opacity: 0; pointer-events: none;
     transition: opacity 0.25s ease;
   }
-  #sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+  /* tło NIE blokuje dotyku — przy otwartym panelu można od razu stuknąć w inny punkt na mapie
+     (wcześniej pierwsze stuknięcie tylko zwijało panel i wyglądało, jakby punkt "nie reagował") */
+  #sheet-backdrop.open { opacity: 1; pointer-events: none; }
   #sheet-backdrop.peek { opacity: 0; pointer-events: none; }
 
   #sheet {
@@ -716,12 +725,33 @@
   #sheet-title { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: var(--ink); }
 
   #sheet-goto-btn {
-    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
-    background: var(--route); border: none;
+    flex-shrink: 0; height: 38px; padding: 0 14px 0 11px; border-radius: 19px;
+    background: var(--route); border: none; gap: 6px;
+    color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   #sheet-goto-btn.hidden { display: none; }
   #sheet-goto-btn svg { width: 17px; height: 17px; stroke: #fff; }
+
+  #sheet-next-btn {
+    width: 100%; margin-top: 12px; padding: 13px 14px; border-radius: 14px;
+    background: var(--ink); color: var(--paper); border: none; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  #sheet-next-btn.hidden { display: none; }
+  #sheet-next-name { font-weight: 600; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- Krótki komunikat informacyjny (np. brak GPS) ---------- */
+  #info-toast {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 41; width: max-content; max-width: calc(100vw - 32px);
+    background: var(--ink); color: var(--paper); border-radius: 14px;
+    padding: 12px 16px; font-size: 13.5px; font-weight: 600; text-align: center;
+    box-shadow: var(--shadow-float);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  #info-toast.hidden { opacity: 0; transform: translateX(-50%) translateY(-12px); pointer-events: none; }
 
   #track-list {
     display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;
@@ -983,6 +1013,7 @@
     <div id="arrival-toast-title">Jesteś na miejscu!</div>
     <div id="arrival-toast-sub">Odtwórz: <span id="arrival-toast-track">—</span></div>
   </div>
+  <div id="info-toast" class="hidden" role="status"></div>
 
   <div id="topbar">
     <div id="btn-stack">
@@ -1055,6 +1086,7 @@
             <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
             <path d="M11 14l3 1 2 5"></path>
           </svg>
+          <span id="sheet-goto-label">Prowadź mnie tutaj</span>
         </button>
       </div>
 
@@ -1070,6 +1102,11 @@
         </div>
       </div>
       <div class="no-audio-note" id="no-audio-note" style="display:none;">Plik audio jeszcze nie został dodany dla tego punktu.</div>
+      <button id="sheet-next-btn" class="hidden">
+        <span id="sheet-next-label">Następny przystanek</span>
+        <span id="sheet-next-name"></span>
+        <span aria-hidden="true">→</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1206,6 +1243,9 @@ const TRANSLATIONS = {
     logoutBtn: "Wyloguj",
     routeIntroKicker: "Witamy w Krakowie",
     gotoHereBtn: "Prowadź mnie tutaj",
+    nextStop: "Następny przystanek",
+    navStraightLine: "w linii prostej",
+    gpsDenied: "Nie widzę Twojej lokalizacji. Włącz GPS i zezwól przeglądarce na dostęp do lokalizacji.",
     introTitleRoute: "Odsłuchaj w drodze na start",
     introTitleFreeRoam: "Odsłuchaj w drodze do historycznego centrum",
     introTrack0Label: "Krótka historia Krakowa",
@@ -1260,6 +1300,9 @@ const TRANSLATIONS = {
     logoutBtn: "Вийти",
     routeIntroKicker: "Ласкаво просимо до Кракова",
     gotoHereBtn: "Проведи мене сюди",
+    nextStop: "Наступна зупинка",
+    navStraightLine: "по прямій",
+    gpsDenied: "Не бачу твого місцезнаходження. Увімкни GPS і дозволь браузеру доступ до геолокації.",
     introTitleRoute: "Послухай в дорозі до старту",
     introTitleFreeRoam: "Послухай в дорозі до історичного центру",
     introTrack0Label: "Коротка історія Кракова",
@@ -1314,6 +1357,9 @@ const TRANSLATIONS = {
     logoutBtn: "Log out",
     routeIntroKicker: "Welcome to Krakow",
     gotoHereBtn: "Guide me here",
+    nextStop: "Next stop",
+    navStraightLine: "in a straight line",
+    gpsDenied: "We can't see your location. Turn on GPS and allow your browser to use your location.",
     introTitleRoute: "Listen on your way to the start",
     introTitleFreeRoam: "Listen on your way to the historic centre",
     introTrack0Label: "A short history of Krakow",
@@ -1368,6 +1414,9 @@ const TRANSLATIONS = {
     logoutBtn: "Abmelden",
     routeIntroKicker: "Willkommen in Krakau",
     gotoHereBtn: "Führe mich hierher",
+    nextStop: "Nächster Halt",
+    navStraightLine: "Luftlinie",
+    gpsDenied: "Wir können deinen Standort nicht sehen. Schalte GPS ein und erlaube dem Browser den Standortzugriff.",
     introTitleRoute: "Hör zu, während du zum Start gehst",
     introTitleFreeRoam: "Hör zu, während du zum historischen Zentrum gehst",
     introTrack0Label: "Eine kurze Geschichte Krakaus",
@@ -1422,6 +1471,9 @@ const TRANSLATIONS = {
     logoutBtn: "Cerrar sesión",
     routeIntroKicker: "Bienvenido a Cracovia",
     gotoHereBtn: "Llévame aquí",
+    nextStop: "Siguiente parada",
+    navStraightLine: "en línea recta",
+    gpsDenied: "No vemos tu ubicación. Activa el GPS y permite que el navegador use tu ubicación.",
     introTitleRoute: "Escucha de camino al inicio",
     introTitleFreeRoam: "Escucha de camino al centro histórico",
     introTrack0Label: "Una breve historia de Cracovia",
@@ -1474,6 +1526,9 @@ function applyTranslations() {
   document.getElementById('settings-map-label').textContent = t('settingsMapView');
   document.getElementById('settings-account-label').textContent = t('settingsAccount');
   document.getElementById('gps-hint').textContent = t('gpsHint');
+  document.getElementById('sheet-goto-label').textContent = t('gotoHereBtn');
+  document.getElementById('sheet-goto-btn').setAttribute('aria-label', t('gotoHereBtn'));
+  document.getElementById('sheet-next-label').textContent = t('nextStop');
 
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
@@ -1982,7 +2037,7 @@ satLayer.addTo(map);
 
 /* ============================================================
    WSTĘPNE DOŁADOWANIE KAFELKÓW DLA CAŁEGO OBSZARU CENTRUM
-   Pokrywa Stare Miasto, Kazimierz i Podgórze (~2 km w każdą stronę
+   Pokrywa Stare Miasto, Kazimierz i Podgórze (z zapasem ~0,5 km w każdą stronę
    od centrum), dla obu warstw (mapa i satelita) — żeby szybkie
    przewijanie mapy nigdzie w tym obszarze nie "gubiło" kafelków
    czekających na sieć.
@@ -1991,14 +2046,17 @@ function prefetchTilesForArea() {
   // na słabym połączeniu w ogóle nie ładujemy nic w tle — priorytet ma to, co user faktycznie widzi teraz
   if (isSlowConnection) return;
 
-  // środek między trzema dzielnicami + zapas ~2 km w każdą stronę
+  // środek między trzema dzielnicami + zapas w każdą stronę
   const lats = [staremiastoCenterLat, 50.0492, 50.0397]; // Stare Miasto, Kazimierz, Podgórze
   const lngs = [staremiastoCenterLng, 19.9463, 19.9499];
   let minLat = Math.min(...lats), maxLat = Math.max(...lats);
   let minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
 
-  const kmToDegLat = 2 / 111; // ~2 km w stopniach szerokości
-  const kmToDegLng = 2 / (111 * Math.cos(minLat * Math.PI / 180)); // ~2 km w stopniach długości na tej szerokości
+  // zapas 0,5 km zamiast 2 km: przy 2 km apka ściągała w tle ~1050 zdjęć satelitarnych (rzędu 25 MB
+  // z pakietu danych turysty, często na roamingu) — teraz ~240, nadal z zapasem wokół wszystkich tras
+  const MARGIN_KM = 0.5;
+  const kmToDegLat = MARGIN_KM / 111;
+  const kmToDegLng = MARGIN_KM / (111 * Math.cos(minLat * Math.PI / 180));
 
   minLat -= kmToDegLat; maxLat += kmToDegLat;
   minLng -= kmToDegLng; maxLng += kmToDegLng;
@@ -2078,8 +2136,9 @@ document.querySelectorAll('.layer-option').forEach(el => {
   el.addEventListener('click', () => setMapMode(el.dataset.mode));
 });
 
-function makeDivIcon(className, size) {
-  return L.divIcon({ className: '', html: `<div class="${className}"></div>`, iconSize: [size, size] });
+const MARKER_HIT_SIZE = 38; // pole dotyku pinezki (sama kropka jest mniejsza, patrz CSS .marker-hit)
+function makeDivIcon(className) {
+  return L.divIcon({ className: '', html: `<div class="marker-hit"><div class="${className}"></div></div>`, iconSize: [MARKER_HIT_SIZE, MARKER_HIT_SIZE] });
 }
 
 function clusterIconFactory(cssClass) {
@@ -2096,20 +2155,34 @@ function clusterIconFactory(cssClass) {
   };
 }
 
-const mainCluster = L.markerClusterGroup({
-  maxClusterRadius: 32,
+// JEDNA grupa dla wszystkich punktów — wcześniej były dwie osobne (główne i dodatkowe), których
+// bąbelki nakładały się na siebie przy oddaleniu, więc palec często trafiał w "nie ten" bąbelek.
+// Kolor bąbelka: złoty, jeśli w grupie jest choć jeden punkt główny, szary — same dodatkowe.
+const mainClusterIcon = clusterIconFactory('cluster-main');
+const extraClusterIcon = clusterIconFactory('cluster-extra');
+const pointCluster = L.markerClusterGroup({
+  maxClusterRadius: 36,
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
-  iconCreateFunction: clusterIconFactory('cluster-main')
+  zoomToBoundsOnClick: false, // przybliżanie robimy sami (zoomIntoCluster) — zawsze wyraźnie i płynnie
+  iconCreateFunction: cluster => {
+    const hasMain = cluster.getAllChildMarkers().some(m => m.options.pointType === 'main');
+    return (hasMain ? mainClusterIcon : extraClusterIcon)(cluster);
+  }
 });
-const extraCluster = L.markerClusterGroup({
-  maxClusterRadius: 28,
-  disableClusteringAtZoom: 17,
-  spiderfyOnMaxZoom: false,
-  showCoverageOnHover: false,
-  iconCreateFunction: clusterIconFactory('cluster-extra')
-});
+
+function zoomIntoCluster(cluster) {
+  // domyślne zachowanie biblioteki czasem przybliżało tylko o "pół kroku" albo wcale (gdy punkty
+  // w grupie leżą bardzo blisko siebie) — tu zawsze lecimy co najmniej 2 poziomy bliżej, max do 18,
+  // gdzie grupy rozpadają się już na pojedyncze punkty
+  const bounds = cluster.getBounds();
+  const fitZoom = map.getBoundsZoom(bounds.pad(0.4));
+  const targetZoom = Math.min(18, Math.max(fitZoom, map.getZoom() + 2));
+  pause3DFollow();
+  map.flyTo(bounds.getCenter(), targetZoom, { duration: 0.8 });
+}
+pointCluster.on('clusterclick', e => zoomIntoCluster(e.layer));
 
 const markersById = {};
 const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
@@ -2120,19 +2193,22 @@ const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
 // za to widoczna w liście tracków w panelu punktu (tr-num), gdzie nie koliduje z niczym.
 POINTS.forEach(p => {
   const className = p.type === 'main' ? 'marker-main' : 'marker-extra';
-  const size = p.type === 'main' ? 26 : 16;
-  const icon = makeDivIcon(className, size);
-  const marker = L.marker([p.lat, p.lng], { icon });
+  const icon = makeDivIcon(className);
+  const marker = L.marker([p.lat, p.lng], { icon, pointType: p.type, zIndexOffset: p.type === 'main' ? 100 : 0 });
 
   marker.on('click', () => {
     openSheet(p);
   });
 
   markersById[p.id] = marker;
-  (p.type === 'main' ? mainCluster : extraCluster).addLayer(marker);
+  pointCluster.addLayer(marker);
 });
-map.addLayer(mainCluster);
-map.addLayer(extraCluster);
+map.addLayer(pointCluster);
+
+// stuknięcie w pustą mapę przy rozwiniętym panelu = zwija panel (tło panelu już nie blokuje dotyku, patrz CSS)
+map.on('click', () => {
+  if (sheet.classList.contains('open') && !sheetPeek) setSheetPeek(true);
+});
 
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
 let routeLinePath = null;
@@ -2151,7 +2227,9 @@ let guideLineCasing = null; // jasna "obwódka" pod linią nawigacji — dociąg
 let navActive = false;      // czy aktywnie nawigujemy (pokazana niebieska linia)
 let routeChosen = false;    // czy user wybrał konkretną trasę (nie "zwiedzaj bez trasy")
 let reachedNavTarget = false; // czy user dotarł już blisko aktualnego celu nawigacji
-const START_PROXIMITY_METERS = 10;
+// 20 m zamiast 10 m: GPS w telefonie między kamienicami często myli się o 10–20 m, więc przy 10 m
+// komunikat "Jesteś na miejscu!" potrafił się w ogóle nie pojawić, mimo że stałeś pod zabytkiem
+const START_PROXIMITY_METERS = 20;
 let watching = false;
 let watchId = null;
 let lastRoutedLatLng = null;
@@ -2232,16 +2310,57 @@ function startCompass() {
    matematyka pikseli (przesuwanie, zoom, markery) zostaje nietknięta.
 ============================================================ */
 let viewMode3D = false;
-const VIEW3D_ZOOM = 18.5;
+// 18 zamiast 18.5: Leaflet i tak zaokrąglał 18.5 do 19, a na 19 kafelków jest 4x więcej (wolniej się ładują)
+const VIEW3D_ZOOM = 18;
+// MUSZĄ się zgadzać z CSS: #map-stage { perspective } i #map-tilt { transform: rotateX(...) }
+const VIEW3D_TILT_DEG = 42;
+const VIEW3D_PERSPECTIVE = 2200;
 const view3DBtn = document.getElementById('view-toggle-btn');
 const view3DLabel = document.getElementById('view-toggle-label');
+const mapStageEl = document.getElementById('map-stage');
 
-function follow3D() {
+function layout3DPlate() {
+  // Liczymy, jaki obszar płaskiej mapy jest widoczny na ekranie po pochyleniu (trapez: wąski u dołu,
+  // szeroki i daleki u góry), a potem dobieramy KWADRAT, który ten trapez zakrywa przy każdym obrocie
+  // wokół środka mapy (czyli wokół Ciebie) — dzięki temu obrót wg kompasu nigdy nie odsłania czerni.
+  const W = mapStageEl.clientWidth, H = mapStageEl.clientHeight;
+  const th = VIEW3D_TILT_DEG * Math.PI / 180, p = VIEW3D_PERSPECTIVE;
+  const denom = p * Math.cos(th) - H * Math.sin(th);
+  const far = denom > 0 ? Math.min(H * p / denom, H * 4) : H * 4; // jak daleko "w głąb" sięga górna krawędź ekranu
+  const halfBottom = W / 2;
+  const halfTop = halfBottom * (p + far * Math.sin(th)) / p;
+  // środek obrotu w takiej odległości od dołu ekranu, żeby najdalszy róg trapezu był jak najbliżej
+  let c = (halfTop * halfTop + far * far - halfBottom * halfBottom) / (2 * far);
+  c = Math.max(0, Math.min(far, c));
+  const R = Math.max(Math.hypot(halfBottom, c), Math.hypot(halfTop, far - c)) * 1.04 + 8;
+  const S = Math.ceil(2 * R);
+  appEl.style.setProperty('--plate-size', S + 'px');
+  appEl.style.setProperty('--plate-left', Math.round((W - S) / 2) + 'px');
+  appEl.style.setProperty('--plate-top', Math.round(H - c - S / 2) + 'px');
+  appEl.style.setProperty('--plate-pivot', Math.round(c + S / 2) + 'px'); // oś pochylenia = dolna krawędź ekranu
+}
+
+let follow3DPausedUntil = 0;
+function pause3DFollow() {
+  // po stuknięciu w punkt/grupę kamera w 3D nie wraca do Ciebie od razu przy następnym odczycie GPS
+  // (wcześniej mapa "uciekała" z powrotem i wyglądało, jakby kliknięcie nic nie dało)
+  if (viewMode3D) follow3DPausedUntil = Date.now() + 20000;
+}
+
+function follow3D(force) {
   // w 3D mapa podąża za Tobą automatycznie (jak w nawigacji) — ręczne przeciąganie
   // pod przechyloną/obróconą mapą czułoby się "krzywo", więc jest wyłączone w tym trybie
   if (!viewMode3D || !gpsMarker) return;
+  if (force) follow3DPausedUntil = 0;
+  else if (Date.now() < follow3DPausedUntil) return;
   map.setView(gpsMarker.getLatLng(), Math.max(map.getZoom(), VIEW3D_ZOOM), { animate: true, duration: 0.5 });
 }
+
+window.addEventListener('resize', () => {
+  if (!viewMode3D) return;
+  layout3DPlate();
+  map.invalidateSize({ animate: false });
+});
 
 function setViewMode3D(on) {
   viewMode3D = on;
@@ -2255,7 +2374,9 @@ function setViewMode3D(on) {
     currentMapHeadingRotation = 0;
     appEl.style.setProperty('--heading', 0);
     map.dragging.disable(); // patrz follow3D() — w 3D kamera sama podąża za Tobą
+    layout3DPlate();
     map.invalidateSize({ animate: false }); // #map-tilt w 3D jest realnie większy (patrz CSS) — bez tego Leaflet nie doładuje kafelków na nowy obszar i góra ekranu zostaje czarna
+    follow3DPausedUntil = 0;
     if (gpsMarker) {
       map.setView(gpsMarker.getLatLng(), VIEW3D_ZOOM, { animate: true });
     }
@@ -2306,7 +2427,15 @@ async function fetchWalkingRouteFrom(baseUrl, from, to) {
   // i oczekują dosłownie "driving" nawet dla trasy pieszej — sam prefiks /routed-foot/ w adresie
   // bazowym decyduje o tym, że to routing pieszy; "foot" w tym miejscu jest odrzucane (HTTP 400)
   const url = `${baseUrl}/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-  const res = await fetch(url);
+  // limit czasu — "zawieszony" serwer wcześniej blokował liczenie trasy na zawsze
+  const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 8000) : null;
+  let res;
+  try {
+    res = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
   if (!res.ok) throw new Error('routing HTTP ' + res.status);
   const data = await res.json();
   if (data.routes && data.routes[0]) {
@@ -2327,13 +2456,20 @@ function formatNavDuration(seconds) {
   return min + t('navMinWalk');
 }
 
-async function requestWalkingRoute(userLatLng) {
-  if (routingInFlight) return;
-  if (lastRoutedLatLng && distMeters(userLatLng, lastRoutedLatLng) < 30) return;
+let routeRequestSeq = 0; // numer ostatniego zapytania — starsze odpowiedzi (np. do poprzedniego celu) są ignorowane
+
+async function requestWalkingRoute(userLatLng, force) {
+  // force = nowy cel nawigacji: liczymy od razu, nawet jeśli poprzednie liczenie jeszcze trwa
+  // (wcześniej zmiana celu w trakcie liczenia zostawiała na mapie linię do STAREGO celu)
+  if (!force && routingInFlight) return;
+  if (!force && lastRoutedLatLng && distMeters(userLatLng, lastRoutedLatLng) < 30) return;
+  const seq = ++routeRequestSeq;
+  const target = navTargetLatLng;
+  const targetName = navTargetName;
   routingInFlight = true;
   lastRoutedLatLng = userLatLng;
   // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
-  drawGuideLine([userLatLng, navTargetLatLng]);
+  drawGuideLine([userLatLng, target]);
   if (navTopDistance) navTopDistance.textContent = t('navCalculating');
 
   // dwa niezależne serwery routingu pieszego (ten sam silnik OSRM, różne adresy) —
@@ -2343,25 +2479,25 @@ async function requestWalkingRoute(userLatLng) {
     'https://router.project-osrm.org'
   ];
   let success = false;
-  let lastError = null;
   for (const base of endpoints) {
     try {
-      const result = await fetchWalkingRouteFrom(base, userLatLng, navTargetLatLng);
+      const result = await fetchWalkingRouteFrom(base, userLatLng, target);
+      if (seq !== routeRequestSeq) return; // w międzyczasie ruszyło nowsze liczenie — ono zajmie się resztą
       drawGuideLine(result.coords);
       if (navTopDistance) navTopDistance.textContent = formatNavDistance(result.distance);
-      if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration) + ' · ' + navTargetName;
+      if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration) + ' · ' + targetName;
       success = true;
       break;
     } catch (e) {
-      lastError = e;
+      if (seq !== routeRequestSeq) return;
       console.error('Routing przez', base, 'nie powiodło się:', e);
     }
   }
   if (!success) {
-    // tymczasowy widoczny komunikat diagnostyczny — żeby dało się zobaczyć, co faktycznie poszło nie tak
-    const errMsg = 'błąd (' + (lastError ? String(lastError.message || lastError) : 'nieznany') + ')';
-    if (navTopDistance) navTopDistance.textContent = errMsg;
-    console.error('Trasa:', errMsg);
+    // oba serwery zawiodły — zamiast technicznego "błąd (...)" turysta widzi odległość w linii prostej,
+    // a na mapie zostaje prosta linia do celu (narysowana wyżej); spróbujemy znów po kolejnych 30 m marszu
+    if (navTopDistance) navTopDistance.textContent = formatNavDistance(distMeters(userLatLng, target));
+    if (navTopSub) navTopSub.textContent = t('navStraightLine') + ' · ' + targetName;
   }
   routingInFlight = false;
 }
@@ -2396,7 +2532,9 @@ function startLocationTracking(flyOnFirstFix) {
         html: '<div class="gps-wrap"><div class="gps-beam"></div><div class="gps-dot"></div></div>',
         iconSize: [90, 90]
       });
-      gpsMarker = L.marker(userLatLng, { icon: gpsIcon }).addTo(map);
+      // interactive: false — niewidzialny kwadrat 90x90 px wokół kropki GPS "zjadał" stuknięcia w punkty
+      // leżące obok Ciebie (czyli prawie zawsze te, które turysta chce akurat kliknąć)
+      gpsMarker = L.marker(userLatLng, { icon: gpsIcon, interactive: false, keyboard: false, zIndexOffset: -100 }).addTo(map);
     } else {
       gpsMarker.setLatLng(userLatLng);
     }
@@ -2426,11 +2564,17 @@ function startLocationTracking(flyOnFirstFix) {
       requestWalkingRoute(userLatLng);
     }
   }, err => {
-    // cichy fallback — na starcie apki nie chcemy straszyć alertem, jeśli user jeszcze nie zdążył kliknąć "zezwól"
+    document.getElementById('gps-hint').classList.add('hidden');
+    // chwilowy brak sygnału (np. w bramie) — śledzenie trwa dalej, nic nie robimy;
+    // wcześniej każdy taki błąd "wyłączał" GPS, a ponowne stuknięcie odpalało drugie śledzenie naraz
+    if (err && err.code !== 1) return;
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchId = null;
     btn.classList.remove('active');
     watching = false;
-    document.getElementById('gps-hint').classList.add('hidden');
-  }, { enableHighAccuracy: true });
+    // na starcie apki milczymy, ale gdy user SAM stuknął "pokaż moją lokalizację" — mówimy, co zrobić
+    if (flyOnFirstFix) showInfoToast(t('gpsDenied'));
+  }, { enableHighAccuracy: true, maximumAge: 5000 });
 }
 
 /* ============================================================
@@ -2453,6 +2597,7 @@ let navTargetMarker = null;
 
 function flyToNavTarget() {
   if (!navTargetLatLng) return;
+  pause3DFollow();
   map.flyTo(navTargetLatLng, 18, { duration: 1.1 });
 }
 
@@ -2492,11 +2637,11 @@ function startNavigation(targetPoint) {
   lastRoutedLatLng = null; // wymuś świeże przeliczenie trasy
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
-    requestWalkingRoute([gll.lat, gll.lng]);
+    requestWalkingRoute([gll.lat, gll.lng], true);
     if (viewMode3D) {
       // w 3D zostajemy blisko Ciebie (kamera "za plecami") zamiast oddalać widok — tak jak w nawigacji
       // samochodowej/pieszej Google Maps; dopasowanie obu punktów naraz zepsułoby ten efekt
-      follow3D();
+      follow3D(true);
     } else {
       // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i cel nawigacji naraz — jak w Google Maps,
       // niezależnie czy cel to start trasy, czy dowolny punkt wybrany przez "Prowadź mnie tutaj"
@@ -2546,7 +2691,8 @@ document.getElementById('nav-top-icon').addEventListener('click', () => {
   if (navTopIconShowsTarget) {
     flyToNavTarget();
   } else if (gpsMarker) {
-    map.flyTo(gpsMarker.getLatLng(), 18, { duration: 1.1 });
+    if (viewMode3D) follow3D(true);
+    else map.flyTo(gpsMarker.getLatLng(), 18, { duration: 1.1 });
   }
   navTopIconShowsTarget = !navTopIconShowsTarget;
 });
@@ -2593,7 +2739,8 @@ document.getElementById('locate-btn').addEventListener('click', () => {
   if (watching) {
     startCompass();
     if (gpsMarker) {
-      map.flyTo(gpsMarker.getLatLng(), 17, { duration: 1.1 });
+      if (viewMode3D) follow3D(true); // w 3D: wracamy do śledzenia Ciebie (np. po obejrzeniu jakiegoś punktu)
+      else map.flyTo(gpsMarker.getLatLng(), Math.max(map.getZoom(), 17), { duration: 1.1 });
     }
     return;
   }
@@ -2608,8 +2755,7 @@ document.getElementById('locate-btn').addEventListener('click', () => {
 function selectDistrict(freeRoam, options) {
   const skipCameraMove = !!(options && options.skipCameraMove);
   map.invalidateSize(); // wymusza poprawne przeliczenie pozycji pinów/mapy — zapobiega "rozjechanym" pinom przy pierwszym pokazaniu
-  mainCluster.refreshClusters();
-  extraCluster.refreshClusters();
+  pointCluster.refreshClusters();
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
   const dmEl = document.getElementById('district-menu');
   dmEl.classList.add('hidden');
@@ -2835,7 +2981,13 @@ function setSheetPeek(state) {
 document.getElementById('sheet-peek-bar').addEventListener('click', () => setSheetPeek(false));
 
 function flyToPointBehindSheet(point) {
-  const targetZoom = 18;
+  if (viewMode3D) {
+    // w 3D środek mapy to punkt obrotu kamery — po prostu lecimy nad punkt i chwilowo nie wracamy do Ciebie
+    pause3DFollow();
+    map.flyTo([point.lat, point.lng], Math.max(map.getZoom(), VIEW3D_ZOOM), { duration: 1.0 });
+    return;
+  }
+  const targetZoom = Math.max(map.getZoom(), 18);
   const sheetHeight = document.getElementById('sheet').getBoundingClientRect().height;
   const availableHeight = window.innerHeight - sheetHeight;
   const desiredScreenY = availableHeight * 0.65; // trochę niżej niż idealny środek
@@ -2860,6 +3012,7 @@ function openSheet(point) {
   // "Prowadź mnie tutaj" — widoczny zawsze, dla każdego punktu (w tym tracka 0, gdzie prowadzi do startu trasy)
   const gotoBtn = document.getElementById('sheet-goto-btn');
   gotoBtn.classList.remove('hidden');
+  updateNextStopButton();
 
   renderTrackList();
   loadTrack();
@@ -2867,6 +3020,37 @@ function openSheet(point) {
   sheet.classList.add('open');
   sheetBackdrop.classList.add('open');
 }
+
+// "Następny przystanek" — na wybranej trasie, w panelu punktu głównego, jednym stuknięciem prowadzi
+// do kolejnego punktu głównego (w kolejności z listy POINTS = kolejność zwiedzania)
+const MAIN_POINTS = POINTS.filter(p => p.type === 'main');
+function getNextMainPoint(point) {
+  const i = MAIN_POINTS.indexOf(point);
+  return i >= 0 && i < MAIN_POINTS.length - 1 ? MAIN_POINTS[i + 1] : null;
+}
+function updateNextStopButton() {
+  const btn = document.getElementById('sheet-next-btn');
+  const next = routeChosen && currentPoint ? getNextMainPoint(currentPoint) : null;
+  btn.classList.toggle('hidden', !next);
+  document.getElementById('sheet-next-name').textContent = next ? next.name : '';
+}
+document.getElementById('sheet-next-btn').addEventListener('click', () => {
+  const next = getNextMainPoint(currentPoint);
+  if (!next) return;
+  openSheet(next);
+  startNavigation(next);
+  setSheetPeek(true); // zwijamy panel, żeby linia prowadząca do kolejnego punktu była dobrze widoczna
+});
+
+let infoToastTimer = null;
+function showInfoToast(text) {
+  const el = document.getElementById('info-toast');
+  el.textContent = text;
+  el.classList.remove('hidden');
+  clearTimeout(infoToastTimer);
+  infoToastTimer = setTimeout(() => el.classList.add('hidden'), 6000);
+}
+document.getElementById('info-toast').addEventListener('click', () => document.getElementById('info-toast').classList.add('hidden'));
 
 function closeSheet() {
   sheet.classList.remove('open');
