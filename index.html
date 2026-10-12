@@ -2011,10 +2011,23 @@ const ROUTE_LINE = [[50.061854, 19.938628], [50.061817, 19.937952], [50.061551, 
 const initialCityBounds = L.latLngBounds(
   POINTS.map(p => [p.lat, p.lng]).concat([[50.0492, 19.9463], [50.0397, 19.9499]])
 );
+// wspólny "rysownik" linii (trasa złota, linia prowadząca niebieska) — patrz redrawLinesWhileZooming niżej
+const lineRenderer = L.svg({ padding: 0.5 });
 const map = L.map('map', {
   zoomControl: false,
-  attributionControl: false
+  attributionControl: false,
+  renderer: lineRenderer
 }).fitBounds(initialCityBounds, { padding: [36, 36] });
+
+// Linie na mapie: Leaflet przy płynnym locie kamery (flyTo — np. "pokaż mnie", "leć do celu") i przy
+// szczypaniu dwoma palcami NIE rysuje linii na nowo w każdej klatce, tylko powiększa stary obrazek
+// linii jak zdjęcie — razem z jej grubością. Przy locie z oddalenia na zbliżenie linia robiła się na
+// chwilę kilka razy grubsza, a dopiero po zatrzymaniu kamery wracała do normy. Tu rysujemy ją od nowa
+// w każdej klatce takiego ruchu, więc zawsze ma swoją normalną grubość.
+map.on('zoom', () => {
+  if (map._animatingZoom || !lineRenderer._map) return; // krótka animacja zoomu przyciskiem — Leaflet ogarnia sam
+  lineRenderer._reset();
+});
 
 // wykrywamy słabe połączenie (2G/3G, "oszczędzanie danych") i dostosowujemy zachowanie mapy
 const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -2166,6 +2179,10 @@ const pointCluster = L.markerClusterGroup({
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
   zoomToBoundsOnClick: false, // przybliżanie robimy sami (zoomIntoCluster) — zawsze wyraźnie i płynnie
+  // bez animacji rozpadania/sklejania grup: wcześniej po każdym przybliżeniu/oddaleniu punkty
+  // "wyskakiwały" ze środka bąbelka i jechały na swoje miejsce (albo odwrotnie), a przy szybkim
+  // zoomie lub locie kamery kilka takich animacji nakładało się na siebie i punkty skakały
+  animate: false,
   iconCreateFunction: cluster => {
     const hasMain = cluster.getAllChildMarkers().some(m => m.options.pointType === 'main');
     return (hasMain ? mainClusterIcon : extraClusterIcon)(cluster);
