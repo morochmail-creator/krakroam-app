@@ -1,6 +1,0 @@
-{
-  "routes": [
-    { "src": "/", "has": [{ "type": "host", "value": "www.krakroam.pl" }], "dest": "/www/index.html" },
-    { "src": "/", "has": [{ "type": "host", "value": "krakroam.pl" }], "dest": "/www/index.html" }
-  ]
-}
