@@ -32,7 +32,7 @@
   .lang button { border: 0; background: none; color: rgba(255,255,255,0.7); font: 600 13px/1 inherit; font-family: inherit; padding: 7px 11px; border-radius: 999px; cursor: pointer; }
   .lang button.on { background: var(--gold); color: var(--dark); }
 
-  .hero { background: radial-gradient(1200px 500px at 50% -10%, #2b2217 0%, var(--dark) 60%); color: #fff; text-align: center; padding: 120px 0 88px; overflow: hidden; }
+  .hero { background: linear-gradient(180deg, rgba(20,17,13,0.82) 0%, rgba(20,17,13,0.62) 45%, rgba(20,17,13,0.92) 100%), url('/www/img/wawel.jpg') center/cover no-repeat, var(--dark); color: #fff; text-align: center; padding: 120px 0 88px; overflow: hidden; }
   .hero .logo { width: 148px; height: 148px; border-radius: 34px; box-shadow: 0 20px 60px rgba(242,176,30,0.18); margin-bottom: 28px; }
   .hero h1 { font-size: clamp(32px, 6vw, 54px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 800; max-width: 760px; margin: 0 auto; }
   .hero h1 em { font-style: normal; color: var(--gold); }
@@ -54,6 +54,19 @@
   .card .ic svg { width: 22px; height: 22px; }
   .card h3 { font-size: 17px; font-weight: 700; }
   .card p { color: var(--ink-dim); font-size: 15px; margin-top: 6px; }
+
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 200px; gap: 12px; margin-top: 40px; }
+  .gallery figure { position: relative; margin: 0; border-radius: 18px; overflow: hidden; background: var(--paper-2); }
+  .gallery img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
+  .gallery figure:hover img { transform: scale(1.04); }
+  .gallery figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 14px 12px; color: #fff; font-weight: 700; font-size: 14px; background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
+  .gallery .big { grid-column: span 2; grid-row: span 2; }
+  .gallery .wide { grid-column: span 2; }
+  @media (max-width: 720px) {
+    .gallery { grid-template-columns: 1fr 1fr; grid-auto-rows: 150px; }
+    .gallery .big { grid-column: span 2; grid-row: span 2; }
+    .gallery .wide { grid-column: span 2; }
+  }
 
   .steps { background: var(--paper-2); }
   .steps ol { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 40px; counter-reset: s; }
@@ -143,6 +156,19 @@
           <p data-pl>Zwiedzaj, kiedy chcesz, bez grupy i bez pośpiechu.</p>
           <p data-en>Go whenever you like, no group, no rush.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="kicker" data-pl>Kraków</div><div class="kicker" data-en>Kraków</div>
+      <h2 data-pl>Miasto, które warto usłyszeć</h2><h2 data-en>A city worth listening to</h2>
+      <div class="gallery">
+        <figure class="big"><img src="/www/img/stare-miasto.jpg" alt="Stare Miasto z lotu ptaka" loading="lazy"><figcaption data-pl>Stare Miasto</figcaption><figcaption data-en>Old Town</figcaption></figure>
+        <figure><img src="/www/img/rynek.jpg" alt="Rynek Główny i Sukiennice" loading="lazy"><figcaption data-pl>Rynek Główny</figcaption><figcaption data-en>Main Square</figcaption></figure>
+        <figure><img src="/www/img/kopiec.jpg" alt="Kopiec Kościuszki" loading="lazy"><figcaption data-pl>Kopiec Kościuszki</figcaption><figcaption data-en>Kościuszko Mound</figcaption></figure>
+        <figure class="wide"><img src="/www/img/kazimierz.jpg" alt="Kazimierz, ulica Szeroka" loading="lazy"><figcaption>Kazimierz</figcaption></figure>
       </div>
     </div>
   </section>
