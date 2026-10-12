@@ -1060,6 +1060,10 @@
         <span id="settings-lang-flag">🇵🇱</span>
         <span id="settings-lang-text">Zmień język</span>
       </div>
+      <div class="settings-row" id="settings-sound-row">
+        <span id="settings-sound-icon">🔊</span>
+        <span id="settings-sound-text">Dźwięki: włączone</span>
+      </div>
       <div class="settings-row" id="settings-logout-row">Wyloguj</div>
     </div>
   </div>
@@ -1242,6 +1246,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAWIGUJ",
     navigatingText: "Nawigacja do startu",
     logoutBtn: "Wyloguj",
+    soundOn: "Dźwięki: włączone",
+    soundOff: "Dźwięki: wyłączone",
     routeIntroKicker: "Witamy w Krakowie",
     gotoHereBtn: "Prowadź mnie tutaj",
     nextStop: "Następny przystanek",
@@ -1299,6 +1305,8 @@ const TRANSLATIONS = {
     navigateBtn: "НАВІГАЦІЯ",
     navigatingText: "Навігація до старту",
     logoutBtn: "Вийти",
+    soundOn: "Звуки: увімкнено",
+    soundOff: "Звуки: вимкнено",
     routeIntroKicker: "Ласкаво просимо до Кракова",
     gotoHereBtn: "Проведи мене сюди",
     nextStop: "Наступна зупинка",
@@ -1356,6 +1364,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGATE",
     navigatingText: "Navigating to the start",
     logoutBtn: "Log out",
+    soundOn: "Sounds: on",
+    soundOff: "Sounds: off",
     routeIntroKicker: "Welcome to Krakow",
     gotoHereBtn: "Guide me here",
     nextStop: "Next stop",
@@ -1413,6 +1423,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGIEREN",
     navigatingText: "Navigation zum Start",
     logoutBtn: "Abmelden",
+    soundOn: "Töne: an",
+    soundOff: "Töne: aus",
     routeIntroKicker: "Willkommen in Krakau",
     gotoHereBtn: "Führe mich hierher",
     nextStop: "Nächster Halt",
@@ -1470,6 +1482,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVEGAR",
     navigatingText: "Navegando al inicio",
     logoutBtn: "Cerrar sesión",
+    soundOn: "Sonidos: activados",
+    soundOff: "Sonidos: desactivados",
     routeIntroKicker: "Bienvenido a Cracovia",
     gotoHereBtn: "Llévame aquí",
     nextStop: "Siguiente parada",
@@ -1520,6 +1534,7 @@ function applyTranslations() {
   document.getElementById('no-audio-note').textContent = t('noAudio');
   document.getElementById('settings-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
   document.getElementById('settings-logout-row').textContent = t('logoutBtn');
+  if (typeof updateSoundRow === 'function') updateSoundRow();
   document.getElementById('settings-lang-text').textContent = t('changeLang');
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
@@ -2114,12 +2129,113 @@ function prefetchTilesForArea() {
 setTimeout(prefetchTilesForArea, 800);
 
 /* ============================================================
+   DŹWIĘKI INTERFEJSU (kliknięcia, start nawigacji, menu)
+   Generowane w przeglądarce (Web Audio) — bez plików, działają offline.
+   Bardzo ciche i krótkie; gdy gra audio przewodnika, są jeszcze cichsze.
+============================================================ */
+const sfx = (() => {
+  let ctx = null;
+  let enabled = localStorage.getItem('krakroam_sfx') !== '0';
+  let lastAt = 0; // kiedy zagrał ostatni dźwięk — żeby ogólne "kliknięcie" nie dublowało dźwięków specjalnych
+
+  function getCtx() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function guidePlaying() {
+    const a = document.querySelector('audio');
+    return a && !a.paused;
+  }
+  // jeden krótki ton: częstotliwość (lub przejście f1→f2), start, długość, głośność, kształt fali
+  function tone(c, out, f1, f2, at, dur, vol, type) {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f1, at);
+    if (f2 !== f1) o.frequency.exponentialRampToValueAtTime(f2, at + dur);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(vol, at + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g); g.connect(out);
+    o.start(at); o.stop(at + dur + 0.02);
+  }
+  // szum filtrowany = miękkie "wsuu" przy wysuwaniu menu
+  function swoosh(c, out, up, at) {
+    const dur = 0.22, len = Math.floor(c.sampleRate * dur);
+    const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource(); src.buffer = buf;
+    const f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+    f.frequency.setValueAtTime(up ? 500 : 1800, at);
+    f.frequency.exponentialRampToValueAtTime(up ? 1800 : 500, at + dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.35, at + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    src.connect(f); f.connect(g); g.connect(out);
+    src.start(at); src.stop(at + dur);
+  }
+  const SOUNDS = {
+    tap:      (c, o, t) => tone(c, o, 1800, 1200, t, 0.035, 0.25, 'triangle'),
+    point:    (c, o, t) => { tone(c, o, 620, 980, t, 0.09, 0.5); },
+    menuUp:   (c, o, t) => swoosh(c, o, true, t),
+    menuDown: (c, o, t) => swoosh(c, o, false, t),
+    navStart: (c, o, t) => { tone(c, o, 660, 660, t, 0.12, 0.45); tone(c, o, 990, 990, t + 0.1, 0.22, 0.45); },
+    navStop:  (c, o, t) => { tone(c, o, 880, 880, t, 0.1, 0.35); tone(c, o, 587, 587, t + 0.09, 0.18, 0.35); },
+    arrival:  (c, o, t) => { tone(c, o, 784, 784, t, 0.14, 0.45); tone(c, o, 988, 988, t + 0.12, 0.14, 0.45); tone(c, o, 1319, 1319, t + 0.24, 0.35, 0.45); },
+  };
+  function play(name) {
+    if (!enabled || !SOUNDS[name]) return;
+    if (name === 'tap' && performance.now() - lastAt < 150) return;
+    lastAt = performance.now();
+    try {
+      const c = getCtx(); if (!c) return;
+      const master = c.createGain();
+      master.gain.value = guidePlaying() ? 0.12 : 0.3; // przy audio przewodnika — ledwo słyszalne
+      master.connect(c.destination);
+      SOUNDS[name](c, master, c.currentTime + 0.005);
+    } catch (e) { /* dźwięk to tylko dodatek — błąd nie może zepsuć aplikacji */ }
+  }
+  return {
+    play,
+    isOn: () => enabled,
+    setOn(v) { enabled = v; localStorage.setItem('krakroam_sfx', v ? '1' : '0'); },
+  };
+})();
+
+// ogólne "klik" dla każdego elementu, który da się kliknąć (przyciski, wiersze menu, pinezki itd.);
+// odpala się po dźwiękach specjalnych, więc jeśli któryś już zagrał — klik jest pomijany
+document.addEventListener('click', (e) => {
+  let el = e.target;
+  for (let i = 0; el && el !== document.body && i < 6; i++, el = el.parentElement) {
+    if (el.tagName === 'BUTTON' || getComputedStyle(el).cursor === 'pointer') { sfx.play('tap'); return; }
+  }
+});
+
+function updateSoundRow() {
+  const on = sfx.isOn();
+  document.getElementById('settings-sound-icon').textContent = on ? '🔊' : '🔇';
+  document.getElementById('settings-sound-text').textContent = t(on ? 'soundOn' : 'soundOff');
+}
+document.getElementById('settings-sound-row').addEventListener('click', () => {
+  sfx.setOn(!sfx.isOn());
+  updateSoundRow();
+  sfx.play('tap'); // potwierdzenie, że dźwięki znów działają
+});
+updateSoundRow();
+
+/* ============================================================
    WIDOK MAPY (ciemna / jasna / satelita)
 ============================================================ */
 const appEl = document.getElementById('app');
 const settingsScreenEl = document.getElementById('settings-screen');
 
 document.getElementById('settings-btn').addEventListener('click', () => {
+  sfx.play('menuUp');
   settingsScreenEl.classList.remove('hidden');
 });
 document.getElementById('settings-close').addEventListener('click', () => {
@@ -2227,6 +2343,7 @@ POINTS.forEach(p => {
   const marker = L.marker([p.lat, p.lng], { icon, pointType: p.type, zIndexOffset: p.type === 'main' ? 100 : 0 });
 
   marker.on('click', () => {
+    sfx.play('point');
     openSheet(p);
   });
 
@@ -2659,6 +2776,7 @@ function startNavigation(targetPoint) {
     navTargetPointRef = targetPoint;
   }
   if (typeof navTopIconShowsTarget !== 'undefined') navTopIconShowsTarget = true; // nowa nawigacja = pierwszy klik znów pokazuje cel
+  sfx.play('navStart');
   navActive = true;
   reachedNavTarget = false;
   showNavTopBar();
@@ -2692,6 +2810,7 @@ function stopNavigation() {
 
 let arrivalToastTimer = null;
 function showArrivalToast(point) {
+  sfx.play('arrival');
   const toast = document.getElementById('arrival-toast');
   document.getElementById('arrival-toast-title').textContent = t('arrivalTitle');
   document.getElementById('arrival-toast-sub').firstChild.textContent = t('arrivalSub') + ' ';
@@ -2714,6 +2833,7 @@ function hideArrivalToast() {
 
 document.getElementById('nav-top-close').addEventListener('click', () => {
   // X = realnie wyłącza nawigację (nie tylko chowa wizualnie) — zostaje mały krążek do ew. wznowienia
+  sfx.play('navStop');
   stopNavigation();
 });
 let navTopIconShowsTarget = true; // na zmianę: pierwszy klik = cel, drugi klik = Ty
@@ -2900,6 +3020,7 @@ const districtMenuEl = document.getElementById('district-menu');
 const menuInner = document.getElementById('district-menu-inner');
 
 function openDistrictMenuFull() {
+  sfx.play('menuUp');
   districtMenuEl.classList.remove('hidden');
   menuInner.style.transform = 'translateY(0)';
 }
@@ -3008,7 +3129,7 @@ function setSheetPeek(state) {
     flyToPointBehindSheet(currentPoint);
   }
 }
-document.getElementById('sheet-peek-bar').addEventListener('click', () => setSheetPeek(false));
+document.getElementById('sheet-peek-bar').addEventListener('click', () => { sfx.play('menuUp'); setSheetPeek(false); });
 
 function flyToPointBehindSheet(point) {
   if (viewMode3D) {
@@ -3089,7 +3210,7 @@ function closeSheet() {
   audioEl.pause();
 }
 
-document.getElementById('sheet-close').addEventListener('click', () => setSheetPeek(!sheetPeek));
+document.getElementById('sheet-close').addEventListener('click', () => { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); setSheetPeek(!sheetPeek); });
 sheetBackdrop.addEventListener('click', () => setSheetPeek(true)); // kliknięcie w tło tylko ZWIJA panel, nigdy nie zamyka go całkiem
 
 function renderTrackList() {
