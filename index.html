@@ -2189,6 +2189,18 @@ const pointCluster = L.markerClusterGroup({
   }
 });
 
+// Naprawa "duchów" bąbelków: gdy lot kamery (np. po stuknięciu w bąbelek) zostanie przerwany palcem,
+// mapa zmienia przybliżenie, ale biblioteka grupująca punkty nie dostaje sygnału "koniec zoomu" —
+// dostaje tylko "koniec przesuwania". Wtedy dokładała nowe punkty/bąbelki, a stare (np. "15")
+// zostawały na mapie na zawsze, nawet przy maksymalnym zbliżeniu. Tu każde "koniec przesuwania"
+// ze zmienionym zoomem traktujemy jak pełny "koniec zoomu", więc stare bąbelki są sprzątane.
+// MUSI być ustawione przed map.addLayer(pointCluster) — biblioteka podpina tę funkcję przy dodaniu do mapy.
+const clusterMoveEnd = pointCluster._moveEnd;
+pointCluster._moveEnd = function () {
+  if (this._map && Math.round(this._map.getZoom()) !== this._zoom) return this._zoomEnd();
+  return clusterMoveEnd.apply(this, arguments);
+};
+
 function zoomIntoCluster(cluster) {
   // domyślne zachowanie biblioteki czasem przybliżało tylko o "pół kroku" albo wcale (gdy punkty
   // w grupie leżą bardzo blisko siebie) — tu zawsze lecimy co najmniej 2 poziomy bliżej, max do 18,
