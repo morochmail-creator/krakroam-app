@@ -3210,6 +3210,12 @@ progressTrack.addEventListener('click', (e) => {
 // pośrednio używa applyTranslations(), były już na pewno zadeklarowane.
 // Kolejność ekranów startowych: JĘZYK -> HASŁO -> APKA. Ten blok ustala, gdzie dokładnie
 // wraca powracający user, w zależności od tego, co ma już zapamiętane.
+// język wybrany na stronie www.krakroam.pl przychodzi jako ?lang=xx — zapisujemy go jak wybór z ekranu języka
+try {
+  const urlLang = new URLSearchParams(location.search).get('lang');
+  if (urlLang && TRANSLATIONS[urlLang]) localStorage.setItem('krakroam_lang', urlLang);
+  if (urlLang) history.replaceState(null, '', location.pathname + location.hash);
+} catch (e) {}
 const savedLang = localStorage.getItem('krakroam_lang');
 const savedUnlocked = localStorage.getItem('krakroam_unlocked') === '1';
 
