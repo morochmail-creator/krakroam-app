@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "has": [{ "type": "host", "value": "www.krakroam.pl" }], "destination": "/www/index.html" },
+    { "source": "/", "has": [{ "type": "host", "value": "krakroam.pl" }], "destination": "/www/index.html" }
+  ]
+}
