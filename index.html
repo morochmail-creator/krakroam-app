@@ -94,6 +94,12 @@
     transition: transform 0.1s ease;
   }
   #pw-submit:active { transform: scale(0.98); }
+  #pw-lang-btn {
+    position: absolute; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-dim); font-size: 13px; font-weight: 500; padding: 8px 12px;
+  }
   #pw-error {
     color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 16px; font-weight: 500;
   }
@@ -822,6 +828,7 @@
       <button id="pw-submit">Wejdź</button>
       <div id="pw-error"></div>
     </div>
+    <button id="pw-lang-btn"><span id="pw-lang-flag">🇵🇱</span> <span id="pw-lang-text">Zmień język</span></button>
   </div>
 
   <div id="a2hs-screen" class="hidden">
@@ -1154,6 +1161,11 @@ function tryUnlock() {
   }
 }
 document.getElementById('pw-submit').addEventListener('click', tryUnlock);
+// mały przycisk na dole ekranu kodu — powrót do wyboru języka (po wyborze ekran kodu wraca sam)
+document.getElementById('pw-lang-btn').addEventListener('click', () => {
+  document.getElementById('pw-screen').classList.add('hidden');
+  document.getElementById('lang-menu').classList.remove('hidden');
+});
 pwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock(); });
 
 function lockApp() {
@@ -1533,6 +1545,8 @@ function applyTranslations() {
   document.getElementById('nearest-btn-label').textContent = t('nearestBtn');
   document.getElementById('no-audio-note').textContent = t('noAudio');
   document.getElementById('settings-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
+  document.getElementById('pw-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
+  document.getElementById('pw-lang-text').textContent = t('changeLang');
   document.getElementById('settings-logout-row').textContent = t('logoutBtn');
   if (typeof updateSoundRow === 'function') updateSoundRow();
   document.getElementById('settings-lang-text').textContent = t('changeLang');
