@@ -28,9 +28,6 @@
   header .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
   .brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 800; letter-spacing: -0.01em; }
   .brand img { width: 36px; height: 36px; border-radius: 9px; }
-  .lang { display: flex; gap: 4px; background: rgba(255,255,255,0.08); border-radius: 999px; padding: 3px; }
-  .lang button { border: 0; background: none; color: rgba(255,255,255,0.7); font: 600 13px/1 inherit; font-family: inherit; padding: 7px 11px; border-radius: 999px; cursor: pointer; }
-  .lang button.on { background: var(--gold); color: var(--dark); }
 
   .hero { background: linear-gradient(180deg, rgba(20,17,13,0.82) 0%, rgba(20,17,13,0.62) 45%, rgba(20,17,13,0.92) 100%), url('/www/img/wawel.jpg') center/cover no-repeat, var(--dark); color: #fff; text-align: center; padding: 120px 0 88px; overflow: hidden; }
   .hero .logo { width: 148px; height: 148px; border-radius: 34px; box-shadow: 0 20px 60px rgba(242,176,30,0.18); margin-bottom: 28px; }
@@ -43,6 +40,15 @@
   .cta .ver { font-size: 12px; font-weight: 700; background: var(--dark); color: var(--gold); border-radius: 999px; padding: 4px 8px; }
   .hero small { display: block; margin-top: 14px; color: rgba(255,255,255,0.5); font-size: 13px; }
 
+  .langs { margin: 34px auto 0; max-width: 620px; }
+  .langs-label { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 12px; }
+  .langs-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .lang-btn { display: inline-flex; align-items: center; gap: 9px; border: 2px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: #fff; font: 600 15px/1 inherit; font-family: inherit; padding: 9px 15px 9px 9px; border-radius: 999px; cursor: pointer; transition: background .15s, border-color .15s; }
+  .lang-btn:hover { background: rgba(255,255,255,0.16); }
+  .lang-btn.on { border-color: var(--gold); background: rgba(242,176,30,0.18); }
+  .lang-btn svg { width: 30px; height: 20px; border-radius: 4px; flex: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); }
+  .hdr-flag { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-weight: 700; font-size: 14px; background: rgba(255,255,255,0.1); padding: 6px 12px 6px 6px; border-radius: 999px; }
+  .hdr-flag svg { width: 26px; height: 17px; border-radius: 3px; }
   section { padding: 80px 0; }
   .kicker { color: var(--gold-deep); font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
   h2 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.02em; line-height: 1.15; margin-top: 8px; font-weight: 800; }
@@ -94,7 +100,6 @@
     .hero { padding: 104px 0 72px; }
     .hero .logo { width: 120px; height: 120px; border-radius: 28px; }
   }
-  html[lang="pl"] [data-en], html[lang="en"] [data-pl] { display: none; }
 </style>
 </head>
 <body>
@@ -102,10 +107,7 @@
 <header>
   <div class="wrap">
     <a class="brand" href="/"><img src="/icon-192.png" alt="">KrakRoam</a>
-    <div class="lang" role="group" aria-label="Język / Language">
-      <button type="button" data-set="pl" class="on">PL</button>
-      <button type="button" data-set="en">EN</button>
-    </div>
+    <a class="hdr-flag" href="#jezyk" id="hdr-flag" aria-label="Language"></a>
   </div>
 </header>
 
@@ -113,48 +115,40 @@
   <div class="hero">
     <div class="wrap">
       <img class="logo" src="/icon-512.png" alt="KrakRoam">
-      <h1 data-pl>Kraków w Twoich słuchawkach. <em>Zwiedzaj po swojemu.</em></h1>
-      <h1 data-en>Kraków in your headphones. <em>Explore at your own pace.</em></h1>
-      <p data-pl>Audioprzewodnik w telefonie: mapa, GPS, gotowe trasy i ciekawe historie o zabytkach. Bez instalowania aplikacji.</p>
-      <p data-en>An audio guide on your phone: map, GPS, ready-made routes and stories about every landmark. Nothing to install.</p>
-      <a class="cta" href="https://app.krakroam.pl">
+      <h1><span data-i18n="h1a"></span> <em data-i18n="h1b"></em></h1>
+      <p data-i18n="heroP"></p>
+      <div class="langs" id="jezyk">
+        <div class="langs-label" data-i18n="chooseLang"></div>
+        <div class="langs-row" id="langs-row"></div>
+      </div>
+      <a class="cta app-link" href="https://app.krakroam.pl">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>
         Audioguide <span class="ver">1.0</span>
       </a>
-      <small data-pl>Działa w przeglądarce telefonu</small>
-      <small data-en>Works in your phone's browser</small>
+      <small data-i18n="worksIn"></small>
     </div>
   </div>
 
   <section>
     <div class="wrap">
-      <div class="kicker" data-pl>Co dostajesz</div><div class="kicker" data-en>What you get</div>
-      <h2 data-pl>Wszystko, czego potrzebujesz do zwiedzania</h2>
-      <h2 data-en>Everything you need to explore the city</h2>
+      <div class="kicker" data-i18n="k1"></div>
+      <h2 data-i18n="h2a"></h2>
       <div class="grid">
         <div class="card">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
-          <h3 data-pl>Mapa z GPS</h3><h3 data-en>GPS map</h3>
-          <p data-pl>Widzisz, gdzie jesteś i co ciekawego jest obok.</p>
-          <p data-en>See where you are and what's worth seeing nearby.</p>
+          <h3 data-i18n="f1t"></h3><p data-i18n="f1p"></p>
         </div>
         <div class="card">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg></div>
-          <h3 data-pl>Nagrania o zabytkach</h3><h3 data-en>Audio stories</h3>
-          <p data-pl>Dotknij punktu na mapie i posłuchaj jego historii.</p>
-          <p data-en>Tap a point on the map and listen to its story.</p>
+          <h3 data-i18n="f2t"></h3><p data-i18n="f2p"></p>
         </div>
         <div class="card">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg></div>
-          <h3 data-pl>Gotowe trasy</h3><h3 data-en>Ready-made routes</h3>
-          <p data-pl>Wybierz trasę, a linia poprowadzi Cię od punktu do punktu.</p>
-          <p data-en>Pick a route and a guiding line leads you stop by stop.</p>
+          <h3 data-i18n="f3t"></h3><p data-i18n="f3p"></p>
         </div>
         <div class="card">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-          <h3 data-pl>Twoje tempo</h3><h3 data-en>Your own pace</h3>
-          <p data-pl>Zwiedzaj, kiedy chcesz, bez grupy i bez pośpiechu.</p>
-          <p data-en>Go whenever you like, no group, no rush.</p>
+          <h3 data-i18n="f4t"></h3><p data-i18n="f4p"></p>
         </div>
       </div>
     </div>
@@ -162,31 +156,25 @@
 
   <section style="padding-top:0">
     <div class="wrap">
-      <div class="kicker" data-pl>Kraków</div><div class="kicker" data-en>Kraków</div>
-      <h2 data-pl>Miasto, które warto usłyszeć</h2><h2 data-en>A city worth listening to</h2>
+      <div class="kicker">Kraków</div>
+      <h2 data-i18n="h2b"></h2>
       <div class="gallery">
-        <figure class="big"><img src="/www/img/stare-miasto.jpg" alt="Stare Miasto z lotu ptaka" loading="lazy"><figcaption data-pl>Stare Miasto</figcaption><figcaption data-en>Old Town</figcaption></figure>
-        <figure><img src="/www/img/rynek.jpg" alt="Rynek Główny i Sukiennice" loading="lazy"><figcaption data-pl>Rynek Główny</figcaption><figcaption data-en>Main Square</figcaption></figure>
-        <figure><img src="/www/img/kopiec.jpg" alt="Kopiec Kościuszki" loading="lazy"><figcaption data-pl>Kopiec Kościuszki</figcaption><figcaption data-en>Kościuszko Mound</figcaption></figure>
-        <figure class="wide"><img src="/www/img/kazimierz.jpg" alt="Kazimierz, ulica Szeroka" loading="lazy"><figcaption>Kazimierz</figcaption></figure>
+        <figure class="big"><img src="/www/img/stare-miasto.jpg" alt="" loading="lazy"><figcaption data-i18n="g1"></figcaption></figure>
+        <figure><img src="/www/img/rynek.jpg" alt="" loading="lazy"><figcaption data-i18n="g2"></figcaption></figure>
+        <figure><img src="/www/img/kopiec.jpg" alt="" loading="lazy"><figcaption data-i18n="g3"></figcaption></figure>
+        <figure class="wide"><img src="/www/img/kazimierz.jpg" alt="" loading="lazy"><figcaption>Kazimierz</figcaption></figure>
       </div>
     </div>
   </section>
 
   <section class="steps">
     <div class="wrap">
-      <div class="kicker" data-pl>Jak to działa</div><div class="kicker" data-en>How it works</div>
-      <h2 data-pl>Trzy kroki i ruszasz</h2><h2 data-en>Three steps and you're off</h2>
+      <div class="kicker" data-i18n="k3"></div>
+      <h2 data-i18n="h2c"></h2>
       <ol>
-        <li><b data-pl>Zeskanuj kod QR</b><b data-en>Scan the QR code</b>
-          <span data-pl>Znajdziesz go w hotelu, hostelu lub punkcie turystycznym.</span>
-          <span data-en>You'll find it at your hotel, hostel or tourist point.</span></li>
-        <li><b data-pl>Kup dostęp</b><b data-en>Get access</b>
-          <span data-pl>Na maila dostaniesz link i swoje hasło.</span>
-          <span data-en>You'll receive a link and your password by email.</span></li>
-        <li><b data-pl>Zwiedzaj</b><b data-en>Explore</b>
-          <span data-pl>Otwórz mapę, załóż słuchawki i idź przed siebie.</span>
-          <span data-en>Open the map, put on your headphones and go.</span></li>
+        <li><b data-i18n="s1t"></b><span data-i18n="s1p"></span></li>
+        <li><b data-i18n="s2t"></b><span data-i18n="s2p"></span></li>
+        <li><b data-i18n="s3t"></b><span data-i18n="s3p"></span></li>
       </ol>
     </div>
   </section>
@@ -195,21 +183,19 @@
     <div class="wrap">
       <div class="partners">
         <div>
-          <div class="kicker" data-pl>Dla partnerów</div><div class="kicker" data-en>For partners</div>
-          <h2 data-pl>Masz hotel, hostel lub biuro turystyczne?</h2>
-          <h2 data-en>Run a hotel, hostel or tourist office?</h2>
-          <p class="lead" data-pl>Postaw u siebie nasz kod QR i zarabiaj prowizję od każdego sprzedanego dostępu.</p>
-          <p class="lead" data-en>Display our QR code and earn a commission on every access sold.</p>
+          <div class="kicker" data-i18n="k4"></div>
+          <h2 data-i18n="h2d"></h2>
+          <p class="lead" data-i18n="partP"></p>
         </div>
-        <a class="btn2" href="mailto:krakow.view@gmail.com"><span data-pl>Napisz do nas</span><span data-en>Contact us</span></a>
+        <a class="btn2" href="mailto:krakow.view@gmail.com" data-i18n="contact"></a>
       </div>
     </div>
   </section>
 
   <section class="final">
     <div class="wrap">
-      <h2 data-pl>Gotowy na spacer?</h2><h2 data-en>Ready for a walk?</h2>
-      <a class="cta" href="https://app.krakroam.pl">
+      <h2 data-i18n="h2e"></h2>
+      <a class="cta app-link" href="https://app.krakroam.pl">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>
         Audioguide <span class="ver">1.0</span>
       </a>
@@ -226,16 +212,139 @@
 
 <script>
   (function () {
-    var btns = document.querySelectorAll('.lang button');
+    // Te same języki co w aplikacji (TRANSLATIONS w /index.html): pl, ua, en, de, es.
+    var FLAGS = {
+      pl: '<svg viewBox="0 0 30 20"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#dc143c"/></svg>',
+      ua: '<svg viewBox="0 0 30 20"><rect width="30" height="10" fill="#0057b7"/><rect y="10" width="30" height="10" fill="#ffd700"/></svg>',
+      en: '<svg viewBox="0 0 60 40"><clipPath id="gbc"><rect width="60" height="40"/></clipPath><g clip-path="url(#gbc)"><rect width="60" height="40" fill="#012169"/><path d="M0,0 60,40M60,0 0,40" stroke="#fff" stroke-width="8"/><path d="M0,0 60,40M60,0 0,40" stroke="#c8102e" stroke-width="3"/><path d="M30,0V40M0,20H60" stroke="#fff" stroke-width="12"/><path d="M30,0V40M0,20H60" stroke="#c8102e" stroke-width="7"/></g></svg>',
+      de: '<svg viewBox="0 0 30 20"><rect width="30" height="7" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/></svg>',
+      es: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#aa151b"/><rect y="5" width="30" height="10" fill="#f1bf00"/></svg>'
+    };
+    var NAMES = { pl: 'Polski', ua: 'Українська', en: 'English', de: 'Deutsch', es: 'Español' };
+    var HTML_LANG = { pl: 'pl', ua: 'uk', en: 'en', de: 'de', es: 'es' };
+    var T = {
+      pl: {
+        title: 'KrakRoam – audioprzewodnik po Krakowie',
+        h1a: 'Kraków w Twoich słuchawkach.', h1b: 'Zwiedzaj po swojemu.',
+        heroP: 'Audioprzewodnik w telefonie: mapa, GPS, gotowe trasy i ciekawe historie o zabytkach. Bez instalowania aplikacji.',
+        chooseLang: 'Wybierz język przewodnika', worksIn: 'Działa w przeglądarce telefonu',
+        k1: 'Co dostajesz', h2a: 'Wszystko, czego potrzebujesz do zwiedzania',
+        f1t: 'Mapa z GPS', f1p: 'Widzisz, gdzie jesteś i co ciekawego jest obok.',
+        f2t: 'Nagrania o zabytkach', f2p: 'Dotknij punktu na mapie i posłuchaj jego historii.',
+        f3t: 'Gotowe trasy', f3p: 'Wybierz trasę, a linia poprowadzi Cię od punktu do punktu.',
+        f4t: 'Twoje tempo', f4p: 'Zwiedzaj, kiedy chcesz, bez grupy i bez pośpiechu.',
+        h2b: 'Miasto, które warto usłyszeć', g1: 'Stare Miasto', g2: 'Rynek Główny', g3: 'Kopiec Kościuszki',
+        k3: 'Jak to działa', h2c: 'Trzy kroki i ruszasz',
+        s1t: 'Zeskanuj kod QR', s1p: 'Znajdziesz go w hotelu, hostelu lub punkcie turystycznym.',
+        s2t: 'Kup dostęp', s2p: 'Na maila dostaniesz link i swoje hasło.',
+        s3t: 'Zwiedzaj', s3p: 'Otwórz mapę, załóż słuchawki i idź przed siebie.',
+        k4: 'Dla partnerów', h2d: 'Masz hotel, hostel lub biuro turystyczne?',
+        partP: 'Postaw u siebie nasz kod QR i zarabiaj prowizję od każdego sprzedanego dostępu.',
+        contact: 'Napisz do nas', h2e: 'Gotowy na spacer?'
+      },
+      ua: {
+        title: 'KrakRoam – аудіогід Краковом',
+        h1a: 'Краків у твоїх навушниках.', h1b: 'Досліджуй у своєму темпі.',
+        heroP: 'Аудіогід у телефоні: мапа, GPS, готові маршрути та цікаві історії про пам’ятки. Нічого не потрібно встановлювати.',
+        chooseLang: 'Обери мову гіда', worksIn: 'Працює у браузері телефону',
+        k1: 'Що ти отримуєш', h2a: 'Усе, що потрібно для прогулянки містом',
+        f1t: 'Мапа з GPS', f1p: 'Бачиш, де ти і що цікавого поруч.',
+        f2t: 'Аудіорозповіді', f2p: 'Торкнися точки на мапі й послухай її історію.',
+        f3t: 'Готові маршрути', f3p: 'Обери маршрут, і лінія поведе тебе від точки до точки.',
+        f4t: 'Твій темп', f4p: 'Гуляй, коли хочеш, без групи та без поспіху.',
+        h2b: 'Місто, яке варто почути', g1: 'Старе місто', g2: 'Ринкова площа', g3: 'Курган Костюшка',
+        k3: 'Як це працює', h2c: 'Три кроки, і вперед',
+        s1t: 'Відскануй QR-код', s1p: 'Він є в готелі, хостелі або туристичному пункті.',
+        s2t: 'Купи доступ', s2p: 'На пошту прийде посилання та твій пароль.',
+        s3t: 'Досліджуй', s3p: 'Відкрий мапу, вдягни навушники й рушай.',
+        k4: 'Для партнерів', h2d: 'Маєш готель, хостел чи туристичне бюро?',
+        partP: 'Розмісти в себе наш QR-код і отримуй комісію з кожного проданого доступу.',
+        contact: 'Напиши нам', h2e: 'Готовий до прогулянки?'
+      },
+      en: {
+        title: 'KrakRoam – Kraków audio guide',
+        h1a: 'Kraków in your headphones.', h1b: 'Explore at your own pace.',
+        heroP: 'An audio guide on your phone: map, GPS, ready-made routes and stories about every landmark. Nothing to install.',
+        chooseLang: 'Choose your guide language', worksIn: "Works in your phone's browser",
+        k1: 'What you get', h2a: 'Everything you need to explore the city',
+        f1t: 'GPS map', f1p: "See where you are and what's worth seeing nearby.",
+        f2t: 'Audio stories', f2p: 'Tap a point on the map and listen to its story.',
+        f3t: 'Ready-made routes', f3p: 'Pick a route and a guiding line leads you stop by stop.',
+        f4t: 'Your own pace', f4p: 'Go whenever you like, no group, no rush.',
+        h2b: 'A city worth listening to', g1: 'Old Town', g2: 'Main Square', g3: 'Kościuszko Mound',
+        k3: 'How it works', h2c: "Three steps and you're off",
+        s1t: 'Scan the QR code', s1p: "You'll find it at your hotel, hostel or tourist point.",
+        s2t: 'Get access', s2p: "You'll receive a link and your password by email.",
+        s3t: 'Explore', s3p: 'Open the map, put on your headphones and go.',
+        k4: 'For partners', h2d: 'Run a hotel, hostel or tourist office?',
+        partP: 'Display our QR code and earn a commission on every access sold.',
+        contact: 'Contact us', h2e: 'Ready for a walk?'
+      },
+      de: {
+        title: 'KrakRoam – Audioguide für Krakau',
+        h1a: 'Krakau in deinen Kopfhörern.', h1b: 'Entdecke die Stadt in deinem Tempo.',
+        heroP: 'Ein Audioguide auf deinem Handy: Karte, GPS, fertige Routen und spannende Geschichten zu den Sehenswürdigkeiten. Ohne Installation.',
+        chooseLang: 'Wähle die Sprache des Guides', worksIn: 'Funktioniert im Browser deines Handys',
+        k1: 'Was du bekommst', h2a: 'Alles, was du für deine Stadttour brauchst',
+        f1t: 'Karte mit GPS', f1p: 'Du siehst, wo du bist und was es in der Nähe gibt.',
+        f2t: 'Audio-Geschichten', f2p: 'Tippe auf einen Punkt der Karte und hör seine Geschichte.',
+        f3t: 'Fertige Routen', f3p: 'Wähle eine Route, und eine Linie führt dich von Punkt zu Punkt.',
+        f4t: 'Dein Tempo', f4p: 'Geh los, wann du willst, ohne Gruppe und ohne Eile.',
+        h2b: 'Eine Stadt, die man hören sollte', g1: 'Altstadt', g2: 'Hauptmarkt', g3: 'Kościuszko-Hügel',
+        k3: 'So funktioniert es', h2c: 'Drei Schritte und los',
+        s1t: 'QR-Code scannen', s1p: 'Du findest ihn in deinem Hotel, Hostel oder einer Touristeninfo.',
+        s2t: 'Zugang kaufen', s2p: 'Du bekommst einen Link und dein Passwort per E-Mail.',
+        s3t: 'Entdecken', s3p: 'Karte öffnen, Kopfhörer auf und los.',
+        k4: 'Für Partner', h2d: 'Du hast ein Hotel, Hostel oder Reisebüro?',
+        partP: 'Stell unseren QR-Code auf und verdiene an jedem verkauften Zugang eine Provision.',
+        contact: 'Schreib uns', h2e: 'Bereit für einen Spaziergang?'
+      },
+      es: {
+        title: 'KrakRoam – audioguía de Cracovia',
+        h1a: 'Cracovia en tus auriculares.', h1b: 'Explora a tu ritmo.',
+        heroP: 'Una audioguía en tu móvil: mapa, GPS, rutas listas e historias sobre cada monumento. Sin instalar nada.',
+        chooseLang: 'Elige el idioma de la guía', worksIn: 'Funciona en el navegador de tu móvil',
+        k1: 'Qué obtienes', h2a: 'Todo lo que necesitas para recorrer la ciudad',
+        f1t: 'Mapa con GPS', f1p: 'Ves dónde estás y qué hay interesante cerca.',
+        f2t: 'Historias en audio', f2p: 'Toca un punto del mapa y escucha su historia.',
+        f3t: 'Rutas listas', f3p: 'Elige una ruta y una línea te guía de punto a punto.',
+        f4t: 'A tu ritmo', f4p: 'Sal cuando quieras, sin grupo y sin prisas.',
+        h2b: 'Una ciudad que merece ser escuchada', g1: 'Casco antiguo', g2: 'Plaza del Mercado', g3: 'Montículo de Kościuszko',
+        k3: 'Cómo funciona', h2c: 'Tres pasos y en marcha',
+        s1t: 'Escanea el código QR', s1p: 'Lo encontrarás en tu hotel, hostal o punto turístico.',
+        s2t: 'Compra el acceso', s2p: 'Recibirás por correo un enlace y tu contraseña.',
+        s3t: 'Explora', s3p: 'Abre el mapa, ponte los auriculares y adelante.',
+        k4: 'Para socios', h2d: '¿Tienes un hotel, hostal u oficina de turismo?',
+        partP: 'Coloca nuestro código QR y gana una comisión por cada acceso vendido.',
+        contact: 'Escríbenos', h2e: '¿Listo para un paseo?'
+      }
+    };
+    var ORDER = ['pl', 'ua', 'en', 'de', 'es'];
+    var row = document.getElementById('langs-row');
+    var hdr = document.getElementById('hdr-flag');
+    ORDER.forEach(function (l) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'lang-btn'; b.dataset.lang = l;
+      b.innerHTML = FLAGS[l] + '<span>' + NAMES[l] + '</span>';
+      b.addEventListener('click', function () { set(l); });
+      row.appendChild(b);
+    });
     function set(l) {
-      document.documentElement.lang = l;
-      btns.forEach(function (b) { b.classList.toggle('on', b.dataset.set === l); });
+      var d = T[l];
+      document.documentElement.lang = HTML_LANG[l];
+      document.title = d.title;
+      document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = d[el.dataset.i18n]; });
+      row.querySelectorAll('.lang-btn').forEach(function (b) { b.classList.toggle('on', b.dataset.lang === l); });
+      hdr.innerHTML = FLAGS[l] + l.toUpperCase();
+      // aplikacja czyta ?lang= i od razu startuje w tym języku
+      document.querySelectorAll('.app-link').forEach(function (a) { a.href = 'https://app.krakroam.pl/?lang=' + l; });
       try { localStorage.setItem('krakroam_site_lang', l); } catch (e) {}
     }
-    btns.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.set); }); });
     var saved = null;
     try { saved = localStorage.getItem('krakroam_site_lang'); } catch (e) {}
-    set(saved || ((navigator.language || 'pl').slice(0, 2) === 'pl' ? 'pl' : 'en'));
+    var nav = (navigator.language || 'pl').slice(0, 2).toLowerCase();
+    if (nav === 'uk') nav = 'ua';
+    set(T[saved] ? saved : (T[nav] ? nav : 'en'));
   })();
 </script>
 </body>
