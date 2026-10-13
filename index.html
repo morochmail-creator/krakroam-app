@@ -775,7 +775,7 @@
 
   #track-list {
     display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;
-    min-height: 54px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    min-height: 96px; max-height: 138px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   }
   #track-list.scrollable {
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
@@ -801,44 +801,61 @@
   .track-row.active .tr-icon { color: var(--brass-deep); }
 
   #player {
-    display: flex; flex-direction: column; gap: 8px;
-    background: var(--paper-2); border-radius: 16px; padding: 10px 12px 10px;
+    position: relative; display: flex; flex-direction: column; gap: 6px;
+    background: var(--paper-2); border-radius: 16px; padding: 8px 10px 8px;
   }
   #player.no-audio #progress-wrap, #player.no-audio #play-btn, #player.no-audio #stop-btn,
-  #player.no-audio #speed-row { opacity: 0.4; pointer-events: none; }
-  #progress-wrap { padding: 9px 0; margin: -9px 0; cursor: pointer; touch-action: none; }
+  #player.no-audio #speed-toggle, #player.no-audio #vol-btn { opacity: 0.4; pointer-events: none; }
+  /* wiersz: [głośnik] 0:00 ——pasek—— 1:09 [prędkość] */
+  #seek-row { display: flex; align-items: center; gap: 8px; }
+  #progress-wrap { flex: 1; min-width: 0; padding: 12px 0; margin: -12px 0; cursor: pointer; touch-action: none; }
   #progress-track { height: 5px; background: var(--line); border-radius: 3px; position: relative; }
   #progress-fill { height: 100%; width: 0%; background: var(--brass-deep); border-radius: 3px; }
   #progress-thumb {
     position: absolute; top: 50%; left: 0%; width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px;
     border-radius: 50%; background: var(--brass-deep); box-shadow: 0 1px 4px rgba(0,0,0,0.3);
   }
-  #time-row { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; color: var(--ink-dim); margin-top: -2px; font-variant-numeric: tabular-nums; }
-  #controls { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 2px; }
+  #time-current, #time-total { font-size: 11px; font-weight: 600; color: var(--ink-dim); font-variant-numeric: tabular-nums; min-width: 28px; }
+  #time-total { text-align: right; }
+  #controls { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 0 4px; }
   .ctl-btn {
-    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0;
     background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line);
     display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;
   }
-  .ctl-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .ctl-btn svg { width: 17px; height: 17px; fill: currentColor; }
   .ctl-btn svg.skip, #peek-back-btn svg.skip { width: 24px; height: 24px; fill: none !important; }
   .ctl-btn:active { transform: scale(0.94); }
   .ctl-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
   #play-btn {
-    flex-shrink: 0; width: 54px; height: 54px; border-radius: 50%;
+    flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
     background: var(--brass); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
-  #play-btn svg { width: 22px; height: 22px; fill: #14110d; }
-  #extras { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  #volume-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; color: var(--ink-dim); }
-  #volume-wrap svg { width: 18px; height: 18px; flex-shrink: 0; fill: currentColor; }
-  #volume { flex: 1; min-width: 50px; max-width: 120px; accent-color: var(--brass-deep); height: 24px; }
-  #speed-row { display: flex; gap: 5px; margin-left: auto; }
-  .speed-btn {
-    height: 36px; padding: 0 9px; border-radius: 18px; border: none; cursor: pointer;
+  #play-btn svg { width: 20px; height: 20px; fill: #14110d; }
+  /* małe przyciski: głośność i prędkość — po stuknięciu wyskakuje dymek z wyborem */
+  .mini-btn {
+    flex-shrink: 0; height: 32px; min-width: 32px; padding: 0 8px; border-radius: 16px; border: none; cursor: pointer;
     background: var(--paper); color: var(--ink-dim); box-shadow: inset 0 0 0 1.5px var(--line);
-    font-family: inherit; font-size: 12.5px; font-weight: 700; -webkit-tap-highlight-color: transparent;
+    font-family: inherit; font-size: 12px; font-weight: 800; -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mini-btn svg { width: 17px; height: 17px; fill: currentColor; }
+  .mini-btn.open { background: var(--brass); color: #14110d; box-shadow: none; }
+  .popup {
+    position: absolute; bottom: calc(100% + 6px); z-index: 5;
+    background: var(--ink); color: var(--paper); border-radius: 16px; padding: 8px;
+    box-shadow: var(--shadow-float);
+    display: none; align-items: center; gap: 6px;
+  }
+  .popup.show { display: flex; }
+  #speed-popup { right: 0; }
+  #volume-popup { left: 0; width: 190px; padding: 6px 14px; }
+  #volume { width: 100%; accent-color: var(--brass); height: 28px; }
+  .speed-btn {
+    height: 36px; padding: 0 11px; border-radius: 18px; border: none; cursor: pointer;
+    background: transparent; color: var(--paper); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.28);
+    font-family: inherit; font-size: 13px; font-weight: 700; -webkit-tap-highlight-color: transparent;
   }
   .speed-btn.active { background: var(--brass); color: #14110d; box-shadow: none; }
 
@@ -854,7 +871,7 @@
 
   #sheet-full-content {
     display: flex; flex-direction: column; min-height: 0;
-    max-height: calc(54vh - 34px); max-height: calc(54dvh - 34px);
+    max-height: calc(62vh - 34px); max-height: calc(62dvh - 34px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   #sheet-full-content > * { flex-shrink: 0; }
@@ -1159,8 +1176,15 @@
       <div id="track-list"></div>
 
       <div id="player" class="no-audio">
-        <div id="progress-wrap"><div id="progress-track"><div id="progress-fill"></div><div id="progress-thumb"></div></div></div>
-        <div id="time-row"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
+        <div id="seek-row">
+          <button class="mini-btn" id="vol-btn" aria-label="Głośność">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z"></path><path d="M15.5 8.5a5 5 0 010 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+          </button>
+          <span id="time-current">0:00</span>
+          <div id="progress-wrap"><div id="progress-track"><div id="progress-fill"></div><div id="progress-thumb"></div></div></div>
+          <span id="time-total">0:00</span>
+          <button class="mini-btn" id="speed-toggle" aria-label="Prędkość odtwarzania">1x</button>
+        </div>
         <div id="controls">
           <button class="ctl-btn" id="prev-btn" aria-label="Poprzednie nagranie">
             <svg viewBox="0 0 24 24"><polygon points="19,4 9,12 19,20"></polygon><rect x="5" y="4" width="3" height="16"></rect></svg>
@@ -1176,17 +1200,12 @@
             <svg viewBox="0 0 24 24"><polygon points="5,4 15,12 5,20"></polygon><rect x="16" y="4" width="3" height="16"></rect></svg>
           </button>
         </div>
-        <div id="extras">
-          <div id="volume-wrap">
-            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z"></path><path d="M15.5 8.5a5 5 0 010 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
-            <input type="range" id="volume" min="0" max="1" step="0.05" value="1" aria-label="Głośność">
-          </div>
-          <div id="speed-row">
-            <button class="speed-btn" data-rate="1">1x</button>
-            <button class="speed-btn" data-rate="1.15">1,15x</button>
-            <button class="speed-btn" data-rate="1.25">1,25x</button>
-            <button class="speed-btn" data-rate="1.5">1,5x</button>
-          </div>
+        <div class="popup" id="volume-popup"><input type="range" id="volume" min="0" max="1" step="0.05" value="1" aria-label="Głośność"></div>
+        <div class="popup" id="speed-popup">
+          <button class="speed-btn" data-rate="1">1x</button>
+          <button class="speed-btn" data-rate="1.15">1,15x</button>
+          <button class="speed-btn" data-rate="1.25">1,25x</button>
+          <button class="speed-btn" data-rate="1.5">1,5x</button>
         </div>
       </div>
       <div class="no-audio-note" id="no-audio-note" style="display:none;">Plik audio jeszcze nie został dodany dla tego punktu.</div>
@@ -3183,7 +3202,7 @@ document.getElementById('stop-btn').addEventListener('click', () => {
 const volumeEl = document.getElementById('volume');
 (function () {
   audioEl.volume = 0.5;
-  if (Math.abs(audioEl.volume - 0.5) > 0.01) { document.getElementById('volume-wrap').style.display = 'none'; return; }
+  if (Math.abs(audioEl.volume - 0.5) > 0.01) { document.getElementById('vol-btn').style.display = 'none'; return; }
   let v = 1;
   try { const saved = parseFloat(localStorage.getItem('krakroam_volume')); if (saved >= 0 && saved <= 1) v = saved; } catch (_) {}
   audioEl.volume = v; volumeEl.value = v;
@@ -3201,13 +3220,37 @@ function applyPlaybackRate() {
   audioEl.playbackRate = playbackRate;
   audioEl.preservesPitch = true; audioEl.webkitPreservesPitch = true;
   document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.rate) === playbackRate));
+  document.getElementById('speed-toggle').textContent = String(playbackRate).replace('.', ',') + 'x';
 }
 document.querySelectorAll('.speed-btn').forEach(b => b.addEventListener('click', () => {
   playbackRate = parseFloat(b.dataset.rate);
   try { localStorage.setItem('krakroam_rate', String(playbackRate)); } catch (_) {}
   applyPlaybackRate();
+  closePopups();
 }));
 applyPlaybackRate();
+
+// dymki: głośność i prędkość (zamykają się po wyborze, po stuknięciu obok albo same po 4 s)
+const volPopup = document.getElementById('volume-popup'), speedPopup = document.getElementById('speed-popup');
+const volBtn = document.getElementById('vol-btn'), speedBtn = document.getElementById('speed-toggle');
+let popupTimer = null;
+function closePopups() {
+  volPopup.classList.remove('show'); speedPopup.classList.remove('show');
+  volBtn.classList.remove('open'); speedBtn.classList.remove('open');
+  clearTimeout(popupTimer);
+}
+function togglePopup(popup, btn) {
+  const wasOpen = popup.classList.contains('show');
+  closePopups();
+  if (wasOpen) return;
+  popup.classList.add('show'); btn.classList.add('open');
+  popupTimer = setTimeout(closePopups, 4000);
+}
+volBtn.addEventListener('click', e => { e.stopPropagation(); togglePopup(volPopup, volBtn); });
+speedBtn.addEventListener('click', e => { e.stopPropagation(); togglePopup(speedPopup, speedBtn); });
+volPopup.addEventListener('click', e => e.stopPropagation());
+volumeEl.addEventListener('input', () => { clearTimeout(popupTimer); popupTimer = setTimeout(closePopups, 2500); });
+document.addEventListener('click', closePopups);
 
 // sterowanie z ekranu blokady i słuchawek (Media Session)
 if ('mediaSession' in navigator) {
