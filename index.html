@@ -1209,11 +1209,6 @@
         </div>
       </div>
       <div class="no-audio-note" id="no-audio-note" style="display:none;">Plik audio jeszcze nie został dodany dla tego punktu.</div>
-      <button id="sheet-next-btn" class="hidden">
-        <span id="sheet-next-label">Następny przystanek</span>
-        <span id="sheet-next-name"></span>
-        <span aria-hidden="true">→</span>
-      </button>
     </div>
   </div>
 </div>
@@ -1653,7 +1648,6 @@ function applyTranslations() {
   document.getElementById('gps-hint').textContent = t('gpsHint');
   document.getElementById('sheet-goto-label').textContent = t('gotoHereBtn');
   document.getElementById('sheet-goto-btn').setAttribute('aria-label', t('gotoHereBtn'));
-  document.getElementById('sheet-next-label').textContent = t('nextStop');
 
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
@@ -2961,7 +2955,6 @@ function openSheet(point) {
   // "Prowadź mnie tutaj" — widoczny zawsze, dla każdego punktu (w tym tracka 0, gdzie prowadzi do startu trasy)
   const gotoBtn = document.getElementById('sheet-goto-btn');
   gotoBtn.classList.remove('hidden');
-  updateNextStopButton();
 
   renderTrackList();
   loadTrack();
@@ -2969,27 +2962,6 @@ function openSheet(point) {
   sheet.classList.add('open');
   sheetBackdrop.classList.add('open');
 }
-
-// "Następny przystanek" — na wybranej trasie, w panelu punktu głównego, jednym stuknięciem prowadzi
-// do kolejnego punktu głównego (w kolejności z listy POINTS = kolejność zwiedzania)
-const MAIN_POINTS = POINTS.filter(p => p.type === 'main');
-function getNextMainPoint(point) {
-  const i = MAIN_POINTS.indexOf(point);
-  return i >= 0 && i < MAIN_POINTS.length - 1 ? MAIN_POINTS[i + 1] : null;
-}
-function updateNextStopButton() {
-  const btn = document.getElementById('sheet-next-btn');
-  const next = routeChosen && currentPoint ? getNextMainPoint(currentPoint) : null;
-  btn.classList.toggle('hidden', !next);
-  document.getElementById('sheet-next-name').textContent = next ? next.name : '';
-}
-document.getElementById('sheet-next-btn').addEventListener('click', () => {
-  const next = getNextMainPoint(currentPoint);
-  if (!next) return;
-  openSheet(next);
-  startNavigation(next);
-  setSheetPeek(true); // zwijamy panel, żeby linia prowadząca do kolejnego punktu była dobrze widoczna
-});
 
 let infoToastTimer = null;
 function showInfoToast(text) {
@@ -3090,6 +3062,7 @@ function setPlayIcon(isPlaying) {
 function togglePlayPause() {
   if (!audioEl.src) return;
   if (audioEl.paused) {
+    if (!nativeVolume && volumeLevel < 1) setVolume(volumeLevel);
     setPlayIcon(true);
     // play() zwraca Promise, który może odrzucić (zablokowany autoplay, zepsuty plik) —
     // bez obsłużenia tego ikona zostawała na "pauza" mimo że dźwięk w ogóle nie leciał
@@ -3198,16 +3171,33 @@ document.getElementById('stop-btn').addEventListener('click', () => {
   timeCurrent.textContent = '0:00';
 });
 
-// głośność (iPhone nie pozwala apkom zmieniać głośności — wtedy suwak chowamy, działają przyciski telefonu)
+// głośność: zwykły suwak, a na iPhonie (gdzie przeglądarka blokuje audio.volume) — przez Web Audio (wzmocnienie 0-1)
 const volumeEl = document.getElementById('volume');
+let nativeVolume = true, audioCtx = null, gainNode = null, volumeLevel = 1;
+function setVolume(v) {
+  volumeLevel = v;
+  if (nativeVolume) { audioEl.volume = v; return; }
+  if (!gainNode) {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+      const src = audioCtx.createMediaElementSource(audioEl);
+      gainNode = audioCtx.createGain();
+      src.connect(gainNode); gainNode.connect(audioCtx.destination);
+    } catch (_) { return; }
+  }
+  gainNode.gain.value = v;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
 (function () {
   audioEl.volume = 0.5;
-  if (Math.abs(audioEl.volume - 0.5) > 0.01) { document.getElementById('vol-btn').style.display = 'none'; return; }
-  let v = 1;
-  try { const saved = parseFloat(localStorage.getItem('krakroam_volume')); if (saved >= 0 && saved <= 1) v = saved; } catch (_) {}
-  audioEl.volume = v; volumeEl.value = v;
+  nativeVolume = Math.abs(audioEl.volume - 0.5) < 0.01;
+  audioEl.volume = 1;
+  try { const saved = parseFloat(localStorage.getItem('krakroam_volume')); if (saved >= 0 && saved <= 1) volumeLevel = saved; } catch (_) {}
+  volumeEl.value = volumeLevel;
+  if (nativeVolume) audioEl.volume = volumeLevel;
   volumeEl.addEventListener('input', () => {
-    audioEl.volume = parseFloat(volumeEl.value);
+    setVolume(parseFloat(volumeEl.value));
     try { localStorage.setItem('krakroam_volume', volumeEl.value); } catch (_) {}
   });
 })();
