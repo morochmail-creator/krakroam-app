@@ -696,12 +696,12 @@
     border-top: 1.5px solid var(--line-strong);
     border-radius: 22px 22px 0 0;
     box-shadow: 0 -14px 36px rgba(27,26,23,0.3);
-    padding: 12px 18px 22px;
+    padding: 12px 16px 12px;
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(.32,.72,0,1);
   }
   #sheet-grab {
-    height: 24px; margin: -12px -18px 2px; display: flex; align-items: center; justify-content: center;
+    height: 34px; margin: -12px -18px 0; display: flex; align-items: center; justify-content: center;
     cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
   }
   #sheet-grab::before {
@@ -714,8 +714,8 @@
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
   #sheet-peek-bar {
-    display: none; align-items: center; gap: 12px; position: relative;
-    min-height: 56px;
+    display: none; align-items: center; gap: 8px; position: relative;
+    min-height: 54px;
     padding: 4px 2px 12px; color: var(--ink); font-size: 14.5px; font-weight: 700;
     cursor: pointer;
   }
@@ -729,22 +729,23 @@
   #peek-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   #sheet-peek-label, #sheet-peek-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #sheet-peek-sub { font-size: 12px; font-weight: 600; color: var(--ink-dim); }
-  #peek-next-btn {
-    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+  #peek-next-btn, #peek-back-btn {
+    flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
     background: var(--paper-2); border: none; cursor: pointer; color: var(--ink);
     display: flex; align-items: center; justify-content: center;
   }
   #peek-next-btn svg { width: 17px; height: 17px; fill: currentColor; }
+  #peek-back-btn svg { width: 22px; height: 22px; fill: currentColor; }
   #peek-next-btn:disabled { opacity: 0.35; cursor: default; }
   #peek-progress { position: absolute; left: 2px; right: 2px; bottom: 3px; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
   #peek-progress-fill { height: 100%; width: 0%; background: var(--brass-deep); }
 
-  #sheet-kicker { font-size: 12px; font-weight: 700; color: var(--brass-deep); margin-bottom: 4px; }
-  #sheet-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-  #sheet-title { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: var(--ink); }
+  #sheet-kicker { font-size: 11.5px; font-weight: 700; color: var(--brass-deep); margin-bottom: 2px; }
+  #sheet-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  #sheet-title { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: var(--ink); }
 
   #sheet-goto-btn {
-    flex-shrink: 0; height: 38px; padding: 0 14px 0 11px; border-radius: 19px;
+    flex-shrink: 0; height: 36px; padding: 0 13px 0 10px; border-radius: 18px;
     background: var(--route); border: none; gap: 6px;
     color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
@@ -753,7 +754,7 @@
   #sheet-goto-btn svg { width: 17px; height: 17px; stroke: #fff; }
 
   #sheet-next-btn {
-    width: 100%; margin-top: 12px; padding: 13px 14px; border-radius: 14px;
+    width: 100%; margin-top: 8px; padding: 10px 14px; border-radius: 14px;
     background: var(--ink); color: var(--paper); border: none; cursor: pointer;
     font-family: inherit; font-size: 14px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -773,8 +774,8 @@
   #info-toast.hidden { opacity: 0; transform: translateX(-50%) translateY(-12px); pointer-events: none; }
 
   #track-list {
-    display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;
-    max-height: 22vh; max-height: 22dvh; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;
+    min-height: 54px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   }
   #track-list.scrollable {
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
@@ -782,7 +783,7 @@
   }
   .track-row {
     display: flex; align-items: center; gap: 12px;
-    padding: 12px 14px; border-radius: 12px;
+    padding: 9px 12px; border-radius: 12px; flex-shrink: 0;
     background: var(--paper-2); border: 1.5px solid transparent;
     cursor: pointer; text-align: left;
     transition: background 0.12s ease, border-color 0.12s ease;
@@ -795,13 +796,13 @@
     min-width: 26px;
   }
   .track-row.active .tr-num { color: var(--brass-deep); }
-  .track-row .tr-name { font-size: 14px; font-weight: 600; color: var(--ink); flex: 1; }
+  .track-row .tr-name { font-size: 13.5px; font-weight: 600; color: var(--ink); flex: 1; }
   .track-row .tr-icon { flex-shrink: 0; width: 16px; height: 16px; color: var(--ink-dim); }
   .track-row.active .tr-icon { color: var(--brass-deep); }
 
   #player {
-    display: flex; flex-direction: column; gap: 10px;
-    background: var(--paper-2); border-radius: 18px; padding: 12px 14px 14px;
+    display: flex; flex-direction: column; gap: 8px;
+    background: var(--paper-2); border-radius: 16px; padding: 10px 12px 10px;
   }
   #player.no-audio #progress-wrap, #player.no-audio #play-btn, #player.no-audio #stop-btn,
   #player.no-audio #speed-row { opacity: 0.4; pointer-events: none; }
@@ -813,17 +814,18 @@
     border-radius: 50%; background: var(--brass-deep); box-shadow: 0 1px 4px rgba(0,0,0,0.3);
   }
   #time-row { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; color: var(--ink-dim); margin-top: -2px; font-variant-numeric: tabular-nums; }
-  #controls { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  #controls { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 2px; }
   .ctl-btn {
-    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0;
     background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line);
     display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;
   }
   .ctl-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .ctl-btn svg.skip, #peek-back-btn svg.skip { width: 24px; height: 24px; fill: none !important; }
   .ctl-btn:active { transform: scale(0.94); }
   .ctl-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
   #play-btn {
-    flex-shrink: 0; width: 58px; height: 58px; border-radius: 50%;
+    flex-shrink: 0; width: 54px; height: 54px; border-radius: 50%;
     background: var(--brass); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
@@ -831,26 +833,33 @@
   #extras { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   #volume-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; color: var(--ink-dim); }
   #volume-wrap svg { width: 18px; height: 18px; flex-shrink: 0; fill: currentColor; }
-  #volume { flex: 1; min-width: 60px; max-width: 130px; accent-color: var(--brass-deep); height: 24px; }
-  #speed-row { display: flex; gap: 6px; margin-left: auto; }
+  #volume { flex: 1; min-width: 50px; max-width: 120px; accent-color: var(--brass-deep); height: 24px; }
+  #speed-row { display: flex; gap: 5px; margin-left: auto; }
   .speed-btn {
-    height: 32px; padding: 0 9px; border-radius: 16px; border: none; cursor: pointer;
+    height: 36px; padding: 0 9px; border-radius: 18px; border: none; cursor: pointer;
     background: var(--paper); color: var(--ink-dim); box-shadow: inset 0 0 0 1.5px var(--line);
     font-family: inherit; font-size: 12.5px; font-weight: 700; -webkit-tap-highlight-color: transparent;
   }
   .speed-btn.active { background: var(--brass); color: #14110d; box-shadow: none; }
 
+  /* strzałka zwijania/rozwijania siedzi WEWNĄTRZ panelu (prawy górny róg), więc nie zasłania ikon na mapie */
   #sheet-close {
-    position: absolute; top: -58px; right: 16px; z-index: 2;
-    width: 48px; height: 48px; border-radius: 50%;
-    background: var(--ink); border: 1.5px solid var(--line-strong);
-    box-shadow: var(--shadow-float); color: var(--paper);
+    position: absolute; top: 3px; right: 10px; z-index: 2;
+    width: 40px; height: 28px; border-radius: 14px;
+    background: var(--paper-2); border: none; box-shadow: none;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
+    cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   }
-  #sheet-close svg { width: 22px; height: 22px; stroke: var(--paper); }
+  #sheet-close svg { width: 20px; height: 20px; stroke: var(--ink-dim); }
 
-  #sheet-full-content { max-height: calc(82vh - 40px); max-height: calc(82dvh - 40px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  #sheet-full-content {
+    display: flex; flex-direction: column; min-height: 0;
+    max-height: calc(54vh - 34px); max-height: calc(54dvh - 34px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  #sheet-full-content > * { flex-shrink: 0; }
+  #sheet-full-content > #track-list { flex-shrink: 1; }
+  #sheet button, #sheet .track-row { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
   .no-audio-note {
     font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; text-align: center;
   }
@@ -1126,6 +1135,7 @@
         <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
       </button>
       <div id="peek-text"><span id="sheet-peek-label">—</span><span id="sheet-peek-sub"></span></div>
+      <button id="peek-back-btn" aria-label="Cofnij o 10 sekund"><svg class="skip" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 8.4A8.2 8.2 0 1 1 3.8 12.5"></path><polyline points="3.5,3.8 5.2,8.4 9.8,6.8"></polyline><text x="12" y="15.6" text-anchor="middle" font-size="8.5" font-weight="800" font-family="sans-serif" fill="currentColor" stroke="none">10</text></svg></button>
       <button id="peek-next-btn" aria-label="Następne nagranie">
         <svg viewBox="0 0 24 24"><polygon points="5,4 15,12 5,20"></polygon><rect x="16" y="4" width="3" height="16"></rect></svg>
       </button>
@@ -1155,11 +1165,12 @@
           <button class="ctl-btn" id="prev-btn" aria-label="Poprzednie nagranie">
             <svg viewBox="0 0 24 24"><polygon points="19,4 9,12 19,20"></polygon><rect x="5" y="4" width="3" height="16"></rect></svg>
           </button>
-          <button class="ctl-btn" id="stop-btn" aria-label="Stop">
-            <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"></rect></svg>
-          </button>
+          <button class="ctl-btn" id="back-btn" aria-label="Cofnij o 10 sekund"><svg class="skip" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 8.4A8.2 8.2 0 1 1 3.8 12.5"></path><polyline points="3.5,3.8 5.2,8.4 9.8,6.8"></polyline><text x="12" y="15.6" text-anchor="middle" font-size="8.5" font-weight="800" font-family="sans-serif" fill="currentColor" stroke="none">10</text></svg></button>
           <button id="play-btn" aria-label="Odtwórz">
             <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+          </button>
+          <button class="ctl-btn" id="stop-btn" aria-label="Stop">
+            <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"></rect></svg>
           </button>
           <button class="ctl-btn" id="next-track-btn" aria-label="Następne nagranie">
             <svg viewBox="0 0 24 24"><polygon points="5,4 15,12 5,20"></polygon><rect x="16" y="4" width="3" height="16"></rect></svg>
@@ -1188,7 +1199,7 @@
   </div>
 </div>
 
-<audio id="audio-el" preload="none"></audio>
+<audio id="audio-el" preload="metadata" playsinline></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
@@ -3094,7 +3105,11 @@ audioEl.addEventListener('timeupdate', () => {
 audioEl.addEventListener('loadedmetadata', () => {
   timeTotal.textContent = fmtTime(audioEl.duration);
 });
-audioEl.addEventListener('ended', () => setPlayIcon(false));
+audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); });
+// ikona zawsze zgodna z prawdziwym stanem (także przy sterowaniu z słuchawek / ekranu blokady)
+audioEl.addEventListener('play', () => setPlayIcon(true));
+audioEl.addEventListener('pause', () => setPlayIcon(false));
+audioEl.addEventListener('durationchange', () => { if (isFinite(audioEl.duration)) timeTotal.textContent = fmtTime(audioEl.duration); });
 audioEl.addEventListener('error', () => { setPlayIcon(false); if (audioEl.getAttribute('src')) noAudioNote.style.display = 'block'; }); // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
 
 // przewijanie: stuknięcie lub przeciągnięcie palcem po pasku postępu
@@ -3148,6 +3163,14 @@ prevBtn.addEventListener('click', () => {
 });
 nextTrackBtn.addEventListener('click', () => goTrack(1));
 peekNextBtn.addEventListener('click', e => { e.stopPropagation(); goTrack(1); });
+// cofnij o 10 sekund (w panelu i na zwiniętym pasku)
+function skipBack() {
+  if (!audioEl.src) return;
+  audioEl.currentTime = Math.max(0, audioEl.currentTime - 10);
+  if (audioEl.duration) updateProgressUI((audioEl.currentTime / audioEl.duration) * 100);
+}
+document.getElementById('back-btn').addEventListener('click', skipBack);
+document.getElementById('peek-back-btn').addEventListener('click', e => { e.stopPropagation(); skipBack(); });
 document.getElementById('stop-btn').addEventListener('click', () => {
   audioEl.pause();
   if (audioEl.duration) audioEl.currentTime = 0;
@@ -3185,6 +3208,23 @@ document.querySelectorAll('.speed-btn').forEach(b => b.addEventListener('click',
   applyPlaybackRate();
 }));
 applyPlaybackRate();
+
+// sterowanie z ekranu blokady i słuchawek (Media Session)
+if ('mediaSession' in navigator) {
+  const ms = navigator.mediaSession;
+  const safe = (a, f) => { try { ms.setActionHandler(a, f); } catch (_) {} };
+  safe('play', () => { if (audioEl.paused) togglePlayPause(); });
+  safe('pause', () => { if (!audioEl.paused) togglePlayPause(); });
+  safe('previoustrack', () => goTrack(-1));
+  safe('nexttrack', () => goTrack(1));
+  safe('seekbackward', skipBack);
+  safe('seekforward', () => { if (audioEl.duration) audioEl.currentTime = Math.min(audioEl.duration, audioEl.currentTime + 10); });
+  audioEl.addEventListener('loadstart', () => {
+    if (!currentPoint || typeof MediaMetadata === 'undefined') return;
+    const tr = currentPoint.tracks[currentTrackIndex];
+    ms.metadata = new MediaMetadata({ title: tr ? tr.label : currentPoint.name, artist: currentPoint.name, album: 'KrakRoam' });
+  });
+}
 
 // jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu.
 // Ten blok musi być na samym końcu skryptu, żeby wszystkie zmienne (np. navActive), których
