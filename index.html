@@ -700,19 +700,23 @@
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(.32,.72,0,1);
   }
-  #sheet::before {
-    content: ""; display: block; width: 36px; height: 4px; border-radius: 2px;
-    background: var(--line); margin: 0 auto 10px;
+  #sheet-grab {
+    height: 24px; margin: -12px -18px 2px; display: flex; align-items: center; justify-content: center;
+    cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  }
+  #sheet-grab::before {
+    content: ""; display: block; width: 40px; height: 5px; border-radius: 3px; background: var(--line-strong);
   }
   #sheet.open { transform: translateY(0); }
   #sheet.peek { pointer-events: none; padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
   #sheet.peek #sheet-peek-bar,
+  #sheet.peek #sheet-grab,
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
   #sheet-peek-bar {
-    display: none; align-items: center; gap: 12px;
+    display: none; align-items: center; gap: 12px; position: relative;
     min-height: 56px;
-    padding: 4px 4px 10px; color: var(--ink); font-size: 14.5px; font-weight: 700;
+    padding: 4px 2px 12px; color: var(--ink); font-size: 14.5px; font-weight: 700;
     cursor: pointer;
   }
   #sheet.peek #sheet-peek-bar { display: flex; }
@@ -722,10 +726,18 @@
     display: flex; align-items: center; justify-content: center;
   }
   #peek-play-btn svg { width: 18px; height: 18px; fill: #14110d; }
-  #sheet-peek-label {
-    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    align-self: center;
+  #peek-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  #sheet-peek-label, #sheet-peek-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #sheet-peek-sub { font-size: 12px; font-weight: 600; color: var(--ink-dim); }
+  #peek-next-btn {
+    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+    background: var(--paper-2); border: none; cursor: pointer; color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
   }
+  #peek-next-btn svg { width: 17px; height: 17px; fill: currentColor; }
+  #peek-next-btn:disabled { opacity: 0.35; cursor: default; }
+  #peek-progress { position: absolute; left: 2px; right: 2px; bottom: 3px; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  #peek-progress-fill { height: 100%; width: 0%; background: var(--brass-deep); }
 
   #sheet-kicker { font-size: 12px; font-weight: 700; color: var(--brass-deep); margin-bottom: 4px; }
   #sheet-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -762,7 +774,7 @@
 
   #track-list {
     display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;
-    max-height: 34vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    max-height: 22vh; max-height: 22dvh; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
   }
   #track-list.scrollable {
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
@@ -788,19 +800,45 @@
   .track-row.active .tr-icon { color: var(--brass-deep); }
 
   #player {
-    display: flex; align-items: center; gap: 14px;
-    background: var(--paper-2); border-radius: 16px; padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--paper-2); border-radius: 18px; padding: 12px 14px 14px;
   }
+  #player.no-audio #progress-wrap, #player.no-audio #play-btn, #player.no-audio #stop-btn,
+  #player.no-audio #speed-row { opacity: 0.4; pointer-events: none; }
+  #progress-wrap { padding: 9px 0; margin: -9px 0; cursor: pointer; touch-action: none; }
+  #progress-track { height: 5px; background: var(--line); border-radius: 3px; position: relative; }
+  #progress-fill { height: 100%; width: 0%; background: var(--brass-deep); border-radius: 3px; }
+  #progress-thumb {
+    position: absolute; top: 50%; left: 0%; width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px;
+    border-radius: 50%; background: var(--brass-deep); box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  #time-row { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; color: var(--ink-dim); margin-top: -2px; font-variant-numeric: tabular-nums; }
+  #controls { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .ctl-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line);
+    display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;
+  }
+  .ctl-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .ctl-btn:active { transform: scale(0.94); }
+  .ctl-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
   #play-btn {
-    flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
+    flex-shrink: 0; width: 58px; height: 58px; border-radius: 50%;
     background: var(--brass); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
-  #play-btn svg { width: 18px; height: 18px; fill: #14110d; }
-  #player-mid { flex: 1; min-width: 0; }
-  #progress-track { height: 5px; background: var(--line); border-radius: 3px; position: relative; cursor: pointer; }
-  #progress-fill { height: 100%; width: 0%; background: var(--brass-deep); border-radius: 3px; }
-  #time-row { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 500; color: var(--ink-dim); margin-top: 6px; }
+  #play-btn svg { width: 22px; height: 22px; fill: #14110d; }
+  #extras { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  #volume-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; color: var(--ink-dim); }
+  #volume-wrap svg { width: 18px; height: 18px; flex-shrink: 0; fill: currentColor; }
+  #volume { flex: 1; min-width: 60px; max-width: 130px; accent-color: var(--brass-deep); height: 24px; }
+  #speed-row { display: flex; gap: 6px; margin-left: auto; }
+  .speed-btn {
+    height: 32px; padding: 0 9px; border-radius: 16px; border: none; cursor: pointer;
+    background: var(--paper); color: var(--ink-dim); box-shadow: inset 0 0 0 1.5px var(--line);
+    font-family: inherit; font-size: 12.5px; font-weight: 700; -webkit-tap-highlight-color: transparent;
+  }
+  .speed-btn.active { background: var(--brass); color: #14110d; box-shadow: none; }
 
   #sheet-close {
     position: absolute; top: -58px; right: 16px; z-index: 2;
@@ -812,6 +850,7 @@
   }
   #sheet-close svg { width: 22px; height: 22px; stroke: var(--paper); }
 
+  #sheet-full-content { max-height: calc(82vh - 40px); max-height: calc(82dvh - 40px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom, 0px); }
   .no-audio-note {
     font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; text-align: center;
   }
@@ -1081,11 +1120,16 @@
     <button id="sheet-close" aria-label="Zwiń">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg>
     </button>
+    <div id="sheet-grab" aria-hidden="true"></div>
     <div id="sheet-peek-bar">
       <button id="peek-play-btn" aria-label="Odtwórz/Pauza">
         <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
       </button>
-      <span id="sheet-peek-label">—</span>
+      <div id="peek-text"><span id="sheet-peek-label">—</span><span id="sheet-peek-sub"></span></div>
+      <button id="peek-next-btn" aria-label="Następne nagranie">
+        <svg viewBox="0 0 24 24"><polygon points="5,4 15,12 5,20"></polygon><rect x="16" y="4" width="3" height="16"></rect></svg>
+      </button>
+      <div id="peek-progress"><div id="peek-progress-fill"></div></div>
     </div>
 
     <div id="sheet-full-content">
@@ -1104,13 +1148,34 @@
 
       <div id="track-list"></div>
 
-      <div id="player">
-        <button id="play-btn" aria-label="Odtwórz">
-          <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
-        </button>
-        <div id="player-mid">
-          <div id="progress-track"><div id="progress-fill"></div></div>
-          <div id="time-row"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
+      <div id="player" class="no-audio">
+        <div id="progress-wrap"><div id="progress-track"><div id="progress-fill"></div><div id="progress-thumb"></div></div></div>
+        <div id="time-row"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
+        <div id="controls">
+          <button class="ctl-btn" id="prev-btn" aria-label="Poprzednie nagranie">
+            <svg viewBox="0 0 24 24"><polygon points="19,4 9,12 19,20"></polygon><rect x="5" y="4" width="3" height="16"></rect></svg>
+          </button>
+          <button class="ctl-btn" id="stop-btn" aria-label="Stop">
+            <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"></rect></svg>
+          </button>
+          <button id="play-btn" aria-label="Odtwórz">
+            <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+          </button>
+          <button class="ctl-btn" id="next-track-btn" aria-label="Następne nagranie">
+            <svg viewBox="0 0 24 24"><polygon points="5,4 15,12 5,20"></polygon><rect x="16" y="4" width="3" height="16"></rect></svg>
+          </button>
+        </div>
+        <div id="extras">
+          <div id="volume-wrap">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z"></path><path d="M15.5 8.5a5 5 0 010 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+            <input type="range" id="volume" min="0" max="1" step="0.05" value="1" aria-label="Głośność">
+          </div>
+          <div id="speed-row">
+            <button class="speed-btn" data-rate="1">1x</button>
+            <button class="speed-btn" data-rate="1.15">1,15x</button>
+            <button class="speed-btn" data-rate="1.25">1,25x</button>
+            <button class="speed-btn" data-rate="1.5">1,5x</button>
+          </div>
         </div>
       </div>
       <div class="no-audio-note" id="no-audio-note" style="display:none;">Plik audio jeszcze nie został dodany dla tego punktu.</div>
@@ -2804,18 +2869,35 @@ function setSheetPeek(state) {
   const closeIcon = document.querySelector('#sheet-close svg polyline');
   if (closeIcon) closeIcon.setAttribute('points', state ? '6,15 12,9 18,15' : '6,9 12,15 18,9');
   document.getElementById('sheet-close').setAttribute('aria-label', state ? t('sheetExpandLabel') : t('sheetCollapseLabel'));
-  if (state && currentPoint) {
-    const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
-    const label = document.getElementById('sheet-peek-label');
-    label.textContent = track ? track.label : currentPoint.name;
-  }
+  if (state) updatePeekLabel();
   if (!state && currentPoint && currentPoint.type !== 'intro') {
     // rozwinięcie panelu = mapa leci nad ten punkt, tak samo jak przy kliknięciu w pin
     // (poza track 0 "Zanim wyruszysz" — to nie jest realny punkt geograficzny)
     flyToPointBehindSheet(currentPoint);
   }
 }
+function updatePeekLabel() {
+  if (!currentPoint) return;
+  const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
+  document.getElementById('sheet-peek-label').textContent = track ? track.label : currentPoint.name;
+  document.getElementById('sheet-peek-sub').textContent = currentPoint.name;
+}
 document.getElementById('sheet-peek-bar').addEventListener('click', () => { sfx.play('menuUp'); setSheetPeek(false); });
+
+// uchwyt na górze panelu: przeciągnięcie w dół zwija, w górę rozwija, stuknięcie przełącza
+(function () {
+  const grab = document.getElementById('sheet-grab');
+  let startY = null;
+  grab.addEventListener('pointerdown', e => { startY = e.clientY; try { grab.setPointerCapture(e.pointerId); } catch (_) {} });
+  grab.addEventListener('pointercancel', () => { startY = null; });
+  grab.addEventListener('pointerup', e => {
+    if (startY === null) return;
+    const dy = e.clientY - startY; startY = null;
+    if (dy > 24 && !sheetPeek) { sfx.play('menuDown'); setSheetPeek(true); }
+    else if (dy < -24 && sheetPeek) { sfx.play('menuUp'); setSheetPeek(false); }
+    else if (Math.abs(dy) < 8) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); setSheetPeek(!sheetPeek); }
+  });
+})();
 
 function flyToPointBehindSheet(point) {
   if (viewMode3D) {
@@ -2911,36 +2993,40 @@ function renderTrackList() {
       <svg class="tr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6,4 20,12 6,20" fill="currentColor" stroke="none"></polygon></svg>
     `;
     row.addEventListener('click', () => {
+      const wasPlaying = !audioEl.paused;
       currentTrackIndex = i;
       renderTrackList();
-      loadTrack();
+      loadTrack(wasPlaying);
     });
     trackListEl.appendChild(row);
   });
   // pokazujemy delikatny cień u dołu TYLKO jeśli lista faktycznie jest dłuższa niż widoczny obszar (jest co przewijać)
   requestAnimationFrame(() => {
     trackListEl.classList.toggle('scrollable', trackListEl.scrollHeight > trackListEl.clientHeight + 2);
+    const active = trackListEl.querySelector('.track-row.active');
+    if (active) active.scrollIntoView({ block: 'nearest' });
   });
+  updateTrackNav();
 }
 
-function loadTrack() {
+function loadTrack(autoplay) {
   if (!currentPoint) return;
   const track = currentPoint.tracks[currentTrackIndex];
   const src = track ? track.audio : null;
   audioEl.pause();
   setPlayIcon(false);
-  progressFill.style.width = '0%';
+  updateProgressUI(0);
   timeCurrent.textContent = '0:00';
   timeTotal.textContent = '0:00';
+  updatePeekLabel();
+  playerEl.classList.toggle('no-audio', !src);
   if (src) {
     noAudioNote.style.display = 'none';
-    playerEl.style.opacity = '1';
-    playerEl.style.pointerEvents = 'auto';
     audioEl.src = src;
+    applyPlaybackRate();
+    if (autoplay === true) togglePlayPause();
   } else {
     noAudioNote.style.display = 'block';
-    playerEl.style.opacity = '0.4';
-    playerEl.style.pointerEvents = 'none';
     audioEl.removeAttribute('src');
   }
 }
@@ -2993,10 +3079,16 @@ document.getElementById('peek-play-btn').addEventListener('click', (e) => {
   togglePlayPause();
 });
 
-audioEl.addEventListener('timeupdate', () => {
-  if (!audioEl.duration) return;
-  const pct = (audioEl.currentTime / audioEl.duration) * 100;
+const progressThumb = document.getElementById('progress-thumb');
+const peekProgressFill = document.getElementById('peek-progress-fill');
+function updateProgressUI(pct) {
   progressFill.style.width = pct + '%';
+  progressThumb.style.left = pct + '%';
+  peekProgressFill.style.width = pct + '%';
+}
+audioEl.addEventListener('timeupdate', () => {
+  if (!audioEl.duration || seeking) return;
+  updateProgressUI((audioEl.currentTime / audioEl.duration) * 100);
   timeCurrent.textContent = fmtTime(audioEl.currentTime);
 });
 audioEl.addEventListener('loadedmetadata', () => {
@@ -3005,12 +3097,94 @@ audioEl.addEventListener('loadedmetadata', () => {
 audioEl.addEventListener('ended', () => setPlayIcon(false));
 audioEl.addEventListener('error', () => { setPlayIcon(false); if (audioEl.getAttribute('src')) noAudioNote.style.display = 'block'; }); // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
 
-progressTrack.addEventListener('click', (e) => {
+// przewijanie: stuknięcie lub przeciągnięcie palcem po pasku postępu
+let seeking = false;
+const progressWrap = document.getElementById('progress-wrap');
+function seekFromEvent(e) {
   if (!audioEl.duration) return;
   const rect = progressTrack.getBoundingClientRect();
-  const pct = (e.clientX - rect.left) / rect.width;
-  audioEl.currentTime = pct * audioEl.duration;
+  const pct = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  updateProgressUI(pct * 100);
+  timeCurrent.textContent = fmtTime(pct * audioEl.duration);
+  return pct;
+}
+progressWrap.addEventListener('pointerdown', e => {
+  if (!audioEl.duration) return;
+  seeking = true;
+  try { progressWrap.setPointerCapture(e.pointerId); } catch (_) {}
+  seekFromEvent(e);
 });
+progressWrap.addEventListener('pointermove', e => { if (seeking) seekFromEvent(e); });
+progressWrap.addEventListener('pointerup', e => {
+  if (!seeking) return;
+  const pct = seekFromEvent(e);
+  seeking = false;
+  if (pct !== undefined) audioEl.currentTime = pct * audioEl.duration;
+});
+progressWrap.addEventListener('pointercancel', () => { seeking = false; });
+
+// poprzednie / następne nagranie w tym punkcie, stop
+const prevBtn = document.getElementById('prev-btn');
+const nextTrackBtn = document.getElementById('next-track-btn');
+const peekNextBtn = document.getElementById('peek-next-btn');
+function updateTrackNav() {
+  const n = currentPoint ? currentPoint.tracks.length : 0;
+  prevBtn.disabled = currentTrackIndex <= 0;
+  nextTrackBtn.disabled = peekNextBtn.disabled = currentTrackIndex >= n - 1;
+}
+function goTrack(delta) {
+  if (!currentPoint) return;
+  const n = currentTrackIndex + delta;
+  if (n < 0 || n >= currentPoint.tracks.length) return;
+  const wasPlaying = !audioEl.paused;
+  currentTrackIndex = n;
+  renderTrackList();
+  loadTrack(wasPlaying);
+}
+prevBtn.addEventListener('click', () => {
+  // jak w każdym odtwarzaczu: po kilku sekundach "wstecz" wraca na początek tego nagrania
+  if (audioEl.currentTime > 3) { audioEl.currentTime = 0; return; }
+  goTrack(-1);
+});
+nextTrackBtn.addEventListener('click', () => goTrack(1));
+peekNextBtn.addEventListener('click', e => { e.stopPropagation(); goTrack(1); });
+document.getElementById('stop-btn').addEventListener('click', () => {
+  audioEl.pause();
+  if (audioEl.duration) audioEl.currentTime = 0;
+  setPlayIcon(false);
+  updateProgressUI(0);
+  timeCurrent.textContent = '0:00';
+});
+
+// głośność (iPhone nie pozwala apkom zmieniać głośności — wtedy suwak chowamy, działają przyciski telefonu)
+const volumeEl = document.getElementById('volume');
+(function () {
+  audioEl.volume = 0.5;
+  if (Math.abs(audioEl.volume - 0.5) > 0.01) { document.getElementById('volume-wrap').style.display = 'none'; return; }
+  let v = 1;
+  try { const saved = parseFloat(localStorage.getItem('krakroam_volume')); if (saved >= 0 && saved <= 1) v = saved; } catch (_) {}
+  audioEl.volume = v; volumeEl.value = v;
+  volumeEl.addEventListener('input', () => {
+    audioEl.volume = parseFloat(volumeEl.value);
+    try { localStorage.setItem('krakroam_volume', volumeEl.value); } catch (_) {}
+  });
+})();
+
+// prędkość odtwarzania: 1x / 1,15x / 1,25x / 1,5x (zapamiętana na telefonie)
+let playbackRate = 1;
+try { const r = parseFloat(localStorage.getItem('krakroam_rate')); if ([1, 1.15, 1.25, 1.5].includes(r)) playbackRate = r; } catch (_) {}
+function applyPlaybackRate() {
+  audioEl.defaultPlaybackRate = playbackRate;
+  audioEl.playbackRate = playbackRate;
+  audioEl.preservesPitch = true; audioEl.webkitPreservesPitch = true;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.rate) === playbackRate));
+}
+document.querySelectorAll('.speed-btn').forEach(b => b.addEventListener('click', () => {
+  playbackRate = parseFloat(b.dataset.rate);
+  try { localStorage.setItem('krakroam_rate', String(playbackRate)); } catch (_) {}
+  applyPlaybackRate();
+}));
+applyPlaybackRate();
 
 // jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu.
 // Ten blok musi być na samym końcu skryptu, żeby wszystkie zmienne (np. navActive), których
