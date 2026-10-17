@@ -3,7 +3,7 @@
 <head>
 <script>if(/^(www\.)?krakroam\.pl$/.test(location.hostname))location.replace('/www/');</script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>KrakRoam</title>
 
 <!-- Ikona do "Dodaj do ekranu głównego" -->
@@ -302,14 +302,14 @@
     opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(14px);
   }
   #route-intro-close {
-    position: absolute; top: 14px; right: 16px; z-index: 2;
+    position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 16px; z-index: 2;
     background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
     width: 36px; height: 36px; border-radius: 50%;
     font-size: 22px; cursor: pointer; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
   #route-intro-body {
-    flex: 1; overflow-y: auto; padding: 56px 24px 12px;
+    flex: 1; overflow-y: auto; padding: calc(56px + env(safe-area-inset-top, 0px)) 24px 12px;
   }
   #route-intro-icon {
     width: 56px; height: 56px; border-radius: 16px; margin-bottom: 18px;
@@ -412,12 +412,12 @@
   #topbar {
     position: absolute; top: 0; left: 0; right: 0; z-index: 10;
     display: flex; align-items: center; justify-content: flex-end;
-    padding: 16px 18px;
+    padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 16px;
   }
 
   /* ---------- Pasek nawigacji (na górze, niezależny od panelu audio na dole) ---------- */
   #nav-top-bar {
-    position: absolute; top: 16px; left: 16px; z-index: 11;
+    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 11;
   }
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
@@ -454,7 +454,7 @@
 
   /* ---------- Komunikat "jesteś na miejscu" ---------- */
   #arrival-toast {
-    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
     z-index: 40; max-width: calc(100vw - 32px);
     background: var(--route); border-radius: 16px; border: 1.5px solid var(--line-strong);
     padding: 13px 18px; text-align: center; cursor: pointer;
@@ -764,7 +764,7 @@
 
   /* ---------- Krótki komunikat informacyjny (np. brak GPS) ---------- */
   #info-toast {
-    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
     z-index: 41; width: max-content; max-width: calc(100vw - 32px);
     background: var(--ink); color: var(--paper); border-radius: 14px;
     padding: 12px 16px; font-size: 13.5px; font-weight: 600; text-align: center;
@@ -2127,6 +2127,25 @@ POINTS.forEach(p => {
 });
 map.addLayer(pointCluster);
 
+// Stuknięcia w punkty, które "nie łapały": gdy palec trafi w punkt, ale telefon uzna, że puszczenie
+// palca było nad czymś innym (sąsiedni punkt, linia trasy, mapa pod spodem), przeglądarka wysyła
+// kliknięcie do wspólnego "rodzica" zamiast do punktu i nic się nie działo, dopóki mapa się nie ruszyła.
+// Tu takie zgubione kliknięcie przekazujemy najbliższemu punktowi (lub bąbelkowi) w promieniu palca.
+map.getContainer().addEventListener('click', e => {
+  if (!e.isTrusted || e.target.closest('.leaflet-marker-icon')) return;
+  if (!e.target.closest('.leaflet-map-pane') && e.target !== map.getContainer()) return;
+  let best = null, bestD = 30;
+  document.querySelectorAll('.leaflet-marker-pane .leaflet-marker-icon.leaflet-interactive').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+    if (d < bestD) { bestD = d; best = el; }
+  });
+  if (!best) return;
+  e.stopPropagation();
+  best.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
+}, true);
+
 // stuknięcie w pustą mapę przy rozwiniętym panelu = zwija panel (tło panelu już nie blokuje dotyku, patrz CSS)
 map.on('click', () => {
   if (sheet.classList.contains('open') && !sheetPeek) setSheetPeek(true);
@@ -2405,7 +2424,12 @@ async function requestWalkingRoute(userLatLng, force) {
     try {
       const result = await fetchWalkingRouteFrom(base, userLatLng, target);
       if (seq !== routeRequestSeq) return; // w międzyczasie ruszyło nowsze liczenie — ono zajmie się resztą
-      drawGuideLine(result.coords);
+      // serwer kończy trasę na najbliższej ulicy/chodniku, a nie na samym punkcie (np. środek Rynku) —
+      // dorysowujemy brakujący kawałek, żeby linia zaczynała się przy Tobie i kończyła dokładnie na pinezce celu
+      const coords = result.coords.slice();
+      if (!coords.length || distMeters(coords[0], userLatLng) > 1) coords.unshift(userLatLng);
+      if (distMeters(coords[coords.length - 1], target) > 1) coords.push(target);
+      drawGuideLine(coords);
       if (navTopDistance) navTopDistance.textContent = formatNavDistance(result.distance);
       if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration) + ' · ' + targetName;
       success = true;
@@ -2537,7 +2561,13 @@ function showNavTargetMarker() {
     interactive: true,
     zIndexOffset: 2500
   }).addTo(map);
-  navTargetMarker.on('click', flyToNavTarget); // kliknięcie w pinezkę = kamera leci nad cel
+  // pinezka celu stoi dokładnie na punkcie i zasłania go palcowi — stuknięcie w nią otwiera ten punkt
+  // (jak stuknięcie w sam punkt), a gdy cel nie jest punktem trasy, kamera po prostu leci nad cel
+  navTargetMarker.on('click', () => {
+    const p = navTargetPointRef;
+    if (p && markersById[p.id]) { sfx.play('point'); openSheet(p); }
+    else flyToNavTarget();
+  });
 }
 function hideNavTargetMarker() {
   if (navTargetMarker) { map.removeLayer(navTargetMarker); navTargetMarker = null; }
@@ -3243,21 +3273,90 @@ volumeEl.addEventListener('input', () => { clearTimeout(popupTimer); popupTimer 
 document.addEventListener('click', closePopups);
 
 // sterowanie z ekranu blokady i słuchawek (Media Session)
+// "Następne"/"Poprzednie" z ekranu blokady idą przez całą trasę (wprowadzenie, potem punkty po kolei),
+// pomijając nagrania bez pliku, i zawsze od razu grają — telefon jest zablokowany, więc nikt nie stuknie "play".
+function playableTracks() {
+  const list = [];
+  [INTRO_POINT, ...POINTS].forEach(point => {
+    (point.tracks || []).forEach((tr, i) => { if (tr.audio) list.push({ point, i }); });
+  });
+  return list;
+}
+function switchToTrack(point, i) {
+  if (point !== currentPoint) {
+    // ciche przełączenie punktu: bez lotu mapą i bez zmiany rozwinięcia panelu
+    currentPoint = point;
+    sheetTitle.textContent = point.name;
+    sheetKicker.textContent = point.type === 'intro' ? t('routeIntroKicker') : (point.type === 'main' ? t('pointMain') : t('pointExtra'));
+    if (!sheet.classList.contains('open')) {
+      setSheetPeek(true);
+      sheet.classList.add('open');
+      sheetBackdrop.classList.add('open');
+    }
+  }
+  currentTrackIndex = i;
+  renderTrackList();
+  loadTrack(true);
+}
+function remoteTrack(delta) {
+  const list = playableTracks();
+  if (!list.length) return;
+  let pos = currentPoint ? list.findIndex(x => x.point === currentPoint && x.i === currentTrackIndex) : -1;
+  if (pos === -1 && currentPoint) {
+    // obecne nagranie nie ma pliku — szukamy najbliższego grającego w danym kierunku
+    const order = [INTRO_POINT, ...POINTS];
+    const key = x => order.indexOf(x.point) * 1000 + x.i;
+    const cur = order.indexOf(currentPoint) * 1000 + currentTrackIndex;
+    const target = delta > 0 ? list.find(x => key(x) > cur) : [...list].reverse().find(x => key(x) < cur);
+    if (target) switchToTrack(target.point, target.i);
+    return;
+  }
+  const target = list[pos + delta] || (pos === -1 ? list[0] : null);
+  if (target) switchToTrack(target.point, target.i);
+  else if (delta < 0) { audioEl.currentTime = 0; if (audioEl.paused) togglePlayPause(); }
+}
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 if ('mediaSession' in navigator) {
   const ms = navigator.mediaSession;
   const safe = (a, f) => { try { ms.setActionHandler(a, f); } catch (_) {} };
   safe('play', () => { if (audioEl.paused) togglePlayPause(); });
   safe('pause', () => { if (!audioEl.paused) togglePlayPause(); });
-  safe('previoustrack', () => goTrack(-1));
-  safe('nexttrack', () => goTrack(1));
-  safe('seekbackward', skipBack);
-  safe('seekforward', () => { if (audioEl.duration) audioEl.currentTime = Math.min(audioEl.duration, audioEl.currentTime + 10); });
+  safe('stop', () => { if (!audioEl.paused) togglePlayPause(); });
+  safe('previoustrack', () => {
+    if (audioEl.currentTime > 3) { audioEl.currentTime = 0; if (audioEl.paused) togglePlayPause(); return; }
+    remoteTrack(-1);
+  });
+  safe('nexttrack', () => remoteTrack(1));
+  // iPhone pokazuje na ekranie blokady ALBO przyciski ±10 s, ALBO następne/poprzednie — nigdy obu.
+  // Gdy ustawione są ±10 s, znikają następne/poprzednie, dlatego na iPhonie ich nie ustawiamy.
+  if (!isIOS) {
+    safe('seekbackward', skipBack);
+    safe('seekforward', () => { if (audioEl.duration) audioEl.currentTime = Math.min(audioEl.duration, audioEl.currentTime + 10); });
+  }
+  safe('seekto', d => { if (audioEl.duration && d && isFinite(d.seekTime)) audioEl.currentTime = Math.min(audioEl.duration, Math.max(0, d.seekTime)); });
+  const updatePosition = () => {
+    if (!ms.setPositionState || !isFinite(audioEl.duration) || !audioEl.duration) return;
+    try { ms.setPositionState({ duration: audioEl.duration, playbackRate: audioEl.playbackRate || 1, position: Math.min(audioEl.currentTime, audioEl.duration) }); } catch (_) {}
+  };
   audioEl.addEventListener('loadstart', () => {
     if (!currentPoint || typeof MediaMetadata === 'undefined') return;
     const tr = currentPoint.tracks[currentTrackIndex];
-    ms.metadata = new MediaMetadata({ title: tr ? tr.label : currentPoint.name, artist: currentPoint.name, album: 'KrakRoam' });
+    ms.metadata = new MediaMetadata({
+      title: tr ? tr.label : currentPoint.name, artist: currentPoint.name, album: 'KrakRoam',
+      artwork: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }]
+    });
   });
+  audioEl.addEventListener('play', () => { ms.playbackState = 'playing'; updatePosition(); });
+  audioEl.addEventListener('pause', () => { ms.playbackState = 'paused'; updatePosition(); });
+  audioEl.addEventListener('loadedmetadata', updatePosition);
+  audioEl.addEventListener('seeked', updatePosition);
+  audioEl.addEventListener('ratechange', updatePosition);
 }
+// iPhone: gdy głośność idzie przez Web Audio, po zablokowaniu ekranu dźwięk potrafi zamilknąć —
+// budzimy go przy każdym starcie odtwarzania i po powrocie do apki
+function wakeAudioCtx() { if (audioCtx && audioCtx.state !== 'running') { try { audioCtx.resume(); } catch (_) {} } }
+audioEl.addEventListener('play', wakeAudioCtx);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) wakeAudioCtx(); });
 
 // jeśli język był już wcześniej wybrany na tym telefonie — pomijamy ekran wyboru języka od razu.
 // Ten blok musi być na samym końcu skryptu, żeby wszystkie zmienne (np. navActive), których
