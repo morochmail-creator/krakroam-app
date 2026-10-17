@@ -556,10 +556,10 @@
   /* większe, niewidoczne pole dotyku wokół pinezki — mały punkt (15px) łatwo było "nie trafić" palcem */
   .marker-hit { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
   .marker-main {
-    width: 27px; height: 27px; border-radius: 50%;
-    background: var(--brass);
-    border: 2.5px solid #14110d;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    width: 30px; height: 30px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f6cf6b 0%, #d9a239 55%, #b3822a 100%);
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #14110d, 0 4px 12px rgba(0,0,0,0.6);
     display: flex; align-items: center; justify-content: center;
   }
   .marker-start {
@@ -649,10 +649,10 @@
   .cluster-lg { width: 44px; height: 44px; font-size: 15px; }
 
   .marker-extra {
-    width: 15px; height: 15px; border-radius: 50%;
-    background: #d8d2c4;
-    border: 2px solid #14110d;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #ece6d6;
+    border: 2.5px solid #fff;
+    box-shadow: 0 0 0 1.5px #14110d, 0 2px 8px rgba(0,0,0,0.55);
   }
   .gps-wrap {
     position: relative;
@@ -2154,9 +2154,14 @@ map.on('click', () => {
 // linia trasy — prawdziwy przebieg po ulicach (z Google My Maps)
 let routeLinePath = null;
 if (ROUTE_LINE.length > 1) {
-  routeLinePath = L.polyline(ROUTE_LINE, {
-    color: '#c9932c', weight: 4, opacity: 0.7, lineCap: 'round', lineJoin: 'round'
-  }); // NIE dodajemy jej do mapy tutaj — pojawia się dopiero po wyborze "Stare Miasto" w menu
+  // trasa to złote KROPKI z ciemną obwódką (czytelne na każdym tle), a linia GPS do celu jest ciągła, niebieska i leży na wierzchu —
+  // dzięki temu nigdy się nie zlewają, nawet gdy biegną tą samą ulicą;
+  // interactive: false, żeby linia nigdy nie przechwytywała stuknięć przeznaczonych dla punktów
+  const routeStyle = { lineCap: 'round', lineJoin: 'round', interactive: false };
+  routeLinePath = L.featureGroup([
+    L.polyline(ROUTE_LINE, { ...routeStyle, color: '#14110d', weight: 10, opacity: 0.6, dashArray: '1 12' }),
+    L.polyline(ROUTE_LINE, { ...routeStyle, color: '#f2b83d', weight: 6, opacity: 1, dashArray: '1 12' })
+  ]); // NIE dodajemy jej do mapy tutaj — pojawia się dopiero po wyborze "Stare Miasto" w menu
 }
 
 /* ============================================================
@@ -2336,14 +2341,14 @@ function drawGuideLine(latlngs) {
     guideLineCasing.setLatLngs(latlngs);
   } else {
     guideLineCasing = L.polyline(latlngs, {
-      color: '#ffffff', weight: 10, opacity: 0.95, lineCap: 'round', lineJoin: 'round'
+      color: '#ffffff', weight: 10, opacity: 0.95, lineCap: 'round', lineJoin: 'round', interactive: false
     });
   }
   if (guideLine) {
     guideLine.setLatLngs(latlngs);
   } else {
     guideLine = L.polyline(latlngs, {
-      color: '#1f6fe0', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round'
+      color: '#1f6fe0', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false
     });
   }
   if (navActive) {
