@@ -635,21 +635,23 @@
     position: absolute; inset: -7px;
     border-radius: 50%;
   }
-  .cluster-main-halo { background: rgba(169,128,47,0.28); }
-  .cluster-extra-halo { background: rgba(113,107,96,0.22); }
+  /* bąbelek grupy = ta sama kropka co punkt (złota z białym kółkiem), a odróżnia go świecący pierścień wokół */
+  .cluster-halo { border: 2px solid rgba(255,255,255,0.75); }
+  .cluster-main-halo { background: rgba(246,207,107,0.4); box-shadow: 0 0 14px 3px rgba(246,207,107,0.55); }
+  .cluster-extra-halo { background: rgba(236,230,214,0.32); box-shadow: 0 0 12px 2px rgba(236,230,214,0.45); }
   .cluster-main, .cluster-extra {
     position: relative;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     color: #14110d; font-weight: 800; font-family: 'Inter', sans-serif;
-    border: 2.5px solid #fff;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #14110d, 0 4px 12px rgba(0,0,0,0.6);
   }
-  .cluster-main { background: var(--brass); color: #14110d; }
-  .cluster-extra { background: #8f887a; color: #fff; }
-  .cluster-sm { width: 32px; height: 32px; font-size: 12.5px; }
-  .cluster-md { width: 38px; height: 38px; font-size: 14px; }
-  .cluster-lg { width: 44px; height: 44px; font-size: 15px; }
+  .cluster-main { background: radial-gradient(circle at 35% 30%, #f6cf6b 0%, #d9a239 55%, #b3822a 100%); color: #14110d; }
+  .cluster-extra { background: #ece6d6; color: #14110d; }
+  .cluster-sm { width: 30px; height: 30px; font-size: 12.5px; }
+  .cluster-md { width: 34px; height: 34px; font-size: 14px; }
+  .cluster-lg { width: 38px; height: 38px; font-size: 15px; }
 
   .marker-extra {
     width: 18px; height: 18px; border-radius: 50%;
@@ -806,11 +808,11 @@
 
   #track-list {
     display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;
-    min-height: 96px; max-height: 138px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    min-height: 96px; max-height: var(--track-list-h, 168px); overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   }
   #track-list.scrollable {
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), rgba(0,0,0,0.35) 100%);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), rgba(0,0,0,0.35) 100%);
   }
   .track-row {
     display: flex; align-items: center; gap: 12px;
@@ -3250,6 +3252,9 @@ function renderTrackList() {
   });
   // pokazujemy delikatny cień u dołu TYLKO jeśli lista faktycznie jest dłuższa niż widoczny obszar (jest co przewijać)
   requestAnimationFrame(() => {
+    // lista pokazuje dokładnie 3,5 nagrania — połówka czwartego od razu podpowiada, że jest ich więcej i można przewijać
+    const row = trackListEl.querySelector('.track-row');
+    if (row) trackListEl.style.setProperty('--track-list-h', Math.round(row.offsetHeight * 3.5 + 5 * 3) + 'px');
     trackListEl.classList.toggle('scrollable', trackListEl.scrollHeight > trackListEl.clientHeight + 2);
     const active = trackListEl.querySelector('.track-row.active');
     if (active) active.scrollIntoView({ block: 'nearest' });
