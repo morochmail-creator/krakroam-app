@@ -808,7 +808,7 @@
 
   #track-list {
     display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;
-    min-height: 96px; max-height: var(--track-list-h, 168px); overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    max-height: var(--track-list-h, 168px); overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   }
   #track-list.scrollable {
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), rgba(0,0,0,0.35) 100%);
