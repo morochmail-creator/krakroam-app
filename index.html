@@ -413,7 +413,10 @@
     position: absolute; top: 0; left: 0; right: 0; z-index: 10;
     display: flex; align-items: center; justify-content: flex-end;
     padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 16px;
+    /* pasek jest na całą szerokość, ale pusty — nie może łapać stuknięć, bo punkty pod nim "nie reagowały" */
+    pointer-events: none;
   }
+  #btn-stack { pointer-events: auto; }
 
   /* ---------- Pasek nawigacji (na górze, niezależny od panelu audio na dole) ---------- */
   #nav-top-bar {
@@ -744,14 +747,42 @@
   #sheet-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
   #sheet-title { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: var(--ink); }
 
+  #sheet-title-row { flex-wrap: nowrap; }
+  #sheet-title { flex: 1; min-width: 0; }
   #sheet-goto-btn {
-    flex-shrink: 0; height: 36px; padding: 0 13px 0 10px; border-radius: 18px;
-    background: var(--route); border: none; gap: 6px;
-    color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 700;
+    flex-shrink: 0; width: 40px; height: 40px; padding: 0; border-radius: 50%;
+    background: var(--route); border: none;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   #sheet-goto-btn.hidden { display: none; }
-  #sheet-goto-btn svg { width: 17px; height: 17px; stroke: #fff; }
+  #sheet-goto-btn svg { width: 20px; height: 20px; stroke: #fff; }
+
+  /* miniaturka zdjęcia do nagrania — klik powiększa na cały ekran */
+  #sheet-photo-btn {
+    flex-shrink: 0; width: 46px; height: 46px; padding: 0; border-radius: 10px;
+    border: 1.5px solid var(--line); background: var(--route-tint) center / cover no-repeat;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
+  }
+  #sheet-photo-btn svg { width: 22px; height: 22px; stroke: var(--route); opacity: 0.7; }
+  #sheet-photo-btn.has-photo svg { display: none; }
+  #photo-viewer {
+    position: fixed; inset: 0; z-index: 100; background: rgba(10, 10, 9, 0.92);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  #photo-viewer.open { opacity: 1; pointer-events: auto; }
+  #photo-viewer img { max-width: 100%; max-height: 100%; border-radius: 12px; object-fit: contain; transform: scale(0.92); transition: transform 0.2s ease; }
+  #photo-viewer.open img { transform: scale(1); }
+  #photo-viewer img.hidden, #photo-viewer-empty.hidden { display: none; }
+  #photo-viewer-empty { color: #fff; text-align: center; font-size: 15px; font-weight: 600; opacity: 0.85; }
+  #photo-viewer-empty svg { display: block; width: 56px; height: 56px; margin: 0 auto 12px; stroke: #fff; opacity: 0.6; }
+  #photo-viewer-close {
+    position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px;
+    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center;
+  }
+  #photo-viewer-close svg { width: 22px; height: 22px; stroke: #fff; }
 
   #sheet-next-btn {
     width: 100%; margin-top: 8px; padding: 10px 14px; border-radius: 14px;
@@ -1142,6 +1173,14 @@
 
   <div id="sheet-backdrop"></div>
 
+  <div id="photo-viewer" aria-hidden="true">
+    <img id="photo-viewer-img" alt="" class="hidden">
+    <div id="photo-viewer-empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg><span id="photo-viewer-empty-text">Zdjęcie wkrótce</span></div>
+    <button id="photo-viewer-close" aria-label="Zamknij">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+
   <div id="sheet">
     <button id="sheet-close" aria-label="Zwiń">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg>
@@ -1169,7 +1208,9 @@
             <path d="M9 20l2-6-3-2 1-5 4 1 2 3h3"></path>
             <path d="M11 14l3 1 2 5"></path>
           </svg>
-          <span id="sheet-goto-label">Prowadź mnie tutaj</span>
+        </button>
+        <button id="sheet-photo-btn" aria-label="Zdjęcie">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg>
         </button>
       </div>
 
@@ -1352,6 +1393,7 @@ const TRANSLATIONS = {
     soundOff: "Dźwięki: wyłączone",
     routeIntroKicker: "Witamy w Krakowie",
     gotoHereBtn: "Prowadź mnie tutaj",
+    photoSoon: "Zdjęcie wkrótce",
     nextStop: "Następny przystanek",
     navStraightLine: "w linii prostej",
     gpsDenied: "Nie widzę Twojej lokalizacji. Włącz GPS i zezwól przeglądarce na dostęp do lokalizacji.",
@@ -1411,6 +1453,7 @@ const TRANSLATIONS = {
     soundOff: "Звуки: вимкнено",
     routeIntroKicker: "Ласкаво просимо до Кракова",
     gotoHereBtn: "Проведи мене сюди",
+    photoSoon: "Фото незабаром",
     nextStop: "Наступна зупинка",
     navStraightLine: "по прямій",
     gpsDenied: "Не бачу твого місцезнаходження. Увімкни GPS і дозволь браузеру доступ до геолокації.",
@@ -1470,6 +1513,7 @@ const TRANSLATIONS = {
     soundOff: "Sounds: off",
     routeIntroKicker: "Welcome to Krakow",
     gotoHereBtn: "Guide me here",
+    photoSoon: "Photo coming soon",
     nextStop: "Next stop",
     navStraightLine: "in a straight line",
     gpsDenied: "We can't see your location. Turn on GPS and allow your browser to use your location.",
@@ -1529,6 +1573,7 @@ const TRANSLATIONS = {
     soundOff: "Töne: aus",
     routeIntroKicker: "Willkommen in Krakau",
     gotoHereBtn: "Führe mich hierher",
+    photoSoon: "Foto folgt bald",
     nextStop: "Nächster Halt",
     navStraightLine: "Luftlinie",
     gpsDenied: "Wir können deinen Standort nicht sehen. Schalte GPS ein und erlaube dem Browser den Standortzugriff.",
@@ -1588,6 +1633,7 @@ const TRANSLATIONS = {
     soundOff: "Sonidos: desactivados",
     routeIntroKicker: "Bienvenido a Cracovia",
     gotoHereBtn: "Llévame aquí",
+    photoSoon: "Foto próximamente",
     nextStop: "Siguiente parada",
     navStraightLine: "en línea recta",
     gpsDenied: "No vemos tu ubicación. Activa el GPS y permite que el navegador use tu ubicación.",
@@ -1646,7 +1692,7 @@ function applyTranslations() {
   document.getElementById('settings-map-label').textContent = t('settingsMapView');
   document.getElementById('settings-account-label').textContent = t('settingsAccount');
   document.getElementById('gps-hint').textContent = t('gpsHint');
-  document.getElementById('sheet-goto-label').textContent = t('gotoHereBtn');
+  document.getElementById('photo-viewer-empty-text').textContent = t('photoSoon');
   document.getElementById('sheet-goto-btn').setAttribute('aria-label', t('gotoHereBtn'));
 
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
@@ -1673,6 +1719,9 @@ function applyTranslations() {
    Każdy punkt ma listę "tracks" — dowolną liczbę nagrań
    (np. 1 główny opis + 1.1, 1.2 dodatkowe ciekawostki).
    — uzupełnij "audio" realnymi plikami mp3, gdy będą gotowe.
+   ZDJĘCIA: wrzuć plik .jpg do folderu foto/ o tej samej nazwie co mp3
+   (np. audio/pl/2_0_Historia_Sukiennic.mp3 → foto/2_0_Historia_Sukiennic.jpg)
+   — pokaże się samo. Można też wpisać w track pole photo: "foto/cos.jpg".
    TODO (wielojęzyczność treści): gdy dojdą nagrania w innych
    językach, "audio" i "label" w każdym tracku powinny stać się
    obiektami { pl: "...", en: "...", de: "...", ... } zamiast
@@ -2578,6 +2627,7 @@ function hideNavTargetMarker() {
   if (navTargetMarker) { map.removeLayer(navTargetMarker); navTargetMarker = null; }
 }
 
+const NAV_START_ZOOM = 18;
 function startNavigation(targetPoint) {
   // targetPoint opcjonalny — domyślnie punkt startowy trasy (wywołanie automatyczne po wyborze trasy)
   if (targetPoint) {
@@ -2601,10 +2651,9 @@ function startNavigation(targetPoint) {
       // samochodowej/pieszej Google Maps; dopasowanie obu punktów naraz zepsułoby ten efekt
       follow3D(true);
     } else {
-      // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i cel nawigacji naraz — jak w Google Maps,
-      // niezależnie czy cel to start trasy, czy dowolny punkt wybrany przez "Prowadź mnie tutaj"
-      const bounds = L.latLngBounds([[gll.lat, gll.lng], navTargetLatLng]);
-      map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
+      // jak w Google Maps: kamera leci blisko do Ciebie (nie oddala się, żeby zmieścić cel) —
+      // niebieska linia prowadzi dalej w stronę celu, a ikonka u góry pozwala podejrzeć cel
+      map.flyTo([gll.lat, gll.lng], Math.max(map.getZoom(), NAV_START_ZOOM), { duration: 1.2 });
     }
   } else {
     // brak jeszcze pozycji GPS — przynajmniej pokazujemy sam cel
@@ -2935,8 +2984,45 @@ function setSheetPeek(state) {
     flyToPointBehindSheet(currentPoint);
   }
 }
+// zdjęcie do nagrania: pole "photo" w tracku albo foto/<nazwa pliku mp3>.jpg
+function trackPhotoSrc(track) {
+  if (!track) return null;
+  if (track.photo) return track.photo;
+  if (track.audio) return 'foto/' + track.audio.split('/').pop().replace(/\.mp3$/i, '.jpg');
+  return null;
+}
+let currentPhotoSrc = null;
+function updateTrackPhoto() {
+  const btn = document.getElementById('sheet-photo-btn');
+  const track = currentPoint && currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
+  const src = trackPhotoSrc(track);
+  currentPhotoSrc = null;
+  btn.classList.remove('has-photo');
+  btn.style.backgroundImage = '';
+  if (!src) return;
+  const probe = new Image();
+  probe.onload = () => {
+    if (trackPhotoSrc(currentPoint && currentPoint.tracks[currentTrackIndex]) !== src) return; // w międzyczasie zmieniono nagranie
+    currentPhotoSrc = src;
+    btn.style.backgroundImage = 'url("' + src + '")';
+    btn.classList.add('has-photo');
+  };
+  probe.src = src;
+}
+const photoViewer = document.getElementById('photo-viewer');
+const photoViewerImg = document.getElementById('photo-viewer-img');
+document.getElementById('sheet-photo-btn').addEventListener('click', () => {
+  sfx.play('menuUp');
+  if (currentPhotoSrc) { photoViewerImg.src = currentPhotoSrc; photoViewerImg.classList.remove('hidden'); }
+  else photoViewerImg.classList.add('hidden');
+  document.getElementById('photo-viewer-empty').classList.toggle('hidden', !!currentPhotoSrc);
+  photoViewer.classList.add('open');
+});
+photoViewer.addEventListener('click', () => { sfx.play('menuDown'); photoViewer.classList.remove('open'); });
+
 function updatePeekLabel() {
   if (!currentPoint) return;
+  updateTrackPhoto();
   const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
   document.getElementById('sheet-peek-label').textContent = track ? track.label : currentPoint.name;
   document.getElementById('sheet-peek-sub').textContent = currentPoint.name;
