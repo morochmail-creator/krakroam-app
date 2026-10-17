@@ -1065,8 +1065,8 @@
       </div>
       <div id="route-intro-eyebrow">Trasa</div>
       <div id="route-intro-title">Stare Miasto</div>
-      <div id="route-intro-meta">8 przystanków · ok. 1 godz. · 0,8 km</div>
-      <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką i Mały Rynek, aż po Planty i średniowieczne mury. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
+      <div id="route-intro-meta">12 przystanków · ok. 2 godz. · 2,9 km</div>
+      <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
       <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
       <ul id="route-intro-highlights">
         <li>Barbakan i Brama Floriańska</li>
@@ -1714,7 +1714,7 @@ function applyTranslations() {
 
 /* ============================================================
    DANE PUNKTÓW — trasa Stare Miasto (Królewska)
-   TRASA TESTOWA: 8 punktów głównych z Google Earth (arkusz Pektusa).
+   TRASA TESTOWA: 12 punktów głównych + 9 dodatkowych z Google Earth (arkusz Pektusa).
    Pliki mp3 wrzucamy do folderu audio/pl/ (nazwy jak w polu "audio").
    Każdy punkt ma listę "tracks" — dowolną liczbę nagrań
    (np. 1 główny opis + 1.1, 1.2 dodatkowe ciekawostki).
@@ -1747,18 +1747,20 @@ const POINTS = [
     id: "rynek-glowny",
     name: "Rynek Główny",
     type: "main",
-    lat: 50.0618538,
-    lng: 19.9382749,
+    lat: 50.061854,
+    lng: 19.938275,
     tracks: [
-      { number: "1", label: "Rynek Główny", audio: null }
+      { number: "1.0", label: "Rynek Główny", audio: "audio/pl/1_0_Rynek_Glowny.mp3" },
+      { number: "1.1", label: "Średniowieczny Rynek", audio: "audio/pl/1_1_Sredniowieczny_Rynek.mp3" },
+      { number: "1.2", label: "Współczesny Rynek", audio: "audio/pl/1_2_Wspolczesny_Rynek.mp3" }
     ]
   },
   {
     id: "sukiennice",
     name: "Sukiennice",
     type: "main",
-    lat: 50.0616644,
-    lng: 19.9377706,
+    lat: 50.061664,
+    lng: 19.937771,
     tracks: [
       { number: "2.0", label: "Historia Sukiennic", audio: "audio/pl/2_0_Historia_Sukiennic.mp3" },
       { number: "2.1", label: "Renesansowe Sukiennice", audio: "audio/pl/2_1_Renesansowe_Sukiennice.mp3" },
@@ -1770,8 +1772,8 @@ const POINTS = [
     id: "bazylika-mariacka",
     name: "Bazylika Mariacka",
     type: "main",
-    lat: 50.0616007,
-    lng: 19.9384358,
+    lat: 50.061601,
+    lng: 19.938436,
     tracks: [
       { number: "3.0", label: "Historia Kościoła Mariackiego", audio: "audio/pl/3_0_Historia_Kosciola_Mariackiego.mp3" },
       { number: "3.1", label: "Legenda o trębaczu", audio: "audio/pl/3_1_Legenda_o_trebaczu.mp3" },
@@ -1783,8 +1785,8 @@ const POINTS = [
     id: "plac-mariacki",
     name: "Plac Mariacki",
     type: "main",
-    lat: 50.0614285,
-    lng: 19.9395758,
+    lat: 50.061428,
+    lng: 19.939576,
     tracks: [
       { number: "4.0", label: "Plac Mariacki", audio: "audio/pl/4_0_Plac_Mariacki.mp3" },
       { number: "4.1", label: "Kuny", audio: "audio/pl/4_1_Kuny.mp3" },
@@ -1795,7 +1797,7 @@ const POINTS = [
     id: "maly-rynek",
     name: "Mały Rynek",
     type: "main",
-    lat: 50.0613155,
+    lat: 50.061315,
     lng: 19.940225,
     tracks: [
       { number: "5.0", label: "Historia Małego Rynku", audio: "audio/pl/5_0_Historia_Malego_Rynku.mp3" },
@@ -1807,8 +1809,8 @@ const POINTS = [
     id: "teatr-slowackiego",
     name: "Teatr Słowackiego",
     type: "main",
-    lat: 50.0639881,
-    lng: 19.9423106,
+    lat: 50.063988,
+    lng: 19.942311,
     tracks: [
       { number: "6.0", label: "Historia placu", audio: "audio/pl/6_0_Historia_Placu.mp3" },
       { number: "6.1", label: "Teatr Słowackiego", audio: "audio/pl/6_1_Teatr_Slowackiego.mp3" },
@@ -1820,8 +1822,8 @@ const POINTS = [
     id: "planty",
     name: "Planty",
     type: "main",
-    lat: 50.0648578,
-    lng: 19.9425207,
+    lat: 50.064858,
+    lng: 19.942521,
     tracks: [
       { number: "7.0", label: "Historia Plant", audio: "audio/pl/7_0_Historia_Plant.mp3" },
       { number: "7.1", label: "Galeria pomników", audio: "audio/pl/7_1_Galeria_Pomnikow.mp3" },
@@ -1830,17 +1832,140 @@ const POINTS = [
   },
   {
     id: "fortyfikacje",
-    name: "Średniowieczne Fortyfikacje",
+    name: "Średniowieczne fortyfikacje",
     type: "main",
-    lat: 50.0651281,
+    lat: 50.065128,
     lng: 19.941464,
     tracks: [
-      { number: "8.0", label: "Średniowieczne mury", audio: "audio/pl/8_0_Sredniowieczne_mury.mp3" }
+      { number: "8.0", label: "Średniowieczne mury", audio: "audio/pl/8_0_Sredniowieczne_Mury.mp3" },
+      { number: "8.1", label: "Brama Floriańska", audio: "audio/pl/8_1_Brama_Florianska.mp3" },
+      { number: "8.2", label: "Barbakan", audio: "audio/pl/8_2_Barbakan.mp3" },
+      { number: "8.3", label: "Marcin Oracewicz", audio: "audio/pl/8_3_Marcin_Oracewicz.mp3" },
+      { number: "8.4", label: "Cechy krakowskie", audio: "audio/pl/8_4_Cechy_krakowskie.mp3" }
     ]
+  },
+  {
+    id: "muzeum-czartoryskich",
+    name: "Muzeum Czartoryskich",
+    type: "main",
+    lat: 50.064819,
+    lng: 19.940352,
+    tracks: [
+      { number: "9.0", label: "Muzeum Czartoryskich", audio: "audio/pl/9_0_Muzeum_Czartoryskich.mp3" },
+      { number: "9.1", label: "Zaułek książąt Czartoryskich", audio: "audio/pl/9_1_Zaulek_ksiazat_Czartoryskich.mp3" }
+    ]
+  },
+  {
+    id: "wieza-ratuszowa",
+    name: "Wieża Ratuszowa",
+    type: "main",
+    lat: 50.061539,
+    lng: 19.936071,
+    tracks: [
+      { number: "10.0", label: "Wieża Ratuszowa", audio: "audio/pl/10_0_Wieza_Ratuszowa.mp3" },
+      { number: "10.1", label: "Piwnice, tortury i kat", audio: "audio/pl/10_1_Piwnice_tortury_i_kat.mp3" },
+      { number: "10.2", label: "Krwawy Burmistrz", audio: "audio/pl/10_2_Krwawy_Burmistrz.mp3" },
+      { number: "10.3", label: "Eros Bendato", audio: "audio/pl/10_3_Eros_Bendato.mp3" }
+    ]
+  },
+  {
+    id: "collegium-maius",
+    name: "Collegium Maius",
+    type: "main",
+    lat: 50.061504,
+    lng: 19.934029,
+    tracks: [
+      { number: "11.0", label: "Collegium Maius", audio: "audio/pl/11_0_Collegium_Maius.mp3" },
+      { number: "11.1", label: "Dziedziniec", audio: "audio/pl/11_1_Dziedziniec.mp3" },
+      { number: "11.2", label: "Mikołaj Kopernik", audio: "audio/pl/11_2_Mikolaj_Kopernik.mp3" },
+      { number: "11.3", label: "Dawne życie akademickie", audio: "audio/pl/11_3_Dawne_zycie_akademickie.mp3" }
+    ]
+  },
+  {
+    id: "kosciol-franciszkanow",
+    name: "Kościół Franciszkanów",
+    type: "main",
+    lat: 50.059171,
+    lng: 19.935464,
+    tracks: [
+      { number: "12", label: "Kościół Franciszkanów", audio: null }
+    ]
+  },
+  {
+    id: "paon-i-cyganeria",
+    name: "Paon i Cyganeria",
+    type: "extra",
+    lat: 50.064223,
+    lng: 19.942173,
+    tracks: [ { number: "•", label: "Paon i Cyganeria", audio: "audio/pl/dodatkowe/Paon_i_Cyganeria.mp3" } ]
+  },
+  {
+    id: "ulica-florianska",
+    name: "Ulica Floriańska",
+    type: "extra",
+    lat: 50.064799,
+    lng: 19.941336,
+    tracks: [ { number: "•", label: "Ulica Floriańska", audio: "audio/pl/dodatkowe/Ulica_Florianska.mp3" } ]
+  },
+  {
+    id: "pomnik-mickiewicza",
+    name: "Pomnik Adama Mickiewicza",
+    type: "extra",
+    lat: 50.061479,
+    lng: 19.937996,
+    tracks: [ { number: "•", label: "Pomnik Adama Mickiewicza", audio: "audio/pl/dodatkowe/Pomnik_Adama_Mickiewicza.mp3" } ]
+  },
+  {
+    id: "okno-papieskie",
+    name: "Okno Papieskie",
+    type: "extra",
+    lat: 50.059484,
+    lng: 19.93518,
+    tracks: [ { number: "•", label: "Okno Papieskie", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-wojciecha",
+    name: "Kościół św. Wojciecha",
+    type: "extra",
+    lat: 50.060903,
+    lng: 19.937711,
+    tracks: [ { number: "•", label: "Kościół św. Wojciecha", audio: null } ]
+  },
+  {
+    id: "palac-krzysztofory",
+    name: "Pałac Krzysztofory",
+    type: "extra",
+    lat: 50.062698,
+    lng: 19.93669,
+    tracks: [ { number: "•", label: "Pałac Krzysztofory", audio: null } ]
+  },
+  {
+    id: "kosciol-pijarow",
+    name: "Kościół Pijarów",
+    type: "extra",
+    lat: 50.064852,
+    lng: 19.939847,
+    tracks: [ { number: "•", label: "Kościół Pijarów", audio: null } ]
+  },
+  {
+    id: "kosciol-sw-krzyza",
+    name: "Kościół św. Krzyża",
+    type: "extra",
+    lat: 50.063378,
+    lng: 19.943006,
+    tracks: [ { number: "•", label: "Kościół św. Krzyża", audio: null } ]
+  },
+  {
+    id: "linia-a-b",
+    name: "Linia A-B",
+    type: "extra",
+    lat: 50.062483,
+    lng: 19.937501,
+    tracks: [ { number: "•", label: "Linia A-B", audio: "audio/pl/dodatkowe/Linia_A-B.mp3" } ]
   }
 ];
 
-const ROUTE_LINE = [[50.0618538, 19.9382749],  [50.0616644, 19.9377706],  [50.0616007, 19.9384358],  [50.0614313, 19.9391045],  [50.0614285, 19.9395758],  [50.061475, 19.9397089],  [50.0613155, 19.940225],  [50.0616532, 19.9404733],  [50.0617135, 19.9404586],  [50.0639968, 19.9421621],  [50.0639881, 19.9423106],  [50.0640829, 19.9422479],  [50.0645084, 19.9425617],  [50.0645506, 19.9424542],  [50.0648209, 19.94265],  [50.0648578, 19.9425207],  [50.0651281, 19.941464],  [50.0648024, 19.9413407]];
+const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061431, 19.939104],  [50.061428, 19.939576],  [50.061475, 19.939709],  [50.061315, 19.940225],  [50.061653, 19.940473],  [50.061714, 19.940459],  [50.063997, 19.942162],  [50.063988, 19.942311],  [50.064083, 19.942248],  [50.064508, 19.942562],  [50.064551, 19.942454],  [50.064821, 19.94265],  [50.064858, 19.942521],  [50.065128, 19.941464],  [50.064802, 19.941341],  [50.064878, 19.940702],  [50.064827, 19.940361],  [50.064776, 19.93978],  [50.062339, 19.937961],  [50.06267, 19.936928],  [50.061724, 19.936086],  [50.061539, 19.936071],  [50.061398, 19.935726],  [50.061358, 19.935485],  [50.061774, 19.934314],  [50.061504, 19.934029],  [50.06103, 19.933709],  [50.060631, 19.934842],  [50.060403, 19.934624],  [50.06004, 19.934393],  [50.05915, 19.93461],  [50.059169, 19.934849],  [50.059191, 19.934953],  [50.059157, 19.935154],  [50.059169, 19.935254],  [50.059171, 19.935464],  [50.059354, 19.935433],  [50.059398, 19.936049],  [50.059398, 19.936063],  [50.059388, 19.936257],  [50.059362, 19.936413],  [50.059252, 19.93667],  [50.05913, 19.936953],  [50.05908, 19.937324],  [50.059069, 19.937676],  [50.058985, 19.93788],  [50.058168, 19.937994],  [50.057382, 19.938143],  [50.057052, 19.938311],  [50.056881, 19.938209],  [50.056883, 19.937887],  [50.056809, 19.937552],  [50.056378, 19.937461],  [50.056121, 19.937363],  [50.055826, 19.937083],  [50.055476, 19.936842],  [50.055481, 19.936702],  [50.055377, 19.936643],  [50.055027, 19.934987],  [50.054938, 19.934867],  [50.054835, 19.934825],  [50.054624, 19.934866]];
 
 /* ============================================================
    MAPA
@@ -2832,9 +2957,9 @@ const ROUTE_INTRO_CONTENT = {
   'stare-miasto': {
     eyebrow: 'Trasa',
     title: 'Stare Miasto',
-    meta: '8 przystanków · ok. 1 godz. · 0,8 km',
-    desc: 'Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką i Mały Rynek, aż po Planty i średniowieczne mury. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.',
-    highlights: ['Rynek Główny i Sukiennice', 'Bazylika Mariacka i hejnał', 'Teatr Słowackiego', 'Planty i mury miejskie']
+    meta: '12 przystanków · ok. 2 godz. · 2,9 km',
+    desc: 'Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.',
+    highlights: ['Rynek Główny i Sukiennice', 'Bazylika Mariacka i hejnał', 'Barbakan i Brama Floriańska', 'Wieża Ratuszowa i Collegium Maius']
   }
 };
 const routeIntroEl = document.getElementById('route-intro-screen');
