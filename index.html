@@ -2127,6 +2127,25 @@ POINTS.forEach(p => {
 });
 map.addLayer(pointCluster);
 
+// Stuknięcia w punkty, które "nie łapały": gdy palec trafi w punkt, ale telefon uzna, że puszczenie
+// palca było nad czymś innym (sąsiedni punkt, linia trasy, mapa pod spodem), przeglądarka wysyła
+// kliknięcie do wspólnego "rodzica" zamiast do punktu i nic się nie działo, dopóki mapa się nie ruszyła.
+// Tu takie zgubione kliknięcie przekazujemy najbliższemu punktowi (lub bąbelkowi) w promieniu palca.
+map.getContainer().addEventListener('click', e => {
+  if (!e.isTrusted || e.target.closest('.leaflet-marker-icon')) return;
+  if (!e.target.closest('.leaflet-map-pane') && e.target !== map.getContainer()) return;
+  let best = null, bestD = 30;
+  document.querySelectorAll('.leaflet-marker-pane .leaflet-marker-icon.leaflet-interactive').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+    if (d < bestD) { bestD = d; best = el; }
+  });
+  if (!best) return;
+  e.stopPropagation();
+  best.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
+}, true);
+
 // stuknięcie w pustą mapę przy rozwiniętym panelu = zwija panel (tło panelu już nie blokuje dotyku, patrz CSS)
 map.on('click', () => {
   if (sheet.classList.contains('open') && !sheetPeek) setSheetPeek(true);
@@ -2405,7 +2424,12 @@ async function requestWalkingRoute(userLatLng, force) {
     try {
       const result = await fetchWalkingRouteFrom(base, userLatLng, target);
       if (seq !== routeRequestSeq) return; // w międzyczasie ruszyło nowsze liczenie — ono zajmie się resztą
-      drawGuideLine(result.coords);
+      // serwer kończy trasę na najbliższej ulicy/chodniku, a nie na samym punkcie (np. środek Rynku) —
+      // dorysowujemy brakujący kawałek, żeby linia zaczynała się przy Tobie i kończyła dokładnie na pinezce celu
+      const coords = result.coords.slice();
+      if (!coords.length || distMeters(coords[0], userLatLng) > 1) coords.unshift(userLatLng);
+      if (distMeters(coords[coords.length - 1], target) > 1) coords.push(target);
+      drawGuideLine(coords);
       if (navTopDistance) navTopDistance.textContent = formatNavDistance(result.distance);
       if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration) + ' · ' + targetName;
       success = true;
@@ -2537,7 +2561,13 @@ function showNavTargetMarker() {
     interactive: true,
     zIndexOffset: 2500
   }).addTo(map);
-  navTargetMarker.on('click', flyToNavTarget); // kliknięcie w pinezkę = kamera leci nad cel
+  // pinezka celu stoi dokładnie na punkcie i zasłania go palcowi — stuknięcie w nią otwiera ten punkt
+  // (jak stuknięcie w sam punkt), a gdy cel nie jest punktem trasy, kamera po prostu leci nad cel
+  navTargetMarker.on('click', () => {
+    const p = navTargetPointRef;
+    if (p && markersById[p.id]) { sfx.play('point'); openSheet(p); }
+    else flyToNavTarget();
+  });
 }
 function hideNavTargetMarker() {
   if (navTargetMarker) { map.removeLayer(navTargetMarker); navTargetMarker = null; }
