@@ -808,11 +808,11 @@
 
   #track-list {
     display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;
-    min-height: 96px; max-height: 138px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    min-height: 96px; max-height: var(--track-list-h, 168px); overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   }
   #track-list.scrollable {
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), rgba(0,0,0,0.35) 100%);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), rgba(0,0,0,0.35) 100%);
   }
   .track-row {
     display: flex; align-items: center; gap: 12px;
@@ -3252,6 +3252,9 @@ function renderTrackList() {
   });
   // pokazujemy delikatny cień u dołu TYLKO jeśli lista faktycznie jest dłuższa niż widoczny obszar (jest co przewijać)
   requestAnimationFrame(() => {
+    // lista pokazuje dokładnie 3,5 nagrania — połówka czwartego od razu podpowiada, że jest ich więcej i można przewijać
+    const row = trackListEl.querySelector('.track-row');
+    if (row) trackListEl.style.setProperty('--track-list-h', Math.round(row.offsetHeight * 3.5 + 5 * 3) + 'px');
     trackListEl.classList.toggle('scrollable', trackListEl.scrollHeight > trackListEl.clientHeight + 2);
     const active = trackListEl.querySelector('.track-row.active');
     if (active) active.scrollIntoView({ block: 'nearest' });
