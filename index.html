@@ -2624,6 +2624,7 @@ function hideNavTargetMarker() {
   if (navTargetMarker) { map.removeLayer(navTargetMarker); navTargetMarker = null; }
 }
 
+const NAV_START_ZOOM = 18;
 function startNavigation(targetPoint) {
   // targetPoint opcjonalny — domyślnie punkt startowy trasy (wywołanie automatyczne po wyborze trasy)
   if (targetPoint) {
@@ -2647,10 +2648,9 @@ function startNavigation(targetPoint) {
       // samochodowej/pieszej Google Maps; dopasowanie obu punktów naraz zepsułoby ten efekt
       follow3D(true);
     } else {
-      // oddalamy kamerę, żeby zmieściła i Twoją lokalizację, i cel nawigacji naraz — jak w Google Maps,
-      // niezależnie czy cel to start trasy, czy dowolny punkt wybrany przez "Prowadź mnie tutaj"
-      const bounds = L.latLngBounds([[gll.lat, gll.lng], navTargetLatLng]);
-      map.flyToBounds(bounds, { padding: [70, 90], maxZoom: 17, duration: 1.2 });
+      // jak w Google Maps: kamera leci blisko do Ciebie (nie oddala się, żeby zmieścić cel) —
+      // niebieska linia prowadzi dalej w stronę celu, a ikonka u góry pozwala podejrzeć cel
+      map.flyTo([gll.lat, gll.lng], Math.max(map.getZoom(), NAV_START_ZOOM), { duration: 1.2 });
     }
   } else {
     // brak jeszcze pozycji GPS — przynajmniej pokazujemy sam cel
