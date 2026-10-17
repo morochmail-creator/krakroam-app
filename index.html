@@ -1434,10 +1434,10 @@ const TRANSLATIONS = {
   },
   ua: {
     menuTitle: "Що досліджуємо сьогодні?",
-    stareMiastoTitle: "Stare Miasto – Старе Місто",
+    stareMiastoTitle: "Старе Місто",
     stareMiastoDesc: "Прогулянка середньовічним містом — Ринкова площа, костел Маріацький і околиці",
-    kazimierzTitle: "Kazimierz – Казімєж",
-    podgorzeTitle: "Podgórze – Подґуже",
+    kazimierzTitle: "Казімєж",
+    podgorzeTitle: "Подґуже",
     comingSoon: "Незабаром",
     freeRoamTitle: "Огляд без маршруту",
     freeRoamDesc: "Обирайте точки самі, у будь-якому порядку",
@@ -1504,7 +1504,7 @@ const TRANSLATIONS = {
   },
   en: {
     menuTitle: "Where are we exploring today?",
-    stareMiastoTitle: "Stare Miasto – Old Town",
+    stareMiastoTitle: "Old Town",
     stareMiastoDesc: "A walk through the medieval city — Main Square, St. Mary's and around",
     kazimierzTitle: "Kazimierz",
     podgorzeTitle: "Podgórze",
@@ -1574,7 +1574,7 @@ const TRANSLATIONS = {
   },
   de: {
     menuTitle: "Was erkunden wir heute?",
-    stareMiastoTitle: "Stare Miasto – Altstadt",
+    stareMiastoTitle: "Altstadt",
     stareMiastoDesc: "Ein Spaziergang durch die mittelalterliche Stadt — Marktplatz, Marienkirche und Umgebung",
     kazimierzTitle: "Kazimierz",
     podgorzeTitle: "Podgórze",
@@ -1644,7 +1644,7 @@ const TRANSLATIONS = {
   },
   es: {
     menuTitle: "¿Qué visitamos hoy?",
-    stareMiastoTitle: "Stare Miasto – Casco Antiguo",
+    stareMiastoTitle: "Casco Antiguo",
     stareMiastoDesc: "Un paseo por la ciudad medieval — Plaza del Mercado, Santa María y alrededores",
     kazimierzTitle: "Kazimierz",
     podgorzeTitle: "Podgórze",
@@ -1723,33 +1723,33 @@ function t(key) {
 /* ============================================================
    TŁUMACZENIA NAZW ZABYTKÓW I NAGRAŃ
    Klucz = polska nazwa dokładnie tak, jak w POINTS (pole "name" albo "label").
-   PLACE_NAMES — nazwy własne: w innym języku pokazujemy "oryginał – tłumaczenie",
-     np. "Sukiennice – the Cloth Hall".
+   PLACE_NAMES — nazwy własne: w innym języku pokazujemy samo tłumaczenie (bez polskiej nazwy),
+     np. "The Cloth Hall".
    TITLE_TR — tytuły opisowe (np. "Historia Sukiennic"): pokazujemy samo tłumaczenie.
    Czego tu nie ma (np. "Collegium Maius", "Ludwik Solski"), zostaje bez zmian.
    Nowy punkt/nagranie = dopisz tu jego nazwę, inaczej zostanie po polsku.
 ============================================================ */
 const PLACE_NAMES = {
   "Rynek Główny":              { ua: "Головна ринкова площа", en: "Main Market Square", de: "Hauptmarkt", es: "Plaza del Mercado" },
-  "Sukiennice":                { ua: "Суконні ряди", en: "the Cloth Hall", de: "Tuchhallen", es: "la Lonja de los Paños" },
+  "Sukiennice":                { ua: "Суконні ряди", en: "The Cloth Hall", de: "Tuchhallen", es: "La Lonja de los Paños" },
   "Bazylika Mariacka":         { ua: "Маріацька базиліка", en: "St. Mary's Basilica", de: "Marienkirche", es: "Basílica de Santa María" },
   "Plac Mariacki":             { ua: "Маріацька площа", en: "St. Mary's Square", de: "Marienplatz", es: "Plaza de Santa María" },
   "Mały Rynek":                { ua: "Малий ринок", en: "Small Market Square", de: "Kleiner Markt", es: "Plaza Pequeña del Mercado" },
   "Teatr Słowackiego":         { ua: "Театр імені Словацького", en: "Słowacki Theatre", de: "Słowacki-Theater", es: "Teatro Słowacki" },
   "Planty":                    { ua: "парк Планти", en: "Planty Park", de: "Planty-Park", es: "Parque Planty" },
   "Brama Floriańska":          { ua: "Флоріанська брама", en: "St. Florian's Gate", de: "Floriantor", es: "Puerta de San Florián" },
-  "Barbakan":                  { ua: "Барбакан", en: "the Barbican", de: "Barbakane", es: "la Barbacana" },
+  "Barbakan":                  { ua: "Барбакан", en: "The Barbican", de: "Barbakane", es: "La Barbacana" },
   "Muzeum Czartoryskich":      { ua: "Музей Чарторийських", en: "Czartoryski Museum", de: "Czartoryski-Museum", es: "Museo Czartoryski" },
   "Wieża Ratuszowa":           { ua: "Ратушна вежа", en: "Town Hall Tower", de: "Rathausturm", es: "Torre del Ayuntamiento" },
   "Kościół Franciszkanów":     { ua: "Францисканський костел", en: "Franciscan Church", de: "Franziskanerkirche", es: "Iglesia de los Franciscanos" },
   "Ulica Floriańska":          { ua: "вулиця Флоріанська", en: "Floriańska Street", de: "Floriansgasse", es: "Calle Floriańska" },
   "Pomnik Adama Mickiewicza":  { ua: "Пам'ятник Адамові Міцкевичу", en: "Adam Mickiewicz Monument", de: "Adam-Mickiewicz-Denkmal", es: "Monumento a Adam Mickiewicz" },
-  "Okno Papieskie":            { ua: "Папське вікно", en: "the Papal Window", de: "Papstfenster", es: "la Ventana Papal" },
+  "Okno Papieskie":            { ua: "Папське вікно", en: "The Papal Window", de: "Papstfenster", es: "La Ventana Papal" },
   "Kościół św. Wojciecha":     { ua: "Костел святого Войцеха", en: "St. Adalbert's Church", de: "St.-Adalbert-Kirche", es: "Iglesia de San Adalberto" },
   "Pałac Krzysztofory":        { ua: "Палац Кшиштофори", en: "Krzysztofory Palace", de: "Palais Krzysztofory", es: "Palacio Krzysztofory" },
   "Kościół Pijarów":           { ua: "Костел піарів", en: "Piarist Church", de: "Piaristenkirche", es: "Iglesia de los Escolapios" },
   "Kościół św. Krzyża":        { ua: "Костел Святого Хреста", en: "Holy Cross Church", de: "Heilig-Kreuz-Kirche", es: "Iglesia de la Santa Cruz" },
-  "Linia A-B":                 { ua: "Лінія A-B", en: "the A-B Line", de: "A-B-Linie", es: "la Línea A-B" }
+  "Linia A-B":                 { ua: "Лінія A-B", en: "The A-B Line", de: "A-B-Linie", es: "La Línea A-B" }
 };
 const TITLE_TR = {
   "Średniowieczne fortyfikacje":  { ua: "Середньовічні укріплення", en: "Medieval Fortifications", de: "Mittelalterliche Befestigungen", es: "Fortificaciones medievales" },
@@ -1764,8 +1764,8 @@ const TITLE_TR = {
   "Legenda o trębaczu":           { ua: "Легенда про сурмача", en: "The Legend of the Trumpeter", de: "Die Legende vom Trompeter", es: "La leyenda del trompetista" },
   "Wnętrze Kościoła":             { ua: "Усередині костелу", en: "Inside the Church", de: "Das Innere der Kirche", es: "El interior de la iglesia" },
   "Ołtarz Wita Stwosza":          { ua: "Вівтар Віта Ствоша", en: "The Veit Stoss Altarpiece", de: "Der Veit-Stoß-Altar", es: "El retablo de Veit Stoss" },
-  "Kuny":                         { ua: "Куна — залізний нашийник", en: "The Kuna – an Iron Collar", de: "Die Kuna – das Halseisen", es: "La kuna – la argolla de hierro" },
-  "Żak":                          { ua: "Жак — фонтан студента", en: "Żak – the Student Fountain", de: "Żak – der Studentenbrunnen", es: "Żak – la fuente del estudiante" },
+  "Kuny":                         { ua: "Куна — залізний нашийник", en: "The Kuna, an Iron Collar", de: "Die Kuna, das Halseisen", es: "La kuna, la argolla de hierro" },
+  "Żak":                          { ua: "Фонтан студента", en: "The Student Fountain", de: "Der Studentenbrunnen", es: "La fuente del estudiante" },
   "Historia Małego Rynku":        { ua: "Історія Малого ринку", en: "History of the Small Market Square", de: "Geschichte des Kleinen Marktes", es: "Historia de la Plaza Pequeña" },
   "Pierwsza polska gazeta":       { ua: "Перша польська газета", en: "The First Polish Newspaper", de: "Die erste polnische Zeitung", es: "El primer periódico polaco" },
   "Mały Rynek dzisiaj":           { ua: "Малий ринок сьогодні", en: "The Small Market Square Today", de: "Der Kleine Markt heute", es: "La Plaza Pequeña hoy" },
@@ -1788,7 +1788,7 @@ const TITLE_TR = {
 function trName(plName) {
   if (!plName || currentLang === 'pl') return plName;
   const place = PLACE_NAMES[plName];
-  if (place && place[currentLang]) return `${plName} – ${place[currentLang]}`;
+  if (place && place[currentLang]) return place[currentLang];
   const title = TITLE_TR[plName];
   if (title && title[currentLang]) return title[currentLang];
   return plName;
@@ -3116,22 +3116,22 @@ const ROUTE_INTRO_CONTENT = {
     ua: {
       meta: '12 зупинок · бл. 2 год · 2,9 км',
       desc: 'Прогулянка серцем середньовічного Кракова — від Головної ринкової площі, через Маріацьку базиліку, парк Планти й середньовічні мури, аж до Collegium Maius і Францисканського костелу. Ти йдеш у своєму темпі, а гід озветься сам, коли підійдеш до наступного місця.',
-      highlights: ['Rynek Główny – Головна ринкова площа і Sukiennice – Суконні ряди', 'Bazylika Mariacka – Маріацька базиліка і гейнал', 'Barbakan – Барбакан і Brama Floriańska – Флоріанська брама', 'Wieża Ratuszowa – Ратушна вежа і Collegium Maius']
+      highlights: ['Головна ринкова площа і Суконні ряди', 'Маріацька базиліка і гейнал', 'Барбакан і Флоріанська брама', 'Ратушна вежа і Collegium Maius']
     },
     en: {
       meta: '12 stops · approx. 2 hrs · 2.9 km',
       desc: "A walk through the heart of medieval Kraków — from the Main Market Square, past St. Mary's Basilica, the Planty Park and the medieval walls, all the way to Collegium Maius and the Franciscan Church. Go at your own pace: the guide speaks up by itself when you reach the next place.",
-      highlights: ['Rynek Główny – Main Market Square and Sukiennice – the Cloth Hall', "Bazylika Mariacka – St. Mary's Basilica and the bugle call", "Barbakan – the Barbican and Brama Floriańska – St. Florian's Gate", 'Wieża Ratuszowa – Town Hall Tower and Collegium Maius']
+      highlights: ['Main Market Square and the Cloth Hall', "St. Mary's Basilica and the bugle call", "The Barbican and St. Florian's Gate", 'Town Hall Tower and Collegium Maius']
     },
     de: {
       meta: '12 Stationen · ca. 2 Std. · 2,9 km',
       desc: 'Ein Spaziergang durch das Herz des mittelalterlichen Krakau — vom Hauptmarkt über die Marienkirche, den Planty-Park und die mittelalterlichen Mauern bis zum Collegium Maius und zur Franziskanerkirche. Du gehst in deinem Tempo, und der Guide meldet sich von selbst, wenn du den nächsten Ort erreichst.',
-      highlights: ['Rynek Główny – Hauptmarkt und Sukiennice – Tuchhallen', 'Bazylika Mariacka – Marienkirche und das Turmsignal', 'Barbakan – Barbakane und Brama Floriańska – Floriantor', 'Wieża Ratuszowa – Rathausturm und Collegium Maius']
+      highlights: ['Hauptmarkt und Tuchhallen', 'Marienkirche und das Turmsignal', 'Barbakane und Floriantor', 'Rathausturm und Collegium Maius']
     },
     es: {
       meta: '12 paradas · aprox. 2 h · 2,9 km',
       desc: 'Un paseo por el corazón de la Cracovia medieval — desde la Plaza del Mercado, pasando por la Basílica de Santa María, el Parque Planty y las murallas medievales, hasta el Collegium Maius y la Iglesia de los Franciscanos. Vas a tu ritmo y la guía habla sola cuando llegas al siguiente lugar.',
-      highlights: ['Rynek Główny – Plaza del Mercado y Sukiennice – la Lonja de los Paños', 'Bazylika Mariacka – Basílica de Santa María y el toque de trompeta', 'Barbakan – la Barbacana y Brama Floriańska – Puerta de San Florián', 'Wieża Ratuszowa – Torre del Ayuntamiento y Collegium Maius']
+      highlights: ['Plaza del Mercado y la Lonja de los Paños', 'Basílica de Santa María y el toque de trompeta', 'La Barbacana y la Puerta de San Florián', 'Torre del Ayuntamiento y Collegium Maius']
     }
   }
 };
