@@ -413,7 +413,10 @@
     position: absolute; top: 0; left: 0; right: 0; z-index: 10;
     display: flex; align-items: center; justify-content: flex-end;
     padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 16px;
+    /* pasek jest na całą szerokość, ale pusty — nie może łapać stuknięć, bo punkty pod nim "nie reagowały" */
+    pointer-events: none;
   }
+  #btn-stack { pointer-events: auto; }
 
   /* ---------- Pasek nawigacji (na górze, niezależny od panelu audio na dole) ---------- */
   #nav-top-bar {
