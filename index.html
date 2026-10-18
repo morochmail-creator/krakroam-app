@@ -769,7 +769,7 @@
     display: none; align-items: center; gap: 8px; position: relative;
     min-height: 54px;
     padding: 4px 2px 12px; color: var(--ink); font-size: 14.5px; font-weight: 700;
-    cursor: pointer;
+    cursor: pointer; touch-action: none;
   }
   #sheet.peek #sheet-peek-bar { display: flex; }
   #peek-play-btn {
@@ -3515,20 +3515,66 @@ function updatePeekLabel() {
   document.getElementById('sheet-peek-label').textContent = track ? trackLabel(track) : pointName(pp);
   document.getElementById('sheet-peek-sub').textContent = pointName(pp);
 }
-document.getElementById('sheet-peek-bar').addEventListener('click', () => { sfx.play('menuUp'); setSheetPeek(false); });
+document.getElementById('sheet-peek-bar').addEventListener('click', () => { if (sheetDragMoved) return; sfx.play('menuUp'); setSheetPeek(false); });
 
-// uchwyt na górze panelu: przeciągnięcie w dół zwija, w górę rozwija, stuknięcie przełącza
+// uchwyt i zwinięty pasek: panel idzie za palcem (przeciągnięcie w górę rozwija, w dół zwija), samo stuknięcie przełącza
+let sheetDragMoved = false;
 (function () {
   const grab = document.getElementById('sheet-grab');
-  let startY = null;
-  grab.addEventListener('pointerdown', e => { startY = e.clientY; try { grab.setPointerCapture(e.pointerId); } catch (_) {} });
-  grab.addEventListener('pointercancel', () => { startY = null; });
-  grab.addEventListener('pointerup', e => {
+  const peekBar = document.getElementById('sheet-peek-bar');
+  let startY = null, startT = 0, wasPeek = false, lastDy = 0;
+  const BASE_T = 'transform 0.3s cubic-bezier(.32,.72,0,1)';
+  function snapTo(offsetPx) { // animuje panel od przesunięcia offsetPx do jego miejsca
+    sheet.style.transition = 'none';
+    sheet.style.transform = 'translateY(' + offsetPx + 'px)';
+    void sheet.offsetHeight;
+    sheet.style.transition = '';
+    sheet.style.transform = '';
+  }
+  function down(e) {
+    if (e.target.closest('button') && e.currentTarget === peekBar) return; // przyciski paska działają jak dotąd
+    startY = e.clientY; startT = Date.now(); wasPeek = sheetPeek; lastDy = 0; sheetDragMoved = false;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+  function move(e) {
     if (startY === null) return;
-    const dy = e.clientY - startY; startY = null;
-    if (dy > 24 && !sheetPeek) { sfx.play('menuDown'); setSheetPeek(true); }
-    else if (dy < -24 && sheetPeek) { sfx.play('menuUp'); setSheetPeek(false); }
-    else if (Math.abs(dy) < 8) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); setSheetPeek(!sheetPeek); }
+    const dy = e.clientY - startY;
+    if (Math.abs(dy) > 6) sheetDragMoved = true;
+    if (!sheetDragMoved) return;
+    // zwinięty: tylko w górę (do 70 px), rozwinięty: tylko w dół — panel jedzie razem z palcem
+    lastDy = wasPeek ? Math.max(-70, Math.min(0, dy)) : Math.max(0, dy);
+    sheet.style.transition = 'none';
+    sheet.style.transform = 'translateY(' + lastDy + 'px)';
+  }
+  function up(e) {
+    if (startY === null) return;
+    const dy = e.clientY - startY, fast = Math.abs(dy) / Math.max(1, Date.now() - startT) > 0.5;
+    startY = null;
+    if (!sheetDragMoved) {
+      if (e.currentTarget === grab) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); setSheetPeek(!sheetPeek); }
+      return;
+    }
+    const moved = lastDy;
+    if (wasPeek && dy < -(fast ? 14 : 36)) {
+      const h1 = sheet.offsetHeight;
+      sfx.play('menuUp'); setSheetPeek(false);
+      snapTo(sheet.offsetHeight - h1 + moved); // rozwinięty panel wyjeżdża z miejsca, w którym był palec
+    } else if (!wasPeek && dy > (fast ? 14 : 60)) {
+      const h1 = sheet.offsetHeight;
+      sfx.play('menuDown'); setSheetPeek(true);
+      snapTo(moved - (h1 - sheet.offsetHeight));
+    } else {
+      sheet.style.transition = BASE_T; sheet.style.transform = ''; // za krótkie przeciągnięcie: wraca na miejsce
+      setTimeout(() => { sheet.style.transition = ''; }, 320);
+    }
+    setTimeout(() => { sheetDragMoved = false; }, 0);
+  }
+  function cancel() { if (startY === null) return; startY = null; sheet.style.transition = ''; sheet.style.transform = ''; }
+  [grab, peekBar].forEach(el => {
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', cancel);
   });
 })();
 
