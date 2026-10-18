@@ -659,6 +659,18 @@
     border: 2.5px solid #fff;
     box-shadow: 0 0 0 1.5px #14110d, 0 2px 8px rgba(0,0,0,0.55);
   }
+  /* punkt, którego nagranie jest wczytane (.marker-current) lub właśnie gra (.marker-playing, pulsuje) */
+  .marker-main.marker-current, .marker-extra.marker-current {
+    box-shadow: 0 0 0 2px #14110d, 0 0 0 6px #6ee7a8, 0 4px 12px rgba(0,0,0,0.6);
+  }
+  .marker-main.marker-playing, .marker-extra.marker-playing {
+    animation: marker-pulse 1.5s ease-out infinite;
+  }
+  @keyframes marker-pulse {
+    0%   { box-shadow: 0 0 0 2px #14110d, 0 0 0 6px #6ee7a8, 0 0 0 6px rgba(110,231,168,0.6), 0 4px 12px rgba(0,0,0,0.6); }
+    100% { box-shadow: 0 0 0 2px #14110d, 0 0 0 6px #6ee7a8, 0 0 0 20px rgba(110,231,168,0), 0 4px 12px rgba(0,0,0,0.6); }
+  }
+  @media (prefers-reduced-motion: reduce) { .marker-playing { animation: none !important; } }
   .gps-wrap {
     position: relative;
     width: 90px; height: 90px;
@@ -2510,6 +2522,15 @@ const startPoint = POINTS.find(p => p.type === 'main') || POINTS[0];
 // kolejność i tak pokazuje niebieska linia prowadząca, a numer na pinie wyglądał identycznie
 // jak liczba na bąbelku klastra (ile punktów się zgrupowało), co było mylące. Kolejność jest
 // za to widoczna w liście tracków w panelu punktu (tr-num), gdzie nie koliduje z niczym.
+// który punkt ma teraz zaznaczone nagranie i czy gra (ustawia updatePlayingMarker, niżej przy odtwarzaczu)
+let playingPointId = null, playingActive = false;
+function applyMarkerState(id) {
+  const m = markersById[id];
+  const dot = m && m.getElement && m.getElement() && m.getElement().querySelector('.marker-main, .marker-extra');
+  if (!dot) return; // punkt jest akurat schowany w bąbelku grupy — zaznaczy się, gdy się pokaże (zdarzenie 'add')
+  dot.classList.toggle('marker-current', id === playingPointId);
+  dot.classList.toggle('marker-playing', id === playingPointId && playingActive);
+}
 POINTS.forEach(p => {
   const className = p.type === 'main' ? 'marker-main' : 'marker-extra';
   const icon = makeDivIcon(className);
@@ -2521,6 +2542,7 @@ POINTS.forEach(p => {
   });
 
   markersById[p.id] = marker;
+  marker.on('add', () => applyMarkerState(p.id));
   pointCluster.addLayer(marker);
 });
 map.addLayer(pointCluster);
@@ -3517,6 +3539,7 @@ function loadTrack(autoplay) {
   loadedPoint = currentPoint;
   loadedTrackIndex = currentTrackIndex;
   audioEl.pause();
+  updatePlayingMarker();
   setPlayIcon(false);
   updateProgressUI(0);
   timeCurrent.textContent = '0:00';
@@ -3602,6 +3625,15 @@ audioEl.addEventListener('loadedmetadata', () => {
   timeTotal.textContent = fmtTime(audioEl.duration);
 });
 audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); });
+// punkt z wczytanym nagraniem jest na mapie zaznaczony zielonym pierścieniem, a gdy gra — pulsuje
+function updatePlayingMarker() {
+  const prev = playingPointId;
+  playingPointId = loadedPoint && markersById[loadedPoint.id] ? loadedPoint.id : null;
+  playingActive = !!playingPointId && !audioEl.paused && !audioEl.ended;
+  if (prev && prev !== playingPointId) applyMarkerState(prev);
+  if (playingPointId) applyMarkerState(playingPointId);
+}
+['play', 'pause', 'ended', 'emptied', 'loadstart'].forEach(ev => audioEl.addEventListener(ev, updatePlayingMarker));
 // ikona zawsze zgodna z prawdziwym stanem (także przy sterowaniu z słuchawek / ekranu blokady)
 audioEl.addEventListener('play', () => setPlayIcon(true));
 audioEl.addEventListener('pause', () => setPlayIcon(false));
