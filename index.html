@@ -891,7 +891,7 @@
   #player.no-audio #speed-toggle, #player.no-audio #vol-btn { opacity: 0.4; pointer-events: none; }
   /* wiersz: [głośnik] 0:00 ——pasek—— 1:09 [prędkość] */
   #seek-row { display: flex; align-items: center; gap: 8px; }
-  #progress-wrap { flex: 1; min-width: 0; padding: 12px 0; margin: -12px 0; cursor: pointer; touch-action: none; }
+  #progress-wrap { flex: 1; min-width: 0; padding: 18px 0; margin: -18px 0; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   #progress-track { height: 5px; background: var(--line); border-radius: 3px; position: relative; }
   #progress-fill { height: 100%; width: 0%; background: var(--brass-deep); border-radius: 3px; }
   #progress-thumb {
@@ -3738,6 +3738,8 @@ function loadTrack(autoplay) {
   if (src) {
     noAudioNote.style.display = 'none';
     audioEl.src = src;
+    pendingSeek = null;
+    estimateDuration(src);
     applyPlaybackRate();
     if (autoplay === true) togglePlayPause();
   } else {
@@ -3764,10 +3766,23 @@ function fmtTime(s) {
 }
 
 // po lewej ile minęło, po prawej ile zostało (maleje)
-function showTimes(cur) {
-  timeCurrent.textContent = fmtTime(cur);
+let estDuration = 0;   // szacunek długości z rozmiaru pliku, dopóki telefon nie poda prawdziwej
+let pendingSeek = null; // przewinięcie zrobione, zanim nagranie się wczytało (ułamek 0..1)
+function trackDuration() {
   const d = audioEl.duration;
-  timeTotal.textContent = isFinite(d) ? '-' + fmtTime(Math.max(0, d - cur)) : '0:00';
+  return (isFinite(d) && d > 0) ? d : estDuration;
+}
+function showTimes(cur) {
+  const d = trackDuration();
+  timeCurrent.textContent = fmtTime(cur);
+  timeTotal.textContent = d ? '-' + fmtTime(Math.max(0, d - cur)) : '0:00';
+}
+function estimateDuration(src) {
+  estDuration = 0;
+  fetch(src, { method: 'HEAD' }).then(r => {
+    const len = +r.headers.get('content-length');
+    if (len && audioEl.getAttribute('src') === src && !(audioEl.duration > 0)) { estDuration = len * 8 / 64000; showTimes(audioEl.currentTime); }
+  }).catch(() => {});
 }
 
 function setPlayIcon(isPlaying) {
@@ -3817,7 +3832,14 @@ audioEl.addEventListener('timeupdate', () => {
   updateProgressUI((audioEl.currentTime / audioEl.duration) * 100);
   showTimes(audioEl.currentTime);
 });
-audioEl.addEventListener('loadedmetadata', () => showTimes(audioEl.currentTime));
+function applyPendingSeek() {
+  if (pendingSeek !== null && audioEl.readyState >= 1 && audioEl.duration > 0) {
+    const p = pendingSeek; pendingSeek = null;
+    audioEl.currentTime = p * audioEl.duration;
+  }
+}
+audioEl.addEventListener('loadedmetadata', () => { applyPendingSeek(); showTimes(audioEl.currentTime); });
+audioEl.addEventListener('canplay', applyPendingSeek);
 audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); });
 // punkt z wczytanym nagraniem jest na mapie zaznaczony zielonym pierścieniem, a gdy gra — pulsuje
 function updatePlayingMarker() {
@@ -3841,21 +3863,27 @@ function seekPct(e, el) {
   return Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
 }
 function attachSeek(el, trackEl) {
+  let lastPct = null;
   const show = e => {
     const pct = seekPct(e, trackEl);
+    lastPct = pct;
     updateProgressUI(pct * 100);
-    showTimes(pct * audioEl.duration);
+    showTimes(pct * trackDuration());
     return pct;
   };
   const finish = (e, commit) => {
     if (!seeking) return;
     seeking = false;
     try { el.releasePointerCapture(e.pointerId); } catch (_) {}
-    if (commit && audioEl.duration) audioEl.currentTime = seekPct(e, trackEl) * audioEl.duration;
-    else showTimes(audioEl.currentTime); // przerwane przez system — wracamy do prawdziwej pozycji, pasek nie zostaje zamrożony
+    // przerwanie przez system (np. iPhone) nie cofa przewinięcia — przyjmujemy ostatnie miejsce palca
+    const pct = commit ? seekPct(e, trackEl) : lastPct;
+    if (pct === null || !trackDuration()) { showTimes(audioEl.currentTime); return; }
+    if (audioEl.readyState >= 1 && audioEl.duration > 0) audioEl.currentTime = pct * audioEl.duration;
+    else { pendingSeek = pct; showTimes(pct * trackDuration()); try { audioEl.load(); } catch (_) {} }
   };
   el.addEventListener('pointerdown', e => {
-    if (!audioEl.duration) return;
+    if (!trackDuration()) return;
+    lastPct = null;
     seeking = true;
     try { el.setPointerCapture(e.pointerId); } catch (_) {}
     show(e);
