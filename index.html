@@ -2960,7 +2960,7 @@ function showArrivalToast(point) {
   toast.classList.remove('hidden');
   toast.onclick = () => {
     if (point) {
-      openSheet(point);
+      openSheet(point, { force: true }); // tu user sam wybrał to nagranie — zastępuje to, co grało
       togglePlayPause();
     }
     hideArrivalToast();
@@ -3079,12 +3079,12 @@ function selectDistrict(freeRoam, options) {
     // trasa wybrana — od razu pokazujemy panel z nawigacją do startu + tracki wprowadzające,
     // żeby nikt nie musiał niczego szukać na mapie (to był realny problem testerów)
     INTRO_POINT.nameKey = 'introTitleRoute';
-    openSheet(INTRO_POINT);
+    openSheet(INTRO_POINT, { force: true });
     startNavigation(startPoint); // pasek nawigacji na górze odpala się automatycznie razem z panelem audio
   } else {
     // tryb swobodny — też pokazujemy panel wprowadzający, ale z inną nazwą (bez konkretnego "startu")
     INTRO_POINT.nameKey = 'introTitleFreeRoam';
-    openSheet(INTRO_POINT);
+    openSheet(INTRO_POINT, { force: true });
   }
 
   if (skipCameraMove) return; // zamknięcie przez X/tło — nie ruszamy kamerą, zostawiamy widok jak był
@@ -3266,8 +3266,12 @@ const noAudioNote = document.getElementById('no-audio-note');
 const playerEl = document.getElementById('player');
 const trackListEl = document.getElementById('track-list');
 
-let currentPoint = null;
+let currentPoint = null;      // punkt, który user ogląda w panelu
 let currentTrackIndex = 0;
+// punkt i nagranie, które są naprawdę wczytane do odtwarzacza — mogą być inne niż oglądane w panelu:
+// gdy leci audio z punktu X, a user otwiera panel punktu Y, audio z X gra dalej, dopóki user sam nie włączy nagrania z Y
+let loadedPoint = null;
+let loadedTrackIndex = 0;
 
 let sheetPeek = false;
 function setSheetPeek(state) {
@@ -3323,9 +3327,11 @@ photoViewer.addEventListener('click', () => { sfx.play('menuDown'); photoViewer.
 function updatePeekLabel() {
   if (!currentPoint) return;
   updateTrackPhoto();
-  const track = currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
-  document.getElementById('sheet-peek-label').textContent = track ? trackLabel(track) : pointName(currentPoint);
-  document.getElementById('sheet-peek-sub').textContent = pointName(currentPoint);
+  // zwinięty pasek to odtwarzacz, więc pokazuje to, co faktycznie jest wczytane (a nie punkt tylko oglądany w panelu)
+  const pp = loadedPoint || currentPoint, ti = loadedPoint ? loadedTrackIndex : currentTrackIndex;
+  const track = pp.tracks && pp.tracks[ti];
+  document.getElementById('sheet-peek-label').textContent = track ? trackLabel(track) : pointName(pp);
+  document.getElementById('sheet-peek-sub').textContent = pointName(pp);
 }
 document.getElementById('sheet-peek-bar').addEventListener('click', () => { sfx.play('menuUp'); setSheetPeek(false); });
 
@@ -3361,15 +3367,16 @@ function flyToPointBehindSheet(point) {
   map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
 }
 
-function openSheet(point) {
+function openSheet(point, opts) {
   // jeśli menu dzielnic jest w stanie zwiniętym (peek) — chowamy je całkiem, żeby nie kolidowało z tym panelem
   const dm = document.getElementById('district-menu');
   if (dm.classList.contains('peek')) {
     dm.classList.add('hidden');
     dm.classList.remove('peek');
   }
+  const keepAudio = !(opts && opts.force) && loadedPoint && !audioEl.paused && !audioEl.ended; // trwa odtwarzanie — nie ruszamy go
   currentPoint = point;
-  currentTrackIndex = 0;
+  currentTrackIndex = (keepAudio && point === loadedPoint) ? loadedTrackIndex : 0;
   sheetTitle.textContent = pointName(point);
   sheetKicker.textContent = point.type === 'intro' ? t('routeIntroKicker') : (point.type === 'main' ? t('pointMain') : t('pointExtra'));
 
@@ -3377,8 +3384,9 @@ function openSheet(point) {
   const gotoBtn = document.getElementById('sheet-goto-btn');
   gotoBtn.classList.remove('hidden');
 
-  renderTrackList();
-  loadTrack();
+  if (!keepAudio) loadTrack(); // gdy coś gra (z tego lub innego punktu), zostawiamy to w spokoju
+  else updateTrackPhoto();
+  renderTrackList(); // po loadTrack, żeby zaznaczyć właśnie wczytane nagranie
   setSheetPeek(false); // świeżo otwarty panel zawsze zaczyna w pełni rozwinięty
   sheet.classList.add('open');
   sheetBackdrop.classList.add('open');
@@ -3409,7 +3417,7 @@ function renderTrackList() {
   if (!currentPoint) return;
   currentPoint.tracks.forEach((track, i) => {
     const row = document.createElement('div');
-    row.className = 'track-row' + (i === currentTrackIndex ? ' active' : '');
+    row.className = 'track-row' + (i === currentTrackIndex && (!loadedPoint || currentPoint === loadedPoint) ? ' active' : '');
     row.innerHTML = `
       <span class="tr-num">${track.number}</span>
       <span class="tr-name">${trackLabel(track)}</span>
@@ -3418,8 +3426,8 @@ function renderTrackList() {
     row.addEventListener('click', () => {
       const wasPlaying = !audioEl.paused;
       currentTrackIndex = i;
-      renderTrackList();
       loadTrack(wasPlaying);
+      renderTrackList();
     });
     trackListEl.appendChild(row);
   });
@@ -3439,6 +3447,8 @@ function loadTrack(autoplay) {
   if (!currentPoint) return;
   const track = currentPoint.tracks[currentTrackIndex];
   const src = track ? track.audio : null;
+  loadedPoint = currentPoint;
+  loadedTrackIndex = currentTrackIndex;
   audioEl.pause();
   setPlayIcon(false);
   updateProgressUI(0);
@@ -3483,7 +3493,10 @@ function setPlayIcon(isPlaying) {
   if (peekPlayBtn) peekPlayBtn.innerHTML = icon;
 }
 
-function togglePlayPause() {
+function togglePlayPause(viewed) {
+  // główny przycisk play w panelu dotyczy oglądanego punktu: jeśli wczytane jest nagranie z innego punktu
+  // (a nic nie gra), start ma włączyć nagranie z tego punktu, a nie wznowić stare
+  if (viewed === true && audioEl.paused && currentPoint && currentPoint !== loadedPoint) { loadTrack(true); return; }
   if (!audioEl.src) return;
   if (audioEl.paused) {
     if (!nativeVolume && volumeLevel < 1) setVolume(volumeLevel);
@@ -3500,7 +3513,7 @@ function togglePlayPause() {
   }
 }
 
-playBtn.addEventListener('click', togglePlayPause);
+playBtn.addEventListener('click', () => togglePlayPause(true));
 document.getElementById('peek-play-btn').addEventListener('click', (e) => {
   e.stopPropagation(); // nie rozwijaj panelu przy okazji klikania w play
   togglePlayPause();
@@ -3563,14 +3576,19 @@ function updateTrackNav() {
   prevBtn.disabled = currentTrackIndex <= 0;
   nextTrackBtn.disabled = peekNextBtn.disabled = currentTrackIndex >= n - 1;
 }
-function goTrack(delta) {
-  if (!currentPoint) return;
-  const n = currentTrackIndex + delta;
-  if (n < 0 || n >= currentPoint.tracks.length) return;
+function goTrack(delta, fromPlayer) {
+  // fromPlayer = z paska odtwarzacza: liczymy od tego, co faktycznie gra, nie od punktu oglądanego w panelu
+  const base = fromPlayer && loadedPoint ? loadedPoint : currentPoint;
+  const idx = fromPlayer && loadedPoint ? loadedTrackIndex : currentTrackIndex;
+  if (!base) return;
+  const n = idx + delta;
+  if (n < 0 || n >= base.tracks.length) return;
   const wasPlaying = !audioEl.paused;
+  if (base !== currentPoint) showPointHeader(base);
+  currentPoint = base;
   currentTrackIndex = n;
-  renderTrackList();
   loadTrack(wasPlaying);
+  renderTrackList();
 }
 prevBtn.addEventListener('click', () => {
   // jak w każdym odtwarzaczu: po kilku sekundach "wstecz" wraca na początek tego nagrania
@@ -3578,7 +3596,7 @@ prevBtn.addEventListener('click', () => {
   goTrack(-1);
 });
 nextTrackBtn.addEventListener('click', () => goTrack(1));
-peekNextBtn.addEventListener('click', e => { e.stopPropagation(); goTrack(1); });
+peekNextBtn.addEventListener('click', e => { e.stopPropagation(); goTrack(1, true); });
 // cofnij o 10 sekund (w panelu i na zwiniętym pasku)
 function skipBack() {
   if (!audioEl.src) return;
@@ -3685,12 +3703,15 @@ function playableTracks() {
   });
   return list;
 }
+function showPointHeader(point) {
+  sheetTitle.textContent = pointName(point);
+  sheetKicker.textContent = point.type === 'intro' ? t('routeIntroKicker') : (point.type === 'main' ? t('pointMain') : t('pointExtra'));
+}
 function switchToTrack(point, i) {
   if (point !== currentPoint) {
     // ciche przełączenie punktu: bez lotu mapą i bez zmiany rozwinięcia panelu
     currentPoint = point;
-    sheetTitle.textContent = pointName(point);
-    sheetKicker.textContent = point.type === 'intro' ? t('routeIntroKicker') : (point.type === 'main' ? t('pointMain') : t('pointExtra'));
+    showPointHeader(point);
     if (!sheet.classList.contains('open')) {
       setSheetPeek(true);
       sheet.classList.add('open');
@@ -3698,18 +3719,19 @@ function switchToTrack(point, i) {
     }
   }
   currentTrackIndex = i;
-  renderTrackList();
   loadTrack(true);
+  renderTrackList();
 }
 function remoteTrack(delta) {
   const list = playableTracks();
   if (!list.length) return;
-  let pos = currentPoint ? list.findIndex(x => x.point === currentPoint && x.i === currentTrackIndex) : -1;
-  if (pos === -1 && currentPoint) {
+  const curPoint = loadedPoint || currentPoint, curIndex = loadedPoint ? loadedTrackIndex : currentTrackIndex;
+  let pos = curPoint ? list.findIndex(x => x.point === curPoint && x.i === curIndex) : -1;
+  if (pos === -1 && curPoint) {
     // obecne nagranie nie ma pliku — szukamy najbliższego grającego w danym kierunku
     const order = [INTRO_POINT, ...POINTS];
     const key = x => order.indexOf(x.point) * 1000 + x.i;
-    const cur = order.indexOf(currentPoint) * 1000 + currentTrackIndex;
+    const cur = order.indexOf(curPoint) * 1000 + curIndex;
     const target = delta > 0 ? list.find(x => key(x) > cur) : [...list].reverse().find(x => key(x) < cur);
     if (target) switchToTrack(target.point, target.i);
     return;
@@ -3742,10 +3764,11 @@ if ('mediaSession' in navigator) {
     try { ms.setPositionState({ duration: audioEl.duration, playbackRate: audioEl.playbackRate || 1, position: Math.min(audioEl.currentTime, audioEl.duration) }); } catch (_) {}
   };
   audioEl.addEventListener('loadstart', () => {
-    if (!currentPoint || typeof MediaMetadata === 'undefined') return;
-    const tr = currentPoint.tracks[currentTrackIndex];
+    const mp = loadedPoint || currentPoint;
+    if (!mp || typeof MediaMetadata === 'undefined') return;
+    const tr = mp.tracks[loadedPoint ? loadedTrackIndex : currentTrackIndex];
     ms.metadata = new MediaMetadata({
-      title: tr ? trackLabel(tr) : pointName(currentPoint), artist: pointName(currentPoint), album: 'KrakRoam',
+      title: tr ? trackLabel(tr) : pointName(mp), artist: pointName(mp), album: 'KrakRoam',
       artwork: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }]
     });
   });
