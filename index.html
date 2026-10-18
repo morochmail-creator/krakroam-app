@@ -220,6 +220,7 @@
     border-radius: 24px 24px 0 0;
     box-shadow: 0 -16px 44px rgba(27,26,23,0.28);
     padding: 14px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    max-height: 92%; overflow-y: auto;
     transform: translateY(0);
     transition: transform 0.4s cubic-bezier(.32,.72,0,1);
   }
@@ -243,31 +244,47 @@
     color: var(--ink); margin: 4px 0 18px;
   }
   .district-row {
-    display: flex; align-items: center; gap: 14px;
-    padding: 14px; border-radius: 16px;
-    cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
+    display: flex; flex-direction: column;
+    border-radius: 20px; overflow: hidden;
+    cursor: pointer; transition: transform 0.12s ease, box-shadow 0.15s ease;
     position: relative;
     background: var(--paper); border: 1.5px solid var(--line);
+    box-shadow: 0 2px 10px rgba(27,26,23,0.07);
   }
-  .district-row:not(.disabled):active { background: var(--paper-2); }
-  .district-row + .district-row { margin-top: 8px; }
+  .district-row:not(.disabled):active { transform: scale(0.985); }
+  .district-row + .district-row { margin-top: 12px; }
+  .dr-cover {
+    position: relative; height: 92px;
+    background: linear-gradient(135deg, #f2b83d 0%, #c98a1a 55%, #8a5a0c 100%);
+    background-size: cover; background-position: center;
+    display: flex; align-items: flex-end; padding: 12px 14px;
+  }
+  .dr-cover::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,17,13,0) 35%, rgba(20,17,13,0.45) 100%);
+  }
+  .district-row[data-district="free-roam"] .dr-cover { background-image: linear-gradient(135deg, #5d7a68 0%, #3b5446 100%); }
+  .district-row[data-district="free-roam"] .dr-cover { height: 60px; padding: 9px 14px; }
+  .district-row.disabled .dr-cover { height: 60px; padding: 9px 14px; background-image: linear-gradient(135deg, #b9b3a4 0%, #8e887a 100%); }
   .district-row-icon {
-    flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px;
-    background: var(--brass-tint); border: none;
+    position: relative; z-index: 1;
+    flex-shrink: 0; width: 42px; height: 42px; border-radius: 13px;
+    background: rgba(255,255,255,0.92);
     display: flex; align-items: center; justify-content: center;
   }
-  .district-row-icon svg { width: 20px; height: 20px; stroke: var(--brass-deep); }
-  .district-row.disabled .district-row-icon { background: var(--paper-2); }
+  .district-row-icon svg { width: 21px; height: 21px; stroke: var(--brass-deep); }
   .district-row.disabled .district-row-icon svg { stroke: var(--ink-dim); }
+  .district-row-body { display: flex; align-items: center; gap: 10px; padding: 12px 14px 14px; }
   .district-row-mid { flex: 1; min-width: 0; }
-  .dr-title { font-size: 15.5px; font-weight: 700; color: var(--ink); }
+  .dr-title { font-size: 16.5px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
   .district-row.disabled .dr-title { color: var(--ink-dim); }
-  .dr-desc { font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; line-height: 1.35; }
-  .district-row.disabled { cursor: not-allowed; }
-  .dr-chevron { flex-shrink: 0; width: 18px; height: 18px; stroke: var(--ink-dim); }
+  .dr-desc { font-size: 12.5px; color: var(--ink-dim); margin-top: 3px; line-height: 1.4; }
+  .district-row.disabled { cursor: not-allowed; box-shadow: none; }
+  .dr-chevron { flex-shrink: 0; width: 20px; height: 20px; stroke: var(--brass-deep); }
   .dr-badge {
-    flex-shrink: 0; font-size: 10.5px; font-weight: 600;
-    color: var(--ink-dim); border: 1px solid var(--line);
+    position: absolute; top: 12px; right: 12px; z-index: 1;
+    font-size: 10.5px; font-weight: 700;
+    color: #fff; background: rgba(20,17,13,0.55);
     border-radius: 999px; padding: 4px 10px;
   }
   #district-menu-divider {
@@ -287,7 +304,7 @@
   }
   #gps-hint {
     text-align: center; font-size: 12px; color: var(--ink-dim);
-    line-height: 1.4; margin: -6px 0 14px; padding: 0 6px;
+    line-height: 1.4; margin: 10px 0 4px; padding: 0 6px;
   }
   #gps-hint.hidden { display: none; }
 
@@ -326,6 +343,21 @@
     margin-bottom: 8px;
   }
   #route-intro-meta { font-size: 13px; color: var(--ink-dim); margin-bottom: 18px; }
+  #route-intro-photos {
+    display: flex; gap: 10px; overflow-x: auto; margin: 0 -24px 20px; padding: 0 24px 4px;
+    scroll-snap-type: x mandatory; scroll-padding-left: 24px; scrollbar-width: none;
+  }
+  #route-intro-photos::-webkit-scrollbar { display: none; }
+  .ri-photo {
+    flex: 0 0 72%; max-width: 280px; aspect-ratio: 4 / 3; border-radius: 16px;
+    scroll-snap-align: start; position: relative; overflow: hidden;
+    background: var(--paper-2) center / cover no-repeat;
+    border: 1.5px dashed var(--line-strong);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ri-photo svg { width: 30px; height: 30px; stroke: var(--ink-dim); opacity: 0.6; }
+  .ri-photo.has-photo { border: none; cursor: pointer; }
+  .ri-photo.has-photo svg { display: none; }
   #route-intro-desc { font-size: 14.5px; color: var(--ink); line-height: 1.55; margin-bottom: 22px; }
   #route-intro-highlights-label {
     font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px;
@@ -993,7 +1025,9 @@
       <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
 
       <div class="district-row" data-district="stare-miasto">
-        <div class="district-row-icon">
+        <div class="dr-cover">
+          
+          <div class="district-row-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4.5 21V8.5l2-5 2 5V21"></path>
             <path d="M15.5 21v-8a2 2 0 1 1 4 0v8"></path>
@@ -1001,6 +1035,8 @@
             <path d="M3 21h18"></path>
           </svg>
         </div>
+        </div>
+        <div class="district-row-body">
         <div class="district-row-mid">
           <div class="dr-title">Stare Miasto</div>
           <div class="dr-desc">Spacer po średniowiecznym mieście — Rynek, Mariacki i okolice</div>
@@ -1008,42 +1044,57 @@
         <svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9,6 15,12 9,18"></polyline>
         </svg>
+        </div>
       </div>
 
       <div class="district-row disabled" data-district="kazimierz">
-        <div class="district-row-icon">
+        <div class="dr-cover">
+          <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
+          <div class="district-row-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2 L20.5 17 L3.5 17 Z"></path>
             <path d="M12 22 L3.5 7 L20.5 7 Z"></path>
           </svg>
         </div>
+        </div>
+        <div class="district-row-body">
         <div class="district-row-mid">
           <div class="dr-title">Kazimierz</div>
         </div>
-        <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
+        
+        </div>
       </div>
 
       <div class="district-row disabled" data-district="podgorze">
-        <div class="district-row-icon">
+        <div class="dr-cover">
+          <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
+          <div class="district-row-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 21V12l4 2v-2l4 2v-2l4 2v-3h4v10"></path>
             <path d="M3 21h18"></path>
             <path d="M17 8V5"></path>
           </svg>
         </div>
+        </div>
+        <div class="district-row-body">
         <div class="district-row-mid">
           <div class="dr-title">Podgórze</div>
         </div>
-        <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
+        
+        </div>
       </div>
 
       <div class="district-row" data-district="free-roam">
-        <div class="district-row-icon">
+        <div class="dr-cover">
+          
+          <div class="district-row-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"></circle>
             <path d="M15 9l-2 6-6 2 2-6 6-2z"></path>
           </svg>
         </div>
+        </div>
+        <div class="district-row-body">
         <div class="district-row-mid">
           <div class="dr-title" data-i18n="freeRoamTitle">Zwiedzaj bez trasy</div>
           <div class="dr-desc" data-i18n="freeRoamDesc">Wybieraj punkty sam, w dowolnej kolejności</div>
@@ -1051,6 +1102,7 @@
         <svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9,6 15,12 9,18"></polyline>
         </svg>
+        </div>
       </div>
 
       <div id="gps-hint" class="hidden"></div>
@@ -1080,6 +1132,7 @@
       <div id="route-intro-eyebrow">Trasa</div>
       <div id="route-intro-title">Stare Miasto</div>
       <div id="route-intro-meta">12 przystanków · ok. 2 godz. · 2,9 km</div>
+      <div id="route-intro-photos"><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div></div>
       <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
       <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
       <ul id="route-intro-highlights">
@@ -3243,8 +3296,38 @@ function openRouteIntro(districtKey) {
     list.appendChild(li);
   });
   routeIntroEl.dataset.district = districtKey;
+  loadRouteIntroPhotos(districtKey);
   routeIntroEl.classList.remove('hidden');
 }
+
+// zdjęcia trasy: foto/trasa-<klucz>-1.jpg, -2, -3 — puste miejsca zostają jako ramki z aparatem, aż wrzucisz pliki
+function loadRouteIntroPhotos(key) {
+  document.querySelectorAll('#route-intro-photos .ri-photo').forEach((slot, i) => {
+    const src = 'foto/trasa-' + key + '-' + (i + 1) + '.jpg';
+    slot.classList.remove('has-photo');
+    slot.style.backgroundImage = '';
+    slot.onclick = null;
+    const probe = new Image();
+    probe.onload = () => {
+      slot.style.backgroundImage = 'url("' + src + '")';
+      slot.classList.add('has-photo');
+      slot.onclick = () => {
+        sfx.play('menuUp');
+        photoViewerImg.src = src; photoViewerImg.classList.remove('hidden');
+        document.getElementById('photo-viewer-empty').classList.add('hidden');
+        photoViewer.classList.add('open');
+      };
+    };
+    probe.src = src;
+  });
+}
+// okładki kart w menu: foto/trasa-<klucz>.jpg (gradient, dopóki nie ma pliku)
+document.querySelectorAll('.district-row:not(.disabled)').forEach(row => {
+  const src = 'foto/trasa-' + row.dataset.district + '.jpg';
+  const probe = new Image();
+  probe.onload = () => { row.querySelector('.dr-cover').style.backgroundImage = 'url("' + src + '")'; };
+  probe.src = src;
+});
 
 function closeRouteIntro() {
   routeIntroEl.classList.add('hidden');
