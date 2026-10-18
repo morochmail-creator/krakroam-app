@@ -3363,7 +3363,14 @@ let loadedPoint = null;
 let loadedTrackIndex = 0;
 
 let sheetPeek = false;
-function setSheetPeek(state) {
+function setSheetPeek(state, freshOpen) {
+  if (!state && !freshOpen && sheetPeek && loadedPoint && currentPoint !== loadedPoint && !audioEl.paused && !audioEl.ended) {
+    // rozwijamy zwinięty pasek, a gra nagranie z innego punktu niż oglądany — pokazujemy punkt, którego nagranie leci
+    showPointHeader(loadedPoint);
+    currentPoint = loadedPoint;
+    currentTrackIndex = loadedTrackIndex;
+    renderTrackList();
+  }
   sheetPeek = state;
   sheet.classList.toggle('peek', state);
   sheetBackdrop.classList.toggle('peek', state);
@@ -3476,7 +3483,7 @@ function openSheet(point, opts) {
   if (!keepAudio) loadTrack(); // gdy coś gra (z tego lub innego punktu), zostawiamy to w spokoju
   else updateTrackPhoto();
   renderTrackList(); // po loadTrack, żeby zaznaczyć właśnie wczytane nagranie
-  setSheetPeek(false); // świeżo otwarty panel zawsze zaczyna w pełni rozwinięty
+  setSheetPeek(false, true); // świeżo otwarty panel zawsze zaczyna w pełni rozwinięty
   sheet.classList.add('open');
   sheetBackdrop.classList.add('open');
 }
