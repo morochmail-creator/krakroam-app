@@ -765,6 +765,8 @@
   #sheet.peek #sheet-grab,
   #sheet.peek #sheet-close { pointer-events: auto; }
   #sheet.peek #sheet-full-content { display: none; }
+  @keyframes sheet-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  #sheet-full-content.fade-in, #sheet-peek-bar.fade-in { animation: sheet-fade-in 0.22s ease both; }
   #sheet-peek-bar {
     display: none; align-items: center; gap: 8px; position: relative;
     min-height: 54px;
@@ -3535,10 +3537,13 @@ const sheetMove = (function () {
     sheet.style.transform = 'translateY(' + px + 'px)';
   }
   function clearT() { sheet.style.transition = ''; sheet.style.transform = ''; }
+  const fullEl = document.getElementById('sheet-full-content'), peekEl = document.getElementById('sheet-peek-bar');
+  function fadeIn(el) { el.classList.remove('fade-in'); void el.offsetWidth; el.classList.add('fade-in'); setTimeout(() => el.classList.remove('fade-in'), 260); }
   // rozwijanie: panel w pełnej wysokości, schowany tak, że widać tylko miejsce zwiniętego paska
   function expandStart() {
     const h = heights(), hidden = h.fullH - h.peekH;
     sheet.classList.remove('peek'); sheetBackdrop.classList.remove('peek');
+    fadeIn(fullEl);
     setT(hidden, false); void sheet.offsetHeight;
     return hidden;
   }
@@ -3555,14 +3560,24 @@ const sheetMove = (function () {
   function collapseEnd(commit) {
     if (commit) {
       const h = heights();
+      fullEl.style.transition = 'opacity 0.2s ease'; fullEl.style.opacity = '0'; // treść znika w trakcie zjazdu, więc nie ma "przeskoku" na pasek
       setT(h.fullH - h.peekH, true);
-      setTimeout(() => { setSheetPeek(true); setT(0, false); void sheet.offsetHeight; clearT(); }, 300);
+      setTimeout(() => {
+        setSheetPeek(true); setT(0, false); void sheet.offsetHeight; clearT();
+        fullEl.style.transition = ''; fullEl.style.opacity = '';
+        fadeIn(peekEl);
+      }, 300);
     } else {
       setT(0, true);
       setTimeout(clearT, 320);
     }
   }
   return {
+    collapse() { // z kliknięcia
+      if (busy || sheetPeek) return; busy = true;
+      setT(0, false); void sheet.offsetHeight;
+      requestAnimationFrame(() => { collapseEnd(true); setTimeout(() => { busy = false; }, 360); });
+    },
     expand() { // z kliknięcia
       if (busy) return; busy = true;
       const hidden = expandStart();
@@ -3592,7 +3607,7 @@ const sheetMove = (function () {
         const dy = e.clientY - startY, fast = Math.abs(dy) / Math.max(1, Date.now() - startT) > 0.5;
         startY = null;
         if (!mode) {
-          if (!cancelled && !sheetDragMoved && el === sheetGrabEl) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); if (sheetPeek) sheetMove.expand(); else setSheetPeek(true); }
+          if (!cancelled && !sheetDragMoved && el === sheetGrabEl) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); if (sheetPeek) sheetMove.expand(); else sheetMove.collapse(); }
           return;
         }
         busy = true; setTimeout(() => { busy = false; sheetDragMoved = false; }, 340);
@@ -3669,8 +3684,8 @@ function closeSheet() {
   audioEl.pause();
 }
 
-document.getElementById('sheet-close').addEventListener('click', () => { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); setSheetPeek(!sheetPeek); });
-sheetBackdrop.addEventListener('click', () => setSheetPeek(true)); // kliknięcie w tło tylko ZWIJA panel, nigdy nie zamyka go całkiem
+document.getElementById('sheet-close').addEventListener('click', () => { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); if (sheetPeek) sheetMove.expand(); else sheetMove.collapse(); });
+sheetBackdrop.addEventListener('click', () => sheetMove.collapse()); // kliknięcie w tło tylko ZWIJA panel, nigdy nie zamyka go całkiem
 
 function renderTrackList() {
   trackListEl.innerHTML = '';
