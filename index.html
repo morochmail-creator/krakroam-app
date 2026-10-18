@@ -860,7 +860,7 @@
     position: absolute; top: 50%; left: 0%; width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px;
     border-radius: 50%; background: var(--brass-deep); box-shadow: 0 1px 4px rgba(0,0,0,0.3);
   }
-  #time-current, #time-total { font-size: 11px; font-weight: 600; color: var(--ink-dim); font-variant-numeric: tabular-nums; min-width: 28px; }
+  #time-current, #time-total { font-size: 11px; font-weight: 600; color: var(--ink-dim); font-variant-numeric: tabular-nums; min-width: 34px; }
   #time-total { text-align: right; }
   #controls { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 0 4px; }
   .ctl-btn {
@@ -3581,6 +3581,13 @@ function fmtTime(s) {
   return `${m}:${sec}`;
 }
 
+// po lewej ile minęło, po prawej ile zostało (maleje)
+function showTimes(cur) {
+  timeCurrent.textContent = fmtTime(cur);
+  const d = audioEl.duration;
+  timeTotal.textContent = isFinite(d) ? '-' + fmtTime(Math.max(0, d - cur)) : '0:00';
+}
+
 function setPlayIcon(isPlaying) {
   const icon = isPlaying
     ? '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16"></rect><rect x="14" y="4" width="5" height="16"></rect></svg>'
@@ -3626,11 +3633,9 @@ function updateProgressUI(pct) {
 audioEl.addEventListener('timeupdate', () => {
   if (!audioEl.duration || seeking) return;
   updateProgressUI((audioEl.currentTime / audioEl.duration) * 100);
-  timeCurrent.textContent = fmtTime(audioEl.currentTime);
+  showTimes(audioEl.currentTime);
 });
-audioEl.addEventListener('loadedmetadata', () => {
-  timeTotal.textContent = fmtTime(audioEl.duration);
-});
+audioEl.addEventListener('loadedmetadata', () => showTimes(audioEl.currentTime));
 audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); });
 // punkt z wczytanym nagraniem jest na mapie zaznaczony zielonym pierścieniem, a gdy gra — pulsuje
 function updatePlayingMarker() {
@@ -3644,7 +3649,7 @@ function updatePlayingMarker() {
 // ikona zawsze zgodna z prawdziwym stanem (także przy sterowaniu z słuchawek / ekranu blokady)
 audioEl.addEventListener('play', () => setPlayIcon(true));
 audioEl.addEventListener('pause', () => setPlayIcon(false));
-audioEl.addEventListener('durationchange', () => { if (isFinite(audioEl.duration)) timeTotal.textContent = fmtTime(audioEl.duration); });
+audioEl.addEventListener('durationchange', () => { if (isFinite(audioEl.duration)) showTimes(audioEl.currentTime); });
 audioEl.addEventListener('error', () => { setPlayIcon(false); if (audioEl.getAttribute('src')) noAudioNote.style.display = 'block'; }); // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
 
 // przewijanie: stuknięcie lub przeciągnięcie palcem po pasku postępu
@@ -3655,7 +3660,7 @@ function seekFromEvent(e) {
   const rect = progressTrack.getBoundingClientRect();
   const pct = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
   updateProgressUI(pct * 100);
-  timeCurrent.textContent = fmtTime(pct * audioEl.duration);
+  showTimes(pct * audioEl.duration);
   return pct;
 }
 progressWrap.addEventListener('pointerdown', e => {
