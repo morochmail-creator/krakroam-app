@@ -3515,68 +3515,100 @@ function updatePeekLabel() {
   document.getElementById('sheet-peek-label').textContent = track ? trackLabel(track) : pointName(pp);
   document.getElementById('sheet-peek-sub').textContent = pointName(pp);
 }
-document.getElementById('sheet-peek-bar').addEventListener('click', () => { if (sheetDragMoved) return; sfx.play('menuUp'); setSheetPeek(false); });
+document.getElementById('sheet-peek-bar').addEventListener('click', () => { if (sheetDragMoved) return; sfx.play('menuUp'); sheetMove.expand(); });
 
-// uchwyt i zwinięty pasek: panel idzie za palcem (przeciągnięcie w górę rozwija, w dół zwija), samo stuknięcie przełącza
+// wysuwanie i zwijanie panelu: panel jedzie za palcem i płynnie dojeżdża na miejsce (bez skoku wysokości)
 let sheetDragMoved = false;
-(function () {
-  const grab = document.getElementById('sheet-grab');
-  const peekBar = document.getElementById('sheet-peek-bar');
-  let startY = null, startT = 0, wasPeek = false, lastDy = 0;
+const sheetMove = (function () {
   const BASE_T = 'transform 0.3s cubic-bezier(.32,.72,0,1)';
-  function snapTo(offsetPx) { // animuje panel od przesunięcia offsetPx do jego miejsca
-    sheet.style.transition = 'none';
-    sheet.style.transform = 'translateY(' + offsetPx + 'px)';
-    void sheet.offsetHeight;
-    sheet.style.transition = '';
-    sheet.style.transform = '';
+  let busy = false;
+  // wysokości zwiniętego i rozwiniętego panelu — samo przełączenie klas, bez rysowania i bez efektów ubocznych
+  function heights() {
+    const had = sheet.classList.contains('peek');
+    sheet.classList.toggle('peek', true); const peekH = sheet.offsetHeight;
+    sheet.classList.toggle('peek', false); const fullH = sheet.offsetHeight;
+    sheet.classList.toggle('peek', had);
+    return { peekH, fullH };
   }
-  function down(e) {
-    if (e.target.closest('button') && e.currentTarget === peekBar) return; // przyciski paska działają jak dotąd
-    startY = e.clientY; startT = Date.now(); wasPeek = sheetPeek; lastDy = 0; sheetDragMoved = false;
-    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  function setT(px, animate) {
+    sheet.style.transition = animate ? BASE_T : 'none';
+    sheet.style.transform = 'translateY(' + px + 'px)';
   }
-  function move(e) {
-    if (startY === null) return;
-    const dy = e.clientY - startY;
-    if (Math.abs(dy) > 6) sheetDragMoved = true;
-    if (!sheetDragMoved) return;
-    // zwinięty: tylko w górę (do 70 px), rozwinięty: tylko w dół — panel jedzie razem z palcem
-    lastDy = wasPeek ? Math.max(-70, Math.min(0, dy)) : Math.max(0, dy);
-    sheet.style.transition = 'none';
-    sheet.style.transform = 'translateY(' + lastDy + 'px)';
+  function clearT() { sheet.style.transition = ''; sheet.style.transform = ''; }
+  // rozwijanie: panel w pełnej wysokości, schowany tak, że widać tylko miejsce zwiniętego paska
+  function expandStart() {
+    const h = heights(), hidden = h.fullH - h.peekH;
+    sheet.classList.remove('peek'); sheetBackdrop.classList.remove('peek');
+    setT(hidden, false); void sheet.offsetHeight;
+    return hidden;
   }
-  function up(e) {
-    if (startY === null) return;
-    const dy = e.clientY - startY, fast = Math.abs(dy) / Math.max(1, Date.now() - startT) > 0.5;
-    startY = null;
-    if (!sheetDragMoved) {
-      if (e.currentTarget === grab) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); setSheetPeek(!sheetPeek); }
-      return;
-    }
-    const moved = lastDy;
-    if (wasPeek && dy < -(fast ? 14 : 36)) {
-      const h1 = sheet.offsetHeight;
-      sfx.play('menuUp'); setSheetPeek(false);
-      snapTo(sheet.offsetHeight - h1 + moved); // rozwinięty panel wyjeżdża z miejsca, w którym był palec
-    } else if (!wasPeek && dy > (fast ? 14 : 60)) {
-      const h1 = sheet.offsetHeight;
-      sfx.play('menuDown'); setSheetPeek(true);
-      snapTo(moved - (h1 - sheet.offsetHeight));
+  function expandEnd(commit, hidden) {
+    if (commit) {
+      setT(0, true);
+      setSheetPeek(false); // stan, ikona, lot mapy (klasy są już ustawione)
+      setTimeout(clearT, 320);
     } else {
-      sheet.style.transition = BASE_T; sheet.style.transform = ''; // za krótkie przeciągnięcie: wraca na miejsce
-      setTimeout(() => { sheet.style.transition = ''; }, 320);
+      setT(hidden, true);
+      setTimeout(() => { sheet.classList.add('peek'); sheetBackdrop.classList.add('peek'); setT(0, false); void sheet.offsetHeight; clearT(); }, 320);
     }
-    setTimeout(() => { sheetDragMoved = false; }, 0);
   }
-  function cancel() { if (startY === null) return; startY = null; sheet.style.transition = ''; sheet.style.transform = ''; }
-  [grab, peekBar].forEach(el => {
-    el.addEventListener('pointerdown', down);
-    el.addEventListener('pointermove', move);
-    el.addEventListener('pointerup', up);
-    el.addEventListener('pointercancel', cancel);
-  });
+  function collapseEnd(commit) {
+    if (commit) {
+      const h = heights();
+      setT(h.fullH - h.peekH, true);
+      setTimeout(() => { setSheetPeek(true); setT(0, false); void sheet.offsetHeight; clearT(); }, 300);
+    } else {
+      setT(0, true);
+      setTimeout(clearT, 320);
+    }
+  }
+  return {
+    expand() { // z kliknięcia
+      if (busy) return; busy = true;
+      const hidden = expandStart();
+      requestAnimationFrame(() => { expandEnd(true, hidden); setTimeout(() => { busy = false; }, 340); });
+    },
+    attach(el, canStart) {
+      let startY = null, startT = 0, mode = null, hidden = 0, collapseRange = 0;
+      el.addEventListener('pointerdown', e => {
+        if (busy || (e.target.closest('button') && el !== sheetGrabEl)) return;
+        startY = e.clientY; startT = Date.now(); mode = null; sheetDragMoved = false;
+      });
+      document.addEventListener('pointermove', e => {
+        if (startY === null) return;
+        const dy = e.clientY - startY;
+        if (!mode) {
+          if (Math.abs(dy) <= 6) return;
+          sheetDragMoved = true;
+          if (sheetPeek && dy < 0) { mode = 'expand'; hidden = expandStart(); }
+          else if (!sheetPeek && dy > 0) { mode = 'collapse'; const h = heights(); collapseRange = h.fullH - h.peekH; }
+          else { startY = null; return; }
+        }
+        if (mode === 'expand') setT(Math.max(0, Math.min(hidden, hidden + dy)), false);
+        else setT(Math.max(0, dy), false);
+      });
+      function end(e, cancelled) {
+        if (startY === null) return;
+        const dy = e.clientY - startY, fast = Math.abs(dy) / Math.max(1, Date.now() - startT) > 0.5;
+        startY = null;
+        if (!mode) {
+          if (!cancelled && !sheetDragMoved && el === sheetGrabEl) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); if (sheetPeek) sheetMove.expand(); else setSheetPeek(true); }
+          return;
+        }
+        busy = true; setTimeout(() => { busy = false; sheetDragMoved = false; }, 340);
+        if (mode === 'expand') { const go = !cancelled && (-dy > hidden * 0.3 || (fast && dy < 0)); if (go) sfx.play('menuUp'); expandEnd(go, hidden); }
+        else { const go = !cancelled && (dy > collapseRange * 0.3 || (fast && dy > 0)); if (go) sfx.play('menuDown'); collapseEnd(go); }
+        mode = null;
+      }
+      document.addEventListener('pointerup', e => end(e, false));
+      document.addEventListener('pointercancel', e => end(e, true));
+    }
+  };
 })();
+const sheetGrabEl = document.getElementById('sheet-grab');
+sheetMove.attach(sheetGrabEl);
+sheetMove.attach(document.getElementById('sheet-peek-bar'));
+
 
 function flyToPointBehindSheet(point) {
   if (viewMode3D) {
