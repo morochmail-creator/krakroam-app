@@ -25,7 +25,7 @@
 <style>
   :root {
     /* Wayfinding system: paper + ink + two meaning-coded accents.
-       Jeden akcent (mosiądz) + atrament (ciemny) na całej apce — bez niebieskiego i zielonego. */
+       Mosiądz = miejsca i treści, niebieski = nawigacja i GPS (ten sam odcień co linia dojścia). */
     --paper: #fafaf8;
     --paper-2: #f1efe9;
     --ink: #1b1a17;
@@ -35,8 +35,8 @@
     --brass: #a9802f;
     --brass-deep: #8a6823;
     --brass-tint: #f3e6c8;
-    --route: #8a6823;
-    --route-tint: #f3e6c8;
+    --route: #1f6fe0;
+    --route-tint: #e4ecf5;
     --ok: #3f8a5c;
     --danger: #c2452f;
     --map-bg: #14110d;
@@ -457,7 +457,7 @@
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
-    background: var(--ink); border: 1.5px solid var(--line-strong);
+    background: var(--route); border: 1.5px solid var(--line-strong);
     border-radius: 18px; padding: 10px 10px 10px 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.28);
     width: max-content; max-width: calc(100vw - 110px);
@@ -465,10 +465,10 @@
   #nav-top-bar.collapsed #nav-top-full { display: none; }
   #nav-top-icon {
     flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
-    background: var(--brass); display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
-  #nav-top-icon svg { width: 17px; height: 17px; stroke: #14110d; }
+  #nav-top-icon svg { width: 17px; height: 17px; stroke: #fff; }
   #nav-top-text { min-width: 0; flex: 1 1 auto; }
   #nav-top-distance { font-size: 17px; font-weight: 700; color: #fff; white-space: nowrap; line-height: 1.15; }
   #nav-top-sub {
@@ -482,19 +482,19 @@
     margin-left: 2px;
   }
   #nav-top-peek {
-    display: none; background: var(--ink); border: 1.5px solid var(--line-strong);
+    display: none; background: var(--route); border: 1.5px solid var(--line-strong);
     border-radius: 50%; width: 46px; height: 46px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.28); cursor: pointer;
     align-items: center; justify-content: center;
   }
   #nav-top-bar.collapsed #nav-top-peek { display: flex; }
-  #nav-top-peek svg { width: 19px; height: 19px; stroke: var(--brass); }
+  #nav-top-peek svg { width: 19px; height: 19px; stroke: #fff; }
 
   /* ---------- Komunikat "jesteś na miejscu" ---------- */
   #arrival-toast {
     position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
     z-index: 40; max-width: calc(100vw - 32px);
-    background: var(--ink); border-radius: 16px; border: 1.5px solid var(--line-strong);
+    background: var(--route); border-radius: 16px; border: 1.5px solid var(--line-strong);
     padding: 13px 18px; text-align: center; cursor: pointer;
     box-shadow: var(--shadow-float);
     transition: opacity 0.25s ease, transform 0.25s ease;
@@ -518,17 +518,17 @@
   }
   #brand, #locate-btn, #settings-btn, #view-toggle-btn {
     width: 46px; height: 46px; border-radius: 50%;
-    background: var(--ink); border: 1.5px solid var(--line-strong);
+    background: var(--paper); border: 1.5px solid var(--line-strong);
     box-shadow: var(--shadow-float);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: transform 0.1s ease, background 0.15s ease;
   }
   #brand:active, #locate-btn:active, #settings-btn:active, #view-toggle-btn:active { transform: scale(0.94); }
-  #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--paper); color: var(--paper); }
+  #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--ink); color: var(--ink); }
   #locate-btn.active { background: var(--route); }
   #locate-btn.active svg { stroke: #fff; color: #fff; }
-  #view-toggle-label { font-size: 12px; font-weight: 800; color: var(--paper); letter-spacing: -0.02em; }
+  #view-toggle-label { font-size: 12px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
   #view-toggle-btn.active { background: var(--brass); border-color: var(--brass-deep); }
   #view-toggle-btn.active #view-toggle-label { color: #14110d; }
 
@@ -716,7 +716,7 @@
     position: absolute; top: 50%; left: 50%;
     width: 90px; height: 90px;
     margin-top: -45px; margin-left: -45px;
-    background: conic-gradient(from 0deg, rgba(169,128,47,0.6) 0deg, rgba(169,128,47,0.6) 70deg, rgba(169,128,47,0) 70deg, rgba(169,128,47,0) 360deg);
+    background: conic-gradient(from 0deg, rgba(31,111,224,0.55) 0deg, rgba(31,111,224,0.55) 70deg, rgba(31,111,224,0) 70deg, rgba(31,111,224,0) 360deg);
     border-radius: 50%;
     transform: rotate(-35deg);
     transition: transform 0.2s linear;
@@ -728,7 +728,7 @@
     width: 18px; height: 18px; border-radius: 50%;
     background: var(--route);
     border: 3px solid #fff;
-    box-shadow: 0 0 0 6px rgba(169,128,47,0.3), 0 2px 6px rgba(0,0,0,0.4);
+    box-shadow: 0 0 0 6px rgba(31,111,224,0.3), 0 2px 6px rgba(0,0,0,0.4);
   }
 
   #sheet-backdrop {
@@ -809,10 +809,10 @@
   /* miniaturka zdjęcia do nagrania — klik powiększa na cały ekran */
   #sheet-photo-btn {
     flex-shrink: 0; width: 46px; height: 46px; padding: 0; border-radius: 10px;
-    border: 1.5px solid var(--line); background: var(--route-tint) center / cover no-repeat;
+    border: 1.5px solid var(--line); background: var(--brass-tint) center / cover no-repeat;
     display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
   }
-  #sheet-photo-btn svg { width: 22px; height: 22px; stroke: var(--route); opacity: 0.7; }
+  #sheet-photo-btn svg { width: 22px; height: 22px; stroke: var(--brass-deep); opacity: 0.8; }
   #sheet-photo-btn.has-photo svg { display: none; }
   #photo-viewer {
     position: fixed; inset: 0; z-index: 100; background: rgba(10, 10, 9, 0.92);
@@ -2824,7 +2824,7 @@ function drawGuideLine(latlngs) {
     guideLine.setLatLngs(latlngs);
   } else {
     guideLine = L.polyline(latlngs, {
-      color: '#f2b83d', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false
+      color: '#1f6fe0', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false
     });
   }
   if (navActive) {
@@ -3032,7 +3032,7 @@ function showNavTargetMarker() {
   hideNavTargetMarker();
   if (!navTargetLatLng) return;
   const pinSvg = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 1C7.03 1 3 5.03 3 10c0 6.5 9 13 9 13s9-6.5 9-13c0-4.97-4.03-9-9-9z" fill="#f2b83d"/>
+      <path d="M12 1C7.03 1 3 5.03 3 10c0 6.5 9 13 9 13s9-6.5 9-13c0-4.97-4.03-9-9-9z" fill="#4a90d9"/>
       <circle cx="12" cy="10" r="3.6" fill="#fff"/>
     </svg>`;
   navTargetMarker = L.marker(navTargetLatLng, {
