@@ -425,21 +425,24 @@
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
-    background: var(--route); border: 1.5px solid var(--line-strong);
-    border-radius: 16px; padding: 11px 12px 11px 14px;
-    box-shadow: var(--shadow-float);
-    max-width: calc(100vw - 130px);
+    background: #17211b; border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px; padding: 10px 10px 10px 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+    width: max-content; max-width: calc(100vw - 110px);
   }
   #nav-top-bar.collapsed #nav-top-full { display: none; }
   #nav-top-icon {
     flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center;
+    background: var(--ok); display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
   #nav-top-icon svg { width: 17px; height: 17px; stroke: #fff; }
-  #nav-top-text { min-width: 0; }
-  #nav-top-distance { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; }
-  #nav-top-sub { font-size: 11px; color: rgba(255,255,255,0.8); white-space: nowrap; }
+  #nav-top-text { min-width: 0; flex: 1 1 auto; }
+  #nav-top-distance { font-size: 17px; font-weight: 700; color: #fff; white-space: nowrap; line-height: 1.15; }
+  #nav-top-sub {
+    font-size: 12px; line-height: 1.25; color: rgba(255,255,255,0.78); margin-top: 2px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+  }
   #nav-top-close {
     flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
     background: rgba(255,255,255,0.18); border: none; color: #fff;
@@ -447,13 +450,13 @@
     margin-left: 2px;
   }
   #nav-top-peek {
-    display: none; background: var(--route); border: 1.5px solid var(--line-strong);
+    display: none; background: #17211b; border: 1px solid rgba(255,255,255,0.12);
     border-radius: 50%; width: 46px; height: 46px;
-    box-shadow: var(--shadow-float); cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.28); cursor: pointer;
     align-items: center; justify-content: center;
   }
   #nav-top-bar.collapsed #nav-top-peek { display: flex; }
-  #nav-top-peek svg { width: 19px; height: 19px; stroke: #fff; }
+  #nav-top-peek svg { width: 19px; height: 19px; stroke: #5fd08a; }
 
   /* ---------- Komunikat "jesteś na miejscu" ---------- */
   #arrival-toast {
