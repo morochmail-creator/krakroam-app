@@ -793,6 +793,7 @@
   #peek-next-btn:disabled { opacity: 0.35; cursor: default; }
   #peek-progress { position: absolute; left: 2px; right: 2px; bottom: 3px; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
   #peek-progress-fill { height: 100%; width: 0%; background: var(--brass-deep); }
+  #peek-seek { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; touch-action: none; cursor: pointer; }
 
   #sheet-kicker { font-size: 11.5px; font-weight: 700; color: var(--brass-deep); margin-bottom: 2px; }
   #sheet-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -1268,6 +1269,7 @@
         <svg viewBox="0 0 24 24"><polygon points="5,4 15,12 5,20"></polygon><rect x="16" y="4" width="3" height="16"></rect></svg>
       </button>
       <div id="peek-progress"><div id="peek-progress-fill"></div></div>
+      <div id="peek-seek" aria-hidden="true"></div>
     </div>
 
     <div id="sheet-full-content">
@@ -3586,7 +3588,7 @@ const sheetMove = (function () {
     attach(el, canStart) {
       let startY = null, startT = 0, mode = null, hidden = 0, collapseRange = 0;
       el.addEventListener('pointerdown', e => {
-        if (busy || (e.target.closest('button') && el !== sheetGrabEl)) return;
+        if (busy || e.target.closest('#peek-seek') || (e.target.closest('button') && el !== sheetGrabEl)) return;
         startY = e.clientY; startT = Date.now(); mode = null; sheetDragMoved = false;
       });
       document.addEventListener('pointermove', e => {
@@ -3832,30 +3834,41 @@ audioEl.addEventListener('durationchange', () => { if (isFinite(audioEl.duration
 audioEl.addEventListener('error', () => { setPlayIcon(false); if (audioEl.getAttribute('src')) noAudioNote.style.display = 'block'; }); // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
 
 // przewijanie: stuknięcie lub przeciągnięcie palcem po pasku postępu
+// przewijanie palcem: pasek w odtwarzaczu i cienka linia na zsuniętym pasku
+function seekPct(e, el) {
+  const rect = el.getBoundingClientRect();
+  return Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+}
+function attachSeek(el, trackEl) {
+  const show = e => {
+    const pct = seekPct(e, trackEl);
+    updateProgressUI(pct * 100);
+    showTimes(pct * audioEl.duration);
+    return pct;
+  };
+  const finish = (e, commit) => {
+    if (!seeking) return;
+    seeking = false;
+    try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (commit && audioEl.duration) audioEl.currentTime = seekPct(e, trackEl) * audioEl.duration;
+    else showTimes(audioEl.currentTime); // przerwane przez system — wracamy do prawdziwej pozycji, pasek nie zostaje zamrożony
+  };
+  el.addEventListener('pointerdown', e => {
+    if (!audioEl.duration) return;
+    seeking = true;
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    show(e);
+    e.stopPropagation();
+  });
+  el.addEventListener('pointermove', e => { if (seeking) show(e); });
+  el.addEventListener('pointerup', e => finish(e, true));
+  el.addEventListener('pointercancel', e => finish(e, false));
+  el.addEventListener('lostpointercapture', e => finish(e, false));
+}
 let seeking = false;
 const progressWrap = document.getElementById('progress-wrap');
-function seekFromEvent(e) {
-  if (!audioEl.duration) return;
-  const rect = progressTrack.getBoundingClientRect();
-  const pct = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-  updateProgressUI(pct * 100);
-  showTimes(pct * audioEl.duration);
-  return pct;
-}
-progressWrap.addEventListener('pointerdown', e => {
-  if (!audioEl.duration) return;
-  seeking = true;
-  try { progressWrap.setPointerCapture(e.pointerId); } catch (_) {}
-  seekFromEvent(e);
-});
-progressWrap.addEventListener('pointermove', e => { if (seeking) seekFromEvent(e); });
-progressWrap.addEventListener('pointerup', e => {
-  if (!seeking) return;
-  const pct = seekFromEvent(e);
-  seeking = false;
-  if (pct !== undefined) audioEl.currentTime = pct * audioEl.duration;
-});
-progressWrap.addEventListener('pointercancel', () => { seeking = false; });
+attachSeek(progressWrap, progressTrack);
+attachSeek(document.getElementById('peek-seek'), document.getElementById('peek-progress'));
 
 // poprzednie / następne nagranie w tym punkcie, stop
 const prevBtn = document.getElementById('prev-btn');
@@ -4066,6 +4079,10 @@ if ('mediaSession' in navigator) {
   audioEl.addEventListener('pause', () => { ms.playbackState = 'paused'; updatePosition(); });
   audioEl.addEventListener('loadedmetadata', updatePosition);
   audioEl.addEventListener('seeked', updatePosition);
+  audioEl.addEventListener('durationchange', updatePosition);
+  // ekran blokady: pozycja odświeżana co ok. sekundę, żeby suwak nie rozjeżdżał się z nagraniem
+  let lastPosUpdate = 0;
+  audioEl.addEventListener('timeupdate', () => { const n = Date.now(); if (n - lastPosUpdate > 1000) { lastPosUpdate = n; updatePosition(); } });
   audioEl.addEventListener('ratechange', updatePosition);
 }
 // iPhone: gdy głośność idzie przez Web Audio, po zablokowaniu ekranu dźwięk potrafi zamilknąć —
