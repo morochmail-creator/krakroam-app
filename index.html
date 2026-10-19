@@ -1557,6 +1557,7 @@ const TRANSLATIONS = {
     logoutBtn: "Wyloguj",
     progressLabel: "Zaliczone punkty: {n} z {m}",
     progressReset: "Zacznij trasę od nowa",
+    progressResetDone: "Postęp wyzerowany. Wszystkie punkty są znów do odsłuchania.",
     routeListTitle: "Punkty na trasie",
     listMain: "Punkty główne",
     listExtra: "Punkty dodatkowe",
@@ -1636,6 +1637,7 @@ const TRANSLATIONS = {
     logoutBtn: "Вийти",
     progressLabel: "Пройдено точок: {n} з {m}",
     progressReset: "Почати маршрут спочатку",
+    progressResetDone: "Прогрес скинуто. Усі точки знову чекають на тебе.",
     routeListTitle: "Точки маршруту",
     listMain: "Головні точки",
     listExtra: "Додаткові точки",
@@ -1715,6 +1717,7 @@ const TRANSLATIONS = {
     logoutBtn: "Log out",
     progressLabel: "Stops done: {n} of {m}",
     progressReset: "Restart the route",
+    progressResetDone: "Progress cleared. All stops are ready to listen to again.",
     routeListTitle: "Route stops",
     listMain: "Main stops",
     listExtra: "Extra stops",
@@ -1794,6 +1797,7 @@ const TRANSLATIONS = {
     logoutBtn: "Abmelden",
     progressLabel: "Erledigte Stopps: {n} von {m}",
     progressReset: "Route neu starten",
+    progressResetDone: "Fortschritt zurückgesetzt. Alle Stationen sind wieder offen.",
     routeListTitle: "Stopps der Route",
     listMain: "Hauptstationen",
     listExtra: "Zusatzstationen",
@@ -1873,6 +1877,7 @@ const TRANSLATIONS = {
     logoutBtn: "Cerrar sesión",
     progressLabel: "Paradas hechas: {n} de {m}",
     progressReset: "Reiniciar la ruta",
+    progressResetDone: "Progreso borrado. Todas las paradas están listas otra vez.",
     routeListTitle: "Paradas de la ruta",
     listMain: "Paradas principales",
     listExtra: "Paradas adicionales",
@@ -4073,6 +4078,7 @@ document.getElementById('settings-progress-row').addEventListener('click', () =>
   updateRouteProgress();
   old.forEach(applyMarkerState);
   settingsScreenEl.classList.add('hidden');
+  showInfoToast(t('progressResetDone'));
 });
 audioEl.addEventListener('timeupdate', () => {
   if (audioEl.duration && audioEl.currentTime / audioEl.duration >= 0.8) markPointDone();
