@@ -1018,7 +1018,7 @@
   .mini-btn svg { width: 17px; height: 17px; fill: currentColor; }
   .mini-btn.open { background: var(--brass); color: #14110d; box-shadow: none; }
   #autoplay-btn { font-size: 10.5px; letter-spacing: 0.04em; padding: 0 9px; }
-  #autoplay-btn.on { background: var(--brass); color: #14110d; box-shadow: none; }
+  #autoplay-btn.on, #speed-toggle.on { background: var(--brass); color: #14110d; box-shadow: none; }
   .popup {
     position: absolute; bottom: calc(100% + 6px); z-index: 5;
     background: var(--ink); color: var(--paper); border-radius: 16px; padding: 8px;
@@ -4206,6 +4206,11 @@ function setAutoplay(v) {
 document.getElementById('autoplay-btn').addEventListener('click', () => {
   setAutoplay(!autoplayNext);
   sfx.play('tap');
+  // włączenie AUTO od razu puszcza nagranie (gdy nic nie gra): po skończonym — następne, inaczej bieżące
+  if (autoplayNext && loadedPoint && audioEl.paused) {
+    if (audioEl.ended) playNextInPoint();
+    else togglePlayPause();
+  }
   showInfoToast(t(autoplayNext ? 'autoplayOn' : 'autoplayOff'));
 });
 document.getElementById('settings-autoplay-row').addEventListener('click', () => { setAutoplay(!autoplayNext); sfx.play('tap'); });
@@ -4380,6 +4385,7 @@ function applyPlaybackRate() {
   audioEl.preservesPitch = true; audioEl.webkitPreservesPitch = true;
   document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.rate) === playbackRate));
   document.getElementById('speed-toggle').textContent = fmtRate(playbackRate);
+  document.getElementById('speed-toggle').classList.toggle('on', playbackRate !== 1); // inna niż 1x = złota, jak AUTO
 }
 // 1,5x po polsku/ukraińsku/niemiecku/hiszpańsku, 1.5x po angielsku
 function fmtRate(rate) {
