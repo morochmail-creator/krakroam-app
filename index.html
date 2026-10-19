@@ -732,6 +732,12 @@
     box-shadow: 0 0 0 1.5px #14110d, 0 2px 8px rgba(0,0,0,0.55);
   }
   /* punkt, którego nagranie jest wczytane (.marker-current) lub właśnie gra (.marker-playing, pulsuje) */
+  /* odsłuchany punkt: ptaszek w środku */
+  .marker-main.marker-done, .marker-extra.marker-done { position: relative; }
+  .marker-main.marker-done::after, .marker-extra.marker-done::after {
+    content: ""; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2314110d' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 68% no-repeat;
+  }
   .marker-main.marker-current, .marker-extra.marker-current {
     box-shadow: 0 0 0 2px #14110d, 0 0 0 6px #6ee7a8, 0 4px 12px rgba(0,0,0,0.6);
   }
@@ -2671,9 +2677,15 @@ function applyMarkerState(id) {
   const m = markersById[id];
   const dot = m && m.getElement && m.getElement() && m.getElement().querySelector('.marker-main, .marker-extra');
   if (!dot) return; // punkt jest akurat schowany w bąbelku grupy — zaznaczy się, gdy się pokaże (zdarzenie 'add')
+  dot.classList.toggle('marker-done', typeof doneIds !== 'undefined' && doneIds.includes(id));
   dot.classList.toggle('marker-current', id === playingPointId);
   dot.classList.toggle('marker-playing', id === playingPointId && playingActive);
 }
+const PROGRESS_KEY = 'krakroam_done_stare-miasto';
+let doneIds = []; // wysłuchane punkty (główne i dodatkowe)
+try { doneIds = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]'); } catch (_) {}
+const KNOWN_IDS = POINTS.map(p => p.id);
+doneIds = doneIds.filter(id => KNOWN_IDS.includes(id));
 POINTS.forEach(p => {
   const className = p.type === 'main' ? 'marker-main' : 'marker-extra';
   const icon = makeDivIcon(className);
@@ -3911,15 +3923,12 @@ function updateProgressUI(pct) {
   peekProgressFill.style.width = pct + '%';
 }
 /* ---------- Postęp trasy: punkt główny jest zaliczony, gdy którekolwiek jego nagranie wysłuchane w 80%+ ---------- */
-const PROGRESS_KEY = 'krakroam_done_stare-miasto';
 const MAIN_POINT_IDS = POINTS.filter(p => p.type === 'main').map(p => p.id);
-let doneIds = [];
-try { doneIds = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]').filter(id => MAIN_POINT_IDS.includes(id)); } catch (_) {}
+const doneMainCount = () => doneIds.filter(id => MAIN_POINT_IDS.includes(id)).length;
 const routeProgressEl = document.getElementById('route-progress');
 function updateRouteProgress() {
-  if (!routeChosen) { routeProgressEl.classList.add('hidden'); return; }
-  document.getElementById('route-progress-text').textContent = doneIds.length + '/' + MAIN_POINT_IDS.length;
-  routeProgressEl.setAttribute('aria-label', t('progressLabel').replace('{n}', doneIds.length).replace('{m}', MAIN_POINT_IDS.length));
+  document.getElementById('route-progress-text').textContent = doneMainCount() + '/' + MAIN_POINT_IDS.length;
+  routeProgressEl.setAttribute('aria-label', t('progressLabel').replace('{n}', doneMainCount()).replace('{m}', MAIN_POINT_IDS.length));
   routeProgressEl.classList.remove('hidden');
   if (!routeListEl.classList.contains('hidden')) renderRouteList();
 }
@@ -3927,7 +3936,7 @@ const routeListEl = document.getElementById('route-list-screen');
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 function renderRouteList() {
   document.getElementById('route-list-title').textContent = t('routeListTitle');
-  document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', doneIds.length).replace('{m}', MAIN_POINT_IDS.length);
+  document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', doneMainCount()).replace('{m}', MAIN_POINT_IDS.length);
   const body = document.getElementById('route-list-body');
   body.innerHTML = '';
   [['main', 'listMain'], ['extra', 'listExtra']].forEach(([type, hdrKey]) => {
@@ -3938,8 +3947,8 @@ function renderRouteList() {
     body.appendChild(h);
     pts.forEach(p => {
       const row = document.createElement('div');
-      row.className = 'rl-item ' + type + (type === 'main' && doneIds.includes(p.id) ? ' done' : '');
-      if (type === 'main') row.innerHTML = '<span class="rl-mark">' + CHECK_SVG + '</span>';
+      row.className = 'rl-item ' + type + (doneIds.includes(p.id) ? ' done' : '');
+      row.innerHTML = '<span class="rl-mark">' + CHECK_SVG + '</span>';
       const name = document.createElement('span');
       name.textContent = pointName(p);
       row.appendChild(name);
@@ -3956,15 +3965,17 @@ document.getElementById('route-list-close').addEventListener('click', () => rout
 document.getElementById('route-list-scrim').addEventListener('click', () => routeListEl.classList.add('hidden'));
 function markPointDone() {
   const p = loadedPoint;
-  if (!p || p.type !== 'main' || doneIds.includes(p.id)) return;
+  if (!p || (p.type !== 'main' && p.type !== 'extra') || doneIds.includes(p.id)) return;
   doneIds.push(p.id);
   try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(doneIds)); } catch (_) {}
   updateRouteProgress();
+  applyMarkerState(p.id);
 }
 document.getElementById('settings-progress-row').addEventListener('click', () => {
-  doneIds = [];
+  const old = doneIds; doneIds = [];
   try { localStorage.removeItem(PROGRESS_KEY); } catch (_) {}
   updateRouteProgress();
+  old.forEach(applyMarkerState);
   settingsScreenEl.classList.add('hidden');
 });
 audioEl.addEventListener('timeupdate', () => {
