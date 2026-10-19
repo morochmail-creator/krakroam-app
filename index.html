@@ -492,6 +492,7 @@
   .rl-mark svg { width: 14px; height: 14px; stroke: #14110d; opacity: 0; }
   .rl-item.done .rl-mark svg { opacity: 1; }
   .rl-item.done { color: var(--ink); }
+  .rl-item.intro .rl-mark { font-size: 12px; font-weight: 800; color: var(--ink-dim); }
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
@@ -3925,6 +3926,18 @@ function renderRouteList() {
   document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', doneMainCount()).replace('{m}', MAIN_POINT_IDS.length);
   const body = document.getElementById('route-list-body');
   body.innerHTML = '';
+  // wstęp (audio 0) na samej górze — inaczej po przejściu do punktu 1 nie było jak do niego wrócić
+  const intro = document.createElement('div');
+  intro.className = 'rl-item intro';
+  intro.innerHTML = '<span class="rl-mark">0</span>';
+  const introName = document.createElement('span');
+  introName.textContent = pointName(INTRO_POINT);
+  intro.appendChild(introName);
+  intro.addEventListener('click', () => {
+    routeListEl.classList.add('hidden');
+    openSheet(INTRO_POINT);
+  });
+  body.appendChild(intro);
   [['main', 'listMain'], ['extra', 'listExtra']].forEach(([type, hdrKey]) => {
     const pts = POINTS.filter(p => p.type === type);
     if (!pts.length) return;
