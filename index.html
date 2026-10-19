@@ -613,6 +613,20 @@
     transition: opacity 0.3s ease, visibility 0.3s ease;
   }
   #settings-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  /* okienko "czy na pewno?" — nad ustawieniami */
+  #confirm-screen { position: absolute; inset: 0; z-index: 130; display: flex; align-items: center; justify-content: center; padding: 24px; transition: opacity 0.2s ease, visibility 0.2s ease; }
+  #confirm-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #confirm-scrim { position: absolute; inset: 0; background: rgba(27,26,23,0.55); }
+  #confirm-inner {
+    position: relative; width: 100%; max-width: 340px; background: var(--paper);
+    border: 1.5px solid var(--line-strong); border-radius: var(--radius-card); padding: 22px 20px 18px; box-shadow: var(--shadow-plate);
+  }
+  #confirm-title { font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 8px; }
+  #confirm-sub { font-size: 14.5px; line-height: 1.45; color: var(--ink-dim); margin-bottom: 20px; }
+  #confirm-btns { display: flex; gap: 10px; }
+  #confirm-btns button { flex: 1; height: 48px; border-radius: 14px; font: 700 15px 'Inter', sans-serif; cursor: pointer; }
+  #confirm-no { background: var(--paper-2); border: 1.5px solid var(--line); color: var(--ink); }
+  #confirm-yes { background: var(--danger); border: 1.5px solid var(--danger); color: #fff; }
   #settings-scrim {
     position: absolute; inset: 0;
     background: rgba(27,26,23,0.5);
@@ -1283,6 +1297,17 @@
       <div id="route-list-empty" class="hidden"></div>
     </div>
   </div>
+  <div id="confirm-screen" class="hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div id="confirm-scrim"></div>
+    <div id="confirm-inner">
+      <div id="confirm-title"></div>
+      <div id="confirm-sub"></div>
+      <div id="confirm-btns">
+        <button id="confirm-no" type="button"></button>
+        <button id="confirm-yes" type="button"></button>
+      </div>
+    </div>
+  </div>
   <div id="info-toast" class="hidden" role="status"></div>
 
   <div id="topbar">
@@ -1330,7 +1355,7 @@
         <span id="settings-sound-icon">🔊</span>
         <span id="settings-sound-text">Dźwięki: włączone</span>
       </div>
-      <div class="settings-row" id="settings-progress-row">Zacznij trasę od nowa</div>
+      <div class="settings-row" id="settings-progress-row">Wyzeruj odsłuchane punkty</div>
       <div class="settings-row" id="settings-logout-row">Wyloguj</div>
     </div>
   </div>
@@ -1556,7 +1581,11 @@ const TRANSLATIONS = {
     navigatingText: "Nawigacja do startu",
     logoutBtn: "Wyloguj",
     progressLabel: "Zaliczone punkty: {n} z {m}",
-    progressReset: "Zacznij trasę od nowa",
+    progressReset: "Wyzeruj odsłuchane punkty",
+    progressResetAsk: "Wyzerować odsłuchane punkty?",
+    progressResetAskSub: "Wszystkie ptaszki przy odsłuchanych punktach znikną, a licznik wróci do zera. Nagrania zostają, możesz ich dalej słuchać.",
+    progressResetYes: "Tak, wyzeruj",
+    progressResetNo: "Anuluj",
     progressResetDone: "Postęp wyzerowany. Wszystkie punkty są znów do odsłuchania.",
     routeListTitle: "Punkty na trasie",
     listMain: "Punkty główne",
@@ -1636,7 +1665,11 @@ const TRANSLATIONS = {
     navigatingText: "Навігація до старту",
     logoutBtn: "Вийти",
     progressLabel: "Пройдено точок: {n} з {m}",
-    progressReset: "Почати маршрут спочатку",
+    progressReset: "Скинути прослухані точки",
+    progressResetAsk: "Скинути прослухані точки?",
+    progressResetAskSub: "Усі позначки біля прослуханих точок зникнуть, а лічильник повернеться до нуля. Записи залишаться, їх можна слухати далі.",
+    progressResetYes: "Так, скинути",
+    progressResetNo: "Скасувати",
     progressResetDone: "Прогрес скинуто. Усі точки знову чекають на тебе.",
     routeListTitle: "Точки маршруту",
     listMain: "Головні точки",
@@ -1716,7 +1749,11 @@ const TRANSLATIONS = {
     navigatingText: "Navigating to the start",
     logoutBtn: "Log out",
     progressLabel: "Stops done: {n} of {m}",
-    progressReset: "Restart the route",
+    progressReset: "Clear listened stops",
+    progressResetAsk: "Clear listened stops?",
+    progressResetAskSub: "All ticks next to listened stops will disappear and the counter will go back to zero. The recordings stay, you can still listen to them.",
+    progressResetYes: "Yes, clear",
+    progressResetNo: "Cancel",
     progressResetDone: "Progress cleared. All stops are ready to listen to again.",
     routeListTitle: "Route stops",
     listMain: "Main stops",
@@ -1796,7 +1833,11 @@ const TRANSLATIONS = {
     navigatingText: "Navigation zum Start",
     logoutBtn: "Abmelden",
     progressLabel: "Erledigte Stopps: {n} von {m}",
-    progressReset: "Route neu starten",
+    progressReset: "Gehörte Stationen zurücksetzen",
+    progressResetAsk: "Gehörte Stationen zurücksetzen?",
+    progressResetAskSub: "Alle Häkchen bei gehörten Stationen verschwinden und der Zähler geht auf null. Die Aufnahmen bleiben, du kannst sie weiter anhören.",
+    progressResetYes: "Ja, zurücksetzen",
+    progressResetNo: "Abbrechen",
     progressResetDone: "Fortschritt zurückgesetzt. Alle Stationen sind wieder offen.",
     routeListTitle: "Stopps der Route",
     listMain: "Hauptstationen",
@@ -1876,7 +1917,11 @@ const TRANSLATIONS = {
     navigatingText: "Navegando al inicio",
     logoutBtn: "Cerrar sesión",
     progressLabel: "Paradas hechas: {n} de {m}",
-    progressReset: "Reiniciar la ruta",
+    progressReset: "Borrar paradas escuchadas",
+    progressResetAsk: "¿Borrar las paradas escuchadas?",
+    progressResetAskSub: "Desaparecerán todas las marcas de las paradas escuchadas y el contador volverá a cero. Las grabaciones se quedan, puedes seguir escuchándolas.",
+    progressResetYes: "Sí, borrar",
+    progressResetNo: "Cancelar",
     progressResetDone: "Progreso borrado. Todas las paradas están listas otra vez.",
     routeListTitle: "Paradas de la ruta",
     listMain: "Paradas principales",
@@ -4072,14 +4117,27 @@ function markPointDone() {
   updateRouteProgress();
   applyMarkerState(p.id);
 }
+// najpierw pytamy "czy na pewno?" — wyzerowania nie da się cofnąć
+const confirmEl = document.getElementById('confirm-screen');
+const closeConfirm = () => confirmEl.classList.add('hidden');
+document.getElementById('confirm-scrim').addEventListener('click', closeConfirm);
+document.getElementById('confirm-no').addEventListener('click', closeConfirm);
+document.getElementById('confirm-yes').addEventListener('click', () => { closeConfirm(); resetProgress(); });
 document.getElementById('settings-progress-row').addEventListener('click', () => {
+  document.getElementById('confirm-title').textContent = t('progressResetAsk');
+  document.getElementById('confirm-sub').textContent = t('progressResetAskSub');
+  document.getElementById('confirm-no').textContent = t('progressResetNo');
+  document.getElementById('confirm-yes').textContent = t('progressResetYes');
+  confirmEl.classList.remove('hidden');
+});
+function resetProgress() {
   const old = doneIds; doneIds = [];
   try { localStorage.removeItem(PROGRESS_KEY); } catch (_) {}
   updateRouteProgress();
   old.forEach(applyMarkerState);
   settingsScreenEl.classList.add('hidden');
   showInfoToast(t('progressResetDone'));
-});
+}
 audioEl.addEventListener('timeupdate', () => {
   if (audioEl.duration && audioEl.currentTime / audioEl.duration >= 0.8) markPointDone();
   if (!audioEl.duration || seeking) return;
