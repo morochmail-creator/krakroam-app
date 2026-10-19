@@ -899,6 +899,14 @@
     display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   #sheet-goto-btn.hidden { display: none; }
+  /* "Kolejny punkt" (tylko w trybie trasy) — złoty, żeby nie mylił się z niebieskim "prowadź mnie tutaj" */
+  #sheet-nextpt-btn {
+    flex-shrink: 0; width: 40px; height: 40px; padding: 0; border-radius: 50%;
+    background: var(--brass); border: none;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  #sheet-nextpt-btn.hidden { display: none; }
+  #sheet-nextpt-btn svg { width: 21px; height: 21px; stroke: #14110d; }
   #sheet-goto-btn svg { width: 20px; height: 20px; stroke: #fff; }
 
   /* miniaturka zdjęcia do nagrania — klik powiększa na cały ekran */
@@ -1406,6 +1414,12 @@
             <path d="M11 14l3 1 2 5"></path>
           </svg>
         </button>
+        <button id="sheet-nextpt-btn" class="hidden" aria-label="Kolejny punkt">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.5 13h11"></path><polyline points="9.5,9 13.5,13 9.5,17"></polyline>
+            <path d="M18 20V4"></path><path d="M18 4.5l4 2-4 2"></path>
+          </svg>
+        </button>
         <button id="sheet-photo-btn" aria-label="Zdjęcie">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg>
         </button>
@@ -1608,6 +1622,7 @@ const TRANSLATIONS = {
     soundOff: "Dźwięki: wyłączone",
     routeIntroKicker: "Witamy w Krakowie",
     gotoHereBtn: "Prowadź mnie tutaj",
+    nextPointBtn: "Kolejny punkt",
     photoSoon: "Zdjęcie wkrótce",
     nextStop: "Następny przystanek",
     navStraightLine: "w linii prostej",
@@ -1695,6 +1710,7 @@ const TRANSLATIONS = {
     soundOff: "Звуки: вимкнено",
     routeIntroKicker: "Ласкаво просимо до Кракова",
     gotoHereBtn: "Проведи мене сюди",
+    nextPointBtn: "Наступна точка",
     photoSoon: "Фото незабаром",
     nextStop: "Наступна зупинка",
     navStraightLine: "по прямій",
@@ -1782,6 +1798,7 @@ const TRANSLATIONS = {
     soundOff: "Sounds: off",
     routeIntroKicker: "Welcome to Krakow",
     gotoHereBtn: "Guide me here",
+    nextPointBtn: "Next stop",
     photoSoon: "Photo coming soon",
     nextStop: "Next stop",
     navStraightLine: "in a straight line",
@@ -1869,6 +1886,7 @@ const TRANSLATIONS = {
     soundOff: "Töne: aus",
     routeIntroKicker: "Willkommen in Krakau",
     gotoHereBtn: "Führe mich hierher",
+    nextPointBtn: "Nächste Station",
     photoSoon: "Foto folgt bald",
     nextStop: "Nächster Halt",
     navStraightLine: "Luftlinie",
@@ -1956,6 +1974,7 @@ const TRANSLATIONS = {
     soundOff: "Sonidos: desactivados",
     routeIntroKicker: "Bienvenido a Cracovia",
     gotoHereBtn: "Llévame aquí",
+    nextPointBtn: "Siguiente parada",
     photoSoon: "Foto próximamente",
     nextStop: "Siguiente parada",
     navStraightLine: "en línea recta",
@@ -2117,6 +2136,7 @@ function applyTranslations() {
   document.getElementById('gps-hint').textContent = t('gpsHint');
   document.getElementById('photo-viewer-empty-text').textContent = t('photoSoon');
   document.getElementById('sheet-goto-btn').setAttribute('aria-label', t('gotoHereBtn'));
+  document.getElementById('sheet-nextpt-btn').setAttribute('aria-label', t('nextPointBtn'));
 
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
@@ -3280,7 +3300,8 @@ function hideNavTargetMarker() {
 }
 
 const NAV_START_ZOOM = 18;
-function startNavigation(targetPoint) {
+function startNavigation(targetPoint, opts) {
+  const fromLatLng = opts && opts.from; // opcjonalny początek linii zamiast pozycji GPS (przycisk "Kolejny punkt")
   // targetPoint opcjonalny — domyślnie punkt startowy trasy (wywołanie automatyczne po wyborze trasy)
   if (targetPoint) {
     navTargetLatLng = [targetPoint.lat, targetPoint.lng];
@@ -3295,6 +3316,11 @@ function startNavigation(targetPoint) {
   showNavTargetMarker();
   if (navTopSub) navTopSub.textContent = navTargetName; // od razu pokazujemy nazwę celu, zanim policzy się dystans/czas
   lastRoutedLatLng = null; // wymuś świeże przeliczenie trasy
+  if (fromLatLng) {
+    pause3DFollow(); // kamerą zajmuje się wywołujący (pokazuje cały odcinek X→Y)
+    requestWalkingRoute(fromLatLng, true);
+    return;
+  }
   if (gpsMarker) {
     const gll = gpsMarker.getLatLng(); // getLatLng() zwraca OBIEKT {lat,lng}, nie tablicę — trzeba go zamienić
     requestWalkingRoute([gll.lat, gll.lng], true);
@@ -3377,6 +3403,26 @@ function findNearestMainPoint() {
   return nearest;
 }
 
+// następny punkt główny na trasie po danym (kolejność = kolejność numerów nagrań 1, 2, 3...)
+function nextMainPoint(point) {
+  if (!routeChosen || !point || point.type !== 'main') return null;
+  const mains = POINTS.filter(p => p.type === 'main');
+  return mains[mains.indexOf(point) + 1] || null;
+}
+document.getElementById('sheet-nextpt-btn').addEventListener('click', () => {
+  const from = currentPoint, to = nextMainPoint(currentPoint);
+  if (!to) return;
+  // nawigacja od wciśniętego punktu X do następnego Y (gdy ruszysz, linia dalej liczy się od Ciebie)
+  startNavigation(to, { from: [from.lat, from.lng] });
+  setSheetPeek(true);
+  // kamera obejmuje oba punkty (i to, co po drodze) — blisko, gdy są blisko, dalej, gdy daleko;
+  // marginesy: u góry pasek nawigacji, u dołu zwinięty panel audio
+  setTimeout(() => {
+    map.flyToBounds(L.latLngBounds([[from.lat, from.lng], [to.lat, to.lng]]), {
+      paddingTopLeft: [40, 130], paddingBottomRight: [40, 200], maxZoom: 18, duration: 1.2
+    });
+  }, 50);
+});
 document.getElementById('sheet-goto-btn').addEventListener('click', () => {
   if (!currentPoint) return;
   let target = currentPoint;
@@ -3882,6 +3928,8 @@ function openSheet(point, opts) {
   // "Prowadź mnie tutaj" — widoczny zawsze, dla każdego punktu (w tym tracka 0, gdzie prowadzi do startu trasy)
   const gotoBtn = document.getElementById('sheet-goto-btn');
   gotoBtn.classList.remove('hidden');
+  // "Kolejny punkt" — tylko na wybranej trasie, przy punkcie głównym, który ma po sobie następny
+  document.getElementById('sheet-nextpt-btn').classList.toggle('hidden', !nextMainPoint(point));
 
   if (!keepAudio) loadTrack(); // gdy coś gra (z tego lub innego punktu), zostawiamy to w spokoju
   else updateTrackPhoto();
