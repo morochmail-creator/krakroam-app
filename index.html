@@ -469,7 +469,7 @@
   #route-list-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   #route-list-scrim { position: absolute; inset: 0; background: rgba(27,26,23,0.5); }
   #route-list-inner {
-    position: relative; width: 100%; max-width: 360px; max-height: 80vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 360px; height: 80vh; max-height: 80vh; overflow-y: auto; /* stała wysokość — okno nie skacze przy wyszukiwaniu */
     background: var(--paper); border: 1.5px solid var(--line-strong);
     border-radius: var(--radius-card); padding: 22px 16px 16px; box-shadow: var(--shadow-plate);
   }
@@ -480,6 +480,26 @@
   }
   #route-list-title { font-size: 19px; font-weight: 800; color: var(--ink); margin: 0 40px 2px 4px; letter-spacing: -0.01em; }
   #route-list-count { font-size: 13px; font-weight: 700; color: var(--brass-deep); margin: 0 4px 10px; }
+  #route-list-search-wrap {
+    position: sticky; top: -22px; z-index: 2; margin: 0 -16px; padding: 4px 16px 8px; background: var(--paper);
+    display: flex; align-items: center;
+  }
+  #route-list-search-wrap svg { position: absolute; left: 29px; width: 17px; height: 17px; stroke: var(--ink-dim); pointer-events: none; }
+  #route-list-search {
+    width: 100%; height: 44px; padding: 0 40px 0 40px; border-radius: 12px;
+    border: 1.5px solid var(--line); background: var(--paper-2); color: var(--ink);
+    font: 500 16px 'Inter', sans-serif; outline: none; -webkit-appearance: none; appearance: none;
+  }
+  #route-list-search::-webkit-search-cancel-button { display: none; }
+  #route-list-search:focus { border-color: var(--brass); background: #fff; }
+  #route-list-search-clear {
+    position: absolute; right: 22px; width: 30px; height: 30px; border-radius: 50%; border: none;
+    background: var(--line); color: var(--ink); font-size: 17px; line-height: 1; cursor: pointer;
+  }
+  #route-list-search-clear.hidden, #route-list-empty.hidden { display: none; }
+  #route-list-empty { padding: 26px 6px; text-align: center; color: var(--ink-dim); font-size: 14px; }
+  .rl-item.main.free .rl-mark { width: 28px; height: 28px; background: none; border: none; }
+  .rl-dot.main { width: 14px; height: 14px; background: radial-gradient(circle at 35% 30%, #f6cf6b 0%, #d9a239 55%, #b3822a 100%); box-shadow: 0 0 0 1.5px var(--brass-deep); }
   .rl-header {
     font-size: 11px; font-weight: 800; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em;
     margin: 18px 6px 4px;
@@ -1254,7 +1274,13 @@
       <button id="route-list-close" aria-label="Zamknij">×</button>
       <div id="route-list-title"></div>
       <div id="route-list-count"></div>
+      <div id="route-list-search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+        <input id="route-list-search" type="search" autocomplete="off" enterkeyhint="search">
+        <button id="route-list-search-clear" class="hidden" type="button">×</button>
+      </div>
       <div id="route-list-body"></div>
+      <div id="route-list-empty" class="hidden"></div>
     </div>
   </div>
   <div id="info-toast" class="hidden" role="status"></div>
@@ -1534,6 +1560,10 @@ const TRANSLATIONS = {
     routeListTitle: "Punkty na trasie",
     listMain: "Punkty główne",
     listExtra: "Punkty dodatkowe",
+    allPointsTitle: "Wszystkie punkty",
+    listSearch: "Szukaj punktu lub nagrania…",
+    listNoResults: "Nic nie znaleziono",
+    listSearchClear: "Wyczyść",
     soundOn: "Dźwięki: włączone",
     soundOff: "Dźwięki: wyłączone",
     routeIntroKicker: "Witamy w Krakowie",
@@ -1609,6 +1639,10 @@ const TRANSLATIONS = {
     routeListTitle: "Точки маршруту",
     listMain: "Головні точки",
     listExtra: "Додаткові точки",
+    allPointsTitle: "Усі точки",
+    listSearch: "Шукати точку або запис…",
+    listNoResults: "Нічого не знайдено",
+    listSearchClear: "Очистити",
     soundOn: "Звуки: увімкнено",
     soundOff: "Звуки: вимкнено",
     routeIntroKicker: "Ласкаво просимо до Кракова",
@@ -1684,6 +1718,10 @@ const TRANSLATIONS = {
     routeListTitle: "Route stops",
     listMain: "Main stops",
     listExtra: "Extra stops",
+    allPointsTitle: "All stops",
+    listSearch: "Search a stop or recording…",
+    listNoResults: "Nothing found",
+    listSearchClear: "Clear",
     soundOn: "Sounds: on",
     soundOff: "Sounds: off",
     routeIntroKicker: "Welcome to Krakow",
@@ -1759,6 +1797,10 @@ const TRANSLATIONS = {
     routeListTitle: "Stopps der Route",
     listMain: "Hauptstationen",
     listExtra: "Zusatzstationen",
+    allPointsTitle: "Alle Stationen",
+    listSearch: "Station oder Audio suchen…",
+    listNoResults: "Nichts gefunden",
+    listSearchClear: "Leeren",
     soundOn: "Töne: an",
     soundOff: "Töne: aus",
     routeIntroKicker: "Willkommen in Krakau",
@@ -1834,6 +1876,10 @@ const TRANSLATIONS = {
     routeListTitle: "Paradas de la ruta",
     listMain: "Paradas principales",
     listExtra: "Paradas adicionales",
+    allPointsTitle: "Todas las paradas",
+    listSearch: "Buscar parada o audio…",
+    listNoResults: "No se encontró nada",
+    listSearchClear: "Borrar",
     soundOn: "Sonidos: activados",
     soundOff: "Sonidos: desactivados",
     routeIntroKicker: "Bienvenido a Cracovia",
@@ -1912,7 +1958,11 @@ const PLACE_NAMES = {
   "Pałac Krzysztofory":        { ua: "Палац Кшиштофори", en: "Krzysztofory Palace", de: "Palais Krzysztofory", es: "Palacio Krzysztofory" },
   "Kościół Pijarów":           { ua: "Костел піарів", en: "Piarist Church", de: "Piaristenkirche", es: "Iglesia de los Escolapios" },
   "Kościół św. Krzyża":        { ua: "Костел Святого Хреста", en: "Holy Cross Church", de: "Heilig-Kreuz-Kirche", es: "Iglesia de la Santa Cruz" },
-  "Linia A-B":                 { ua: "Лінія A-B", en: "The A-B Line", de: "A-B-Linie", es: "La Línea A-B" }
+  "Linia A-B":                 { ua: "Лінія A-B", en: "The A-B Line", de: "A-B-Linie", es: "La Línea A-B" },
+  "Kamienica pod Rakiem":      { ua: "Кам'яниця «Під раком»", en: "The House Under the Crayfish", de: "Haus „Unter dem Krebs“", es: "Casa «Bajo el Cangrejo»" },
+  "Jama Michalika":            { ua: "Кав'ярня «Яма Міхаліка»", en: "Jama Michalika Café", de: "Café Jama Michalika", es: "Café Jama Michalika" },
+  "Dom Jana Matejki":          { ua: "Будинок Яна Матейка", en: "Jan Matejko's House", de: "Jan-Matejko-Haus", es: "Casa de Jan Matejko" },
+  "Łańcuchy na rogu ulic":     { ua: "Ланцюги на розі вулиць", en: "Street-Corner Chains", de: "Ketten an den Straßenecken", es: "Cadenas en las esquinas" }
 };
 const TITLE_TR = {
   "Średniowieczne fortyfikacje":  { ua: "Середньовічні укріплення", en: "Medieval Fortifications", de: "Mittelalterliche Befestigungen", es: "Fortificaciones medievales" },
@@ -3940,15 +3990,25 @@ function updateRouteProgress() {
 }
 const routeListEl = document.getElementById('route-list-screen');
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+// usuwa polskie i inne ogonki + wielkość liter, żeby "wieza" znalazło "Wieża"
+const searchNorm = str => (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l');
+const routeListSearch = document.getElementById('route-list-search');
+const routeListSearchClear = document.getElementById('route-list-search-clear');
 function renderRouteList() {
-  document.getElementById('route-list-title').textContent = t('routeListTitle');
+  document.getElementById('route-list-title').textContent = t(routeChosen ? 'routeListTitle' : 'allPointsTitle');
   document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', progressDone()).replace('{m}', progressTotal());
+  routeListSearch.placeholder = t('listSearch');
+  routeListSearchClear.setAttribute('aria-label', t('listSearchClear'));
+  document.getElementById('route-list-close').setAttribute('aria-label', t('closeLabel'));
+  document.getElementById('route-list-empty').textContent = t('listNoResults');
   const body = document.getElementById('route-list-body');
   body.innerHTML = '';
   // jeden wiersz: z lewej znaczek (numer w kółku / kropka), nazwa, z prawej zielony ptaszek gdy odsłuchany
   const addRow = (point, kind, markHtml, done) => {
     const row = document.createElement('div');
     row.className = 'rl-item ' + kind + (done ? ' done' : '');
+    // tekst do wyszukiwania: nazwa w bieżącym języku + polska + tytuły nagrań
+    row.dataset.search = searchNorm([pointName(point), point.name].concat((point.tracks || []).map(trackLabel)).join(' '));
     row.innerHTML = '<span class="rl-mark">' + markHtml + '</span>';
     const name = document.createElement('span');
     name.className = 'rl-name';
@@ -3970,13 +4030,33 @@ function renderRouteList() {
     h.className = 'rl-header'; h.textContent = t(hdrKey);
     body.appendChild(h);
     pts.forEach(p => {
-      // punkty główne: numer wg kolejności trasy; dodatkowe: mała kropka jak na mapie
-      const num = type === 'main' && p.tracks[0] ? String(p.tracks[0].number).split('.')[0] : '';
-      addRow(p, type, num ? num : '<i class="rl-dot"></i>', doneIds.includes(p.id));
+      // na trasie punkty główne mają numer wg kolejności; bez trasy (dowolna kolejność) — złota kropka;
+      // dodatkowe zawsze mała jasna kropka, jak na mapie
+      const num = routeChosen && type === 'main' && p.tracks[0] ? String(p.tracks[0].number).split('.')[0] : '';
+      const mark = num || (type === 'main' ? '<i class="rl-dot main"></i>' : '<i class="rl-dot"></i>');
+      addRow(p, type + (type === 'main' && !num ? ' free' : ''), mark, doneIds.includes(p.id));
     });
   });
+  filterRouteList();
 }
-routeProgressEl.addEventListener('click', () => { sfx.play('menuUp'); renderRouteList(); routeListEl.classList.remove('hidden'); });
+function filterRouteList() {
+  const q = searchNorm(routeListSearch.value.trim());
+  routeListSearchClear.classList.toggle('hidden', !q);
+  const body = document.getElementById('route-list-body');
+  let anyVisible = false, header = null, headerHasRows = false;
+  const closeHeader = () => { if (header) header.style.display = headerHasRows ? '' : 'none'; };
+  Array.from(body.children).forEach(el => {
+    if (el.classList.contains('rl-header')) { closeHeader(); header = el; headerHasRows = false; return; }
+    const show = !q || el.dataset.search.includes(q);
+    el.style.display = show ? '' : 'none';
+    if (show) { anyVisible = true; headerHasRows = true; }
+  });
+  closeHeader();
+  document.getElementById('route-list-empty').classList.toggle('hidden', anyVisible);
+}
+routeListSearch.addEventListener('input', filterRouteList);
+routeListSearchClear.addEventListener('click', () => { routeListSearch.value = ''; filterRouteList(); routeListSearch.focus(); });
+routeProgressEl.addEventListener('click', () => { sfx.play('menuUp'); routeListSearch.value = ''; renderRouteList(); routeListEl.classList.remove('hidden'); });
 document.getElementById('route-list-close').addEventListener('click', () => routeListEl.classList.add('hidden'));
 document.getElementById('route-list-scrim').addEventListener('click', () => routeListEl.classList.add('hidden'));
 function markPointDone() {
