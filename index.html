@@ -3910,7 +3910,7 @@ function updateProgressUI(pct) {
   progressThumb.style.left = pct + '%';
   peekProgressFill.style.width = pct + '%';
 }
-/* ---------- Postęp trasy: punkt główny jest zaliczony, gdy główne nagranie (pierwsze) wysłuchane w 80%+ ---------- */
+/* ---------- Postęp trasy: punkt główny jest zaliczony, gdy którekolwiek jego nagranie wysłuchane w 80%+ ---------- */
 const PROGRESS_KEY = 'krakroam_done_stare-miasto';
 const MAIN_POINT_IDS = POINTS.filter(p => p.type === 'main').map(p => p.id);
 let doneIds = [];
@@ -3956,7 +3956,7 @@ document.getElementById('route-list-close').addEventListener('click', () => rout
 document.getElementById('route-list-scrim').addEventListener('click', () => routeListEl.classList.add('hidden'));
 function markPointDone() {
   const p = loadedPoint;
-  if (!p || p.type !== 'main' || loadedTrackIndex !== 0 || doneIds.includes(p.id)) return;
+  if (!p || p.type !== 'main' || doneIds.includes(p.id)) return;
   doneIds.push(p.id);
   try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(doneIds)); } catch (_) {}
   updateRouteProgress();
