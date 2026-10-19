@@ -454,6 +454,13 @@
   #nav-top-bar {
     position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 11;
   }
+  #route-progress {
+    position: absolute; top: calc(78px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 10;
+    background: var(--route); border: 1.5px solid var(--line-strong); color: #fff;
+    border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25); pointer-events: none;
+  }
+  #route-progress.hidden { display: none; }
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
@@ -1190,6 +1197,7 @@
     <div id="arrival-toast-title">Jesteś na miejscu!</div>
     <div id="arrival-toast-sub">Odtwórz: <span id="arrival-toast-track">—</span></div>
   </div>
+  <div id="route-progress" class="hidden"></div>
   <div id="info-toast" class="hidden" role="status"></div>
 
   <div id="topbar">
@@ -1240,6 +1248,7 @@
         <span id="settings-sound-icon">🔊</span>
         <span id="settings-sound-text">Dźwięki: włączone</span>
       </div>
+      <div class="settings-row" id="settings-progress-row">Zacznij trasę od nowa</div>
       <div class="settings-row" id="settings-logout-row">Wyloguj</div>
     </div>
   </div>
@@ -1463,6 +1472,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAWIGUJ",
     navigatingText: "Nawigacja do startu",
     logoutBtn: "Wyloguj",
+    progressLabel: "Zaliczone punkty: {n} z {m}",
+    progressReset: "Zacznij trasę od nowa",
     soundOn: "Dźwięki: włączone",
     soundOff: "Dźwięki: wyłączone",
     routeIntroKicker: "Witamy w Krakowie",
@@ -1533,6 +1544,8 @@ const TRANSLATIONS = {
     navigateBtn: "НАВІГАЦІЯ",
     navigatingText: "Навігація до старту",
     logoutBtn: "Вийти",
+    progressLabel: "Пройдено точок: {n} з {m}",
+    progressReset: "Почати маршрут спочатку",
     soundOn: "Звуки: увімкнено",
     soundOff: "Звуки: вимкнено",
     routeIntroKicker: "Ласкаво просимо до Кракова",
@@ -1603,6 +1616,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGATE",
     navigatingText: "Navigating to the start",
     logoutBtn: "Log out",
+    progressLabel: "Stops done: {n} of {m}",
+    progressReset: "Restart the route",
     soundOn: "Sounds: on",
     soundOff: "Sounds: off",
     routeIntroKicker: "Welcome to Krakow",
@@ -1673,6 +1688,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVIGIEREN",
     navigatingText: "Navigation zum Start",
     logoutBtn: "Abmelden",
+    progressLabel: "Erledigte Stopps: {n} von {m}",
+    progressReset: "Route neu starten",
     soundOn: "Töne: an",
     soundOff: "Töne: aus",
     routeIntroKicker: "Willkommen in Krakau",
@@ -1743,6 +1760,8 @@ const TRANSLATIONS = {
     navigateBtn: "NAVEGAR",
     navigatingText: "Navegando al inicio",
     logoutBtn: "Cerrar sesión",
+    progressLabel: "Paradas hechas: {n} de {m}",
+    progressReset: "Reiniciar la ruta",
     soundOn: "Sonidos: activados",
     soundOff: "Sonidos: desactivados",
     routeIntroKicker: "Bienvenido a Cracovia",
@@ -1891,6 +1910,8 @@ function applyTranslations() {
   document.getElementById('pw-lang-flag').textContent = FLAG_EMOJI[currentLang] || '🇵🇱';
   document.getElementById('pw-lang-text').textContent = t('changeLang');
   document.getElementById('settings-logout-row').textContent = t('logoutBtn');
+  document.getElementById('settings-progress-row').textContent = t('progressReset');
+  if (typeof updateRouteProgress === 'function') updateRouteProgress();
   if (typeof updateSoundRow === 'function') updateSoundRow();
   document.getElementById('settings-lang-text').textContent = t('changeLang');
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
@@ -3215,6 +3236,7 @@ function selectDistrict(freeRoam, options) {
 
   // reset stanu nawigacji przy każdym (ponownym) wyborze
   routeChosen = !freeRoam;
+  if (typeof updateRouteProgress === 'function') updateRouteProgress();
   reachedNavTarget = false;
   navActive = false;
   collapseNavTopBar();
@@ -3837,7 +3859,32 @@ function updateProgressUI(pct) {
   progressThumb.style.left = pct + '%';
   peekProgressFill.style.width = pct + '%';
 }
+/* ---------- Postęp trasy: punkt główny jest zaliczony, gdy główne nagranie (pierwsze) wysłuchane w 80%+ ---------- */
+const PROGRESS_KEY = 'krakroam_done_stare-miasto';
+const MAIN_POINT_IDS = POINTS.filter(p => p.type === 'main').map(p => p.id);
+let doneIds = [];
+try { doneIds = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]').filter(id => MAIN_POINT_IDS.includes(id)); } catch (_) {}
+const routeProgressEl = document.getElementById('route-progress');
+function updateRouteProgress() {
+  if (!routeChosen) { routeProgressEl.classList.add('hidden'); return; }
+  routeProgressEl.textContent = t('progressLabel').replace('{n}', doneIds.length).replace('{m}', MAIN_POINT_IDS.length);
+  routeProgressEl.classList.remove('hidden');
+}
+function markPointDone() {
+  const p = loadedPoint;
+  if (!p || p.type !== 'main' || loadedTrackIndex !== 0 || doneIds.includes(p.id)) return;
+  doneIds.push(p.id);
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(doneIds)); } catch (_) {}
+  updateRouteProgress();
+}
+document.getElementById('settings-progress-row').addEventListener('click', () => {
+  doneIds = [];
+  try { localStorage.removeItem(PROGRESS_KEY); } catch (_) {}
+  updateRouteProgress();
+  settingsScreenEl.classList.add('hidden');
+});
 audioEl.addEventListener('timeupdate', () => {
+  if (audioEl.duration && audioEl.currentTime / audioEl.duration >= 0.8) markPointDone();
   if (!audioEl.duration || seeking) return;
   updateProgressUI((audioEl.currentTime / audioEl.duration) * 100);
   showTimes(audioEl.currentTime);
@@ -3850,7 +3897,7 @@ function applyPendingSeek() {
 }
 audioEl.addEventListener('loadedmetadata', () => { applyPendingSeek(); showTimes(audioEl.currentTime); });
 audioEl.addEventListener('canplay', applyPendingSeek);
-audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); });
+audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); markPointDone(); });
 // punkt z wczytanym nagraniem jest na mapie zaznaczony zielonym pierścieniem, a gdy gra — pulsuje
 function updatePlayingMarker() {
   const prev = playingPointId;
