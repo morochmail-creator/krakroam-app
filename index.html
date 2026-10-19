@@ -455,7 +455,7 @@
     position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 11;
   }
   #route-progress {
-    position: absolute; left: 12px; top: 40%; z-index: 10;
+    position: absolute; left: 14px; bottom: calc(100% + 10px); z-index: 2; pointer-events: auto;
     display: flex; align-items: center; gap: 7px;
     background: var(--brass); border: 1.5px solid var(--brass-deep); color: #14110d;
     border-radius: 999px; padding: 9px 14px 9px 11px;
@@ -573,8 +573,8 @@
   /* ---------- Ustawienia — wyśrodkowany modal (widok mapy + język + wyloguj) ---------- */
   #settings-screen {
     position: absolute; inset: 0; z-index: 115;
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px;
+    display: flex; align-items: stretch; justify-content: stretch;
+    padding: 0;
     transition: opacity 0.3s ease, visibility 0.3s ease;
   }
   #settings-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -585,21 +585,20 @@
     -webkit-backdrop-filter: blur(3px);
   }
   #settings-inner {
-    position: relative; width: 100%; max-width: 360px;
-    background: var(--paper); border: 1.5px solid var(--line-strong);
-    border-radius: var(--radius-card); padding: 24px 20px;
-    box-shadow: var(--shadow-plate);
+    position: relative; width: 100%; height: 100%; overflow-y: auto;
+    background: var(--paper);
+    padding: calc(28px + env(safe-area-inset-top, 0px)) 22px calc(28px + env(safe-area-inset-bottom, 0px));
   }
   #settings-close {
-    position: absolute; top: 14px; right: 14px; z-index: 2;
-    width: 34px; height: 34px; border-radius: 50%;
+    position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: 18px; z-index: 2;
+    width: 40px; height: 40px; border-radius: 50%;
     background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
-    font-size: 19px; cursor: pointer; line-height: 1;
+    font-size: 22px; cursor: pointer; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
   #settings-title {
-    font-size: 19px; font-weight: 800; color: var(--ink);
-    margin-bottom: 18px; letter-spacing: -0.01em;
+    font-size: 26px; font-weight: 800; color: var(--ink);
+    margin-bottom: 24px; letter-spacing: -0.02em;
   }
   .settings-section-label {
     font-size: 12px; font-weight: 700;
@@ -611,15 +610,15 @@
   }
   .settings-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 12px; border-radius: 12px; cursor: pointer;
-    color: var(--ink); font-size: 14.5px; font-weight: 600;
+    padding: 16px 14px; border-radius: 14px; cursor: pointer;
+    color: var(--ink); font-size: 16px; font-weight: 600;
   }
   .settings-row:active { background: var(--paper-2); }
   #settings-lang-flag { font-size: 16px; }
   .layer-option {
     display: flex; align-items: center; gap: 10px;
-    padding: 10px; border-radius: 10px;
-    cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--ink-dim);
+    padding: 14px 12px; border-radius: 12px;
+    cursor: pointer; font-size: 15.5px; font-weight: 500; color: var(--ink-dim);
   }
   .layer-option:hover { background: var(--paper-2); }
   .layer-option.active { background: var(--brass-tint); color: var(--brass-deep); font-weight: 700; }
@@ -1228,7 +1227,6 @@
     <div id="arrival-toast-title">Jesteś na miejscu!</div>
     <div id="arrival-toast-sub">Odtwórz: <span id="arrival-toast-track">—</span></div>
   </div>
-  <button id="route-progress" class="hidden" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg><span id="route-progress-text"></span></button>
   <div id="route-list-screen" class="hidden">
     <div id="route-list-scrim"></div>
     <div id="route-list-inner">
@@ -1253,9 +1251,6 @@
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
         </svg>
-      </button>
-      <button id="view-toggle-btn" aria-label="Przełącz widok 3D">
-        <span id="view-toggle-label">3D</span>
       </button>
       <button id="settings-btn" aria-label="Ustawienia">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1304,6 +1299,7 @@
   </div>
 
   <div id="sheet">
+    <button id="route-progress" class="hidden" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg><span id="route-progress-text"></span></button>
     <button id="sheet-close" aria-label="Zwiń">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg>
     </button>
@@ -2899,7 +2895,7 @@ function setViewMode3D(on) {
   }
 }
 
-view3DBtn.addEventListener('click', () => setViewMode3D(!viewMode3D));
+if (view3DBtn) view3DBtn.addEventListener('click', () => setViewMode3D(!viewMode3D)); // przycisk 3D chwilowo wyłączony z interfejsu
 
 function drawGuideLine(latlngs) {
   // linia-cel: gruba, w pełni kryjąca, biała obwódka pod spodem + jaskrawy niebieski na wierzchu —
@@ -3381,7 +3377,7 @@ function openRouteIntro(districtKey) {
   const titleKey = (DISTRICT_CENTERS[districtKey] || {}).labelKey;
   document.getElementById('route-intro-eyebrow').textContent = t('routeIntroEyebrow');
   document.getElementById('route-intro-title').textContent = titleKey ? t(titleKey) : '';
-  document.getElementById('route-intro-meta').textContent = data.meta;
+  document.getElementById('route-intro-meta').textContent = data.meta.replace(/^\d+/, POINTS.filter(p => p.type === 'main').length); // liczba przystanków = liczba punktów głównych
   document.getElementById('route-intro-desc').textContent = data.desc;
   const list = document.getElementById('route-intro-highlights');
   list.innerHTML = '';
