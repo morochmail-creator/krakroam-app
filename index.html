@@ -2792,6 +2792,9 @@ const pointCluster = L.markerClusterGroup({
   // "wyskakiwały" ze środka bąbelka i jechały na swoje miejsce (albo odwrotnie), a przy szybkim
   // zoomie lub locie kamery kilka takich animacji nakładało się na siebie i punkty skakały
   animate: false,
+  // punkty poza ekranem zostają na mapie (jest ich tylko kilkadziesiąt) — wcześniej biblioteka zdejmowała je przy przesuwaniu
+  // i dokładała z powrotem dopiero po zatrzymaniu mapy, więc przy szybkim machaniu palcem punkty znikały na kilka sekund
+  removeOutsideVisibleBounds: false,
   iconCreateFunction: cluster => {
     const hasMain = cluster.getAllChildMarkers().some(m => m.options.pointType === 'main');
     return (hasMain ? mainClusterIcon : extraClusterIcon)(cluster);
