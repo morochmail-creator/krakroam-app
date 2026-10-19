@@ -1017,6 +1017,8 @@
   }
   .mini-btn svg { width: 17px; height: 17px; fill: currentColor; }
   .mini-btn.open { background: var(--brass); color: #14110d; box-shadow: none; }
+  #autoplay-btn { font-size: 10.5px; letter-spacing: 0.04em; padding: 0 9px; }
+  #autoplay-btn.on { background: var(--brass); color: #14110d; box-shadow: none; }
   .popup {
     position: absolute; bottom: calc(100% + 6px); z-index: 5;
     background: var(--ink); color: var(--paper); border-radius: 16px; padding: 8px;
@@ -1355,6 +1357,10 @@
         <span id="settings-sound-icon">🔊</span>
         <span id="settings-sound-text">Dźwięki: włączone</span>
       </div>
+      <div class="settings-row" id="settings-autoplay-row">
+        <span id="settings-autoplay-icon">⏭️</span>
+        <span id="settings-autoplay-text">Autoodtwarzanie: włączone</span>
+      </div>
       <div class="settings-row" id="settings-progress-row">Wyzeruj odsłuchane punkty</div>
       <div class="settings-row" id="settings-logout-row">Wyloguj</div>
     </div>
@@ -1415,6 +1421,7 @@
           <span id="time-current">0:00</span>
           <div id="progress-wrap"><div id="progress-track"><div id="progress-fill"></div><div id="progress-thumb"></div></div></div>
           <span id="time-total">0:00</span>
+          <button class="mini-btn" id="autoplay-btn" aria-label="Autoodtwarzanie kolejnych nagrań" aria-pressed="true">AUTO</button>
           <button class="mini-btn" id="speed-toggle" aria-label="Prędkość odtwarzania">1x</button>
         </div>
         <div id="controls">
@@ -1595,6 +1602,9 @@ const TRANSLATIONS = {
     listNoResults: "Nic nie znaleziono",
     listSearchClear: "Wyczyść",
     soundOn: "Dźwięki: włączone",
+    autoplayOn: "Autoodtwarzanie: włączone",
+    autoplayOff: "Autoodtwarzanie: wyłączone",
+    autoplayLabel: "Autoodtwarzanie kolejnych nagrań",
     soundOff: "Dźwięki: wyłączone",
     routeIntroKicker: "Witamy w Krakowie",
     gotoHereBtn: "Prowadź mnie tutaj",
@@ -1679,6 +1689,9 @@ const TRANSLATIONS = {
     listNoResults: "Нічого не знайдено",
     listSearchClear: "Очистити",
     soundOn: "Звуки: увімкнено",
+    autoplayOn: "Автовідтворення: увімкнено",
+    autoplayOff: "Автовідтворення: вимкнено",
+    autoplayLabel: "Автовідтворення наступних записів",
     soundOff: "Звуки: вимкнено",
     routeIntroKicker: "Ласкаво просимо до Кракова",
     gotoHereBtn: "Проведи мене сюди",
@@ -1763,6 +1776,9 @@ const TRANSLATIONS = {
     listNoResults: "Nothing found",
     listSearchClear: "Clear",
     soundOn: "Sounds: on",
+    autoplayOn: "Autoplay: on",
+    autoplayOff: "Autoplay: off",
+    autoplayLabel: "Autoplay next recordings",
     soundOff: "Sounds: off",
     routeIntroKicker: "Welcome to Krakow",
     gotoHereBtn: "Guide me here",
@@ -1847,6 +1863,9 @@ const TRANSLATIONS = {
     listNoResults: "Nichts gefunden",
     listSearchClear: "Leeren",
     soundOn: "Töne: an",
+    autoplayOn: "Autoplay: an",
+    autoplayOff: "Autoplay: aus",
+    autoplayLabel: "Nächste Aufnahmen automatisch abspielen",
     soundOff: "Töne: aus",
     routeIntroKicker: "Willkommen in Krakau",
     gotoHereBtn: "Führe mich hierher",
@@ -1931,6 +1950,9 @@ const TRANSLATIONS = {
     listNoResults: "No se encontró nada",
     listSearchClear: "Borrar",
     soundOn: "Sonidos: activados",
+    autoplayOn: "Reproducción automática: activada",
+    autoplayOff: "Reproducción automática: desactivada",
+    autoplayLabel: "Reproducir automáticamente las siguientes grabaciones",
     soundOff: "Sonidos: desactivados",
     routeIntroKicker: "Bienvenido a Cracovia",
     gotoHereBtn: "Llévame aquí",
@@ -2085,6 +2107,7 @@ function applyTranslations() {
   document.getElementById('settings-progress-row').textContent = t('progressReset');
   if (typeof updateRouteProgress === 'function') updateRouteProgress();
   if (typeof updateSoundRow === 'function') updateSoundRow();
+  if (typeof autoplayNext === 'boolean') updateAutoplayUI();
   document.getElementById('settings-lang-text').textContent = t('changeLang');
   document.querySelector('.layer-option[data-mode="dark"] .lo-label').textContent = t('layerDark');
   document.querySelector('.layer-option[data-mode="light"] .lo-label').textContent = t('layerLight');
@@ -4152,7 +4175,41 @@ function applyPendingSeek() {
 }
 audioEl.addEventListener('loadedmetadata', () => { applyPendingSeek(); showTimes(audioEl.currentTime); });
 audioEl.addEventListener('canplay', applyPendingSeek);
-audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); markPointDone(); });
+audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); markPointDone(); playNextInPoint(); });
+/* ---------- Autoodtwarzanie: po skończonym nagraniu leci następne w tym samym punkcie ---------- */
+var autoplayNext = true; // var, nie let — applyTranslations() woła updateAutoplayUI() wcześniej w kodzie
+try { autoplayNext = localStorage.getItem('krakroam_autoplay') !== '0'; } catch (_) {}
+function playNextInPoint() {
+  if (!autoplayNext || !loadedPoint) return;
+  const tracks = loadedPoint.tracks || [];
+  let n = loadedTrackIndex + 1;
+  while (n < tracks.length && !tracks[n].audio) n++; // pomijamy nagrania, których jeszcze nie ma
+  if (n >= tracks.length) return; // to było ostatnie nagranie punktu — stop
+  if (loadedPoint !== currentPoint) showPointHeader(loadedPoint);
+  currentPoint = loadedPoint;
+  currentTrackIndex = n;
+  loadTrack(true);
+  renderTrackList();
+}
+function updateAutoplayUI() {
+  const btn = document.getElementById('autoplay-btn');
+  btn.classList.toggle('on', autoplayNext);
+  btn.setAttribute('aria-pressed', autoplayNext ? 'true' : 'false');
+  btn.setAttribute('aria-label', t('autoplayLabel'));
+  document.getElementById('settings-autoplay-text').textContent = t(autoplayNext ? 'autoplayOn' : 'autoplayOff');
+}
+function setAutoplay(v) {
+  autoplayNext = v;
+  try { localStorage.setItem('krakroam_autoplay', v ? '1' : '0'); } catch (_) {}
+  updateAutoplayUI();
+}
+document.getElementById('autoplay-btn').addEventListener('click', () => {
+  setAutoplay(!autoplayNext);
+  sfx.play('tap');
+  showInfoToast(t(autoplayNext ? 'autoplayOn' : 'autoplayOff'));
+});
+document.getElementById('settings-autoplay-row').addEventListener('click', () => { setAutoplay(!autoplayNext); sfx.play('tap'); });
+updateAutoplayUI();
 // punkt z wczytanym nagraniem jest na mapie zaznaczony zielonym pierścieniem, a gdy gra — pulsuje
 function updatePlayingMarker() {
   const prev = playingPointId;
