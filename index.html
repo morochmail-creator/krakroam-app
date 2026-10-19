@@ -982,6 +982,7 @@
   .track-row .tr-name { font-size: 13.5px; font-weight: 600; color: var(--ink); flex: 1; }
   .track-row .tr-icon { flex-shrink: 0; width: 16px; height: 16px; color: var(--ink-dim); }
   .track-row.active .tr-icon { color: var(--brass-deep); }
+  .track-row .tr-check { flex-shrink: 0; width: 17px; height: 17px; stroke: var(--brass-deep); }
 
   #player {
     position: relative; display: flex; flex-direction: column; gap: 6px;
@@ -2845,10 +2846,17 @@ function applyMarkerState(id) {
   dot.classList.toggle('marker-playing', id === playingPointId && playingActive);
 }
 const PROGRESS_KEY = 'krakroam_done_stare-miasto';
-let doneIds = []; // wysłuchane punkty (główne i dodatkowe)
-try { doneIds = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]'); } catch (_) {}
-const KNOWN_IDS = POINTS.map(p => p.id);
-doneIds = doneIds.filter(id => KNOWN_IDS.includes(id));
+// nagranie jest "wysłuchane" po 90%, a punkt jest zaliczony (ptaszek na mapie), gdy wysłuchana jest połowa jego nagrań
+const TRACKS_KEY = 'krakroam_tracks_stare-miasto';
+let doneTracks = []; // wpisy "idPunktu|numerNagrania"
+try { doneTracks = JSON.parse(localStorage.getItem(TRACKS_KEY) || '[]'); } catch (_) {}
+const trackKey = (p, i) => p.id + '|' + i;
+function pointIsDone(p) {
+  const playable = p.tracks.map((tr, i) => tr.audio ? i : -1).filter(i => i >= 0);
+  if (!playable.length) return false;
+  return playable.filter(i => doneTracks.includes(trackKey(p, i))).length >= Math.ceil(playable.length / 2);
+}
+let doneIds = POINTS.filter(pointIsDone).map(p => p.id); // zaliczone punkty (główne i dodatkowe)
 POINTS.forEach(p => {
   const className = p.type === 'main' ? 'marker-main' : 'marker-extra';
   const icon = makeDivIcon(className);
@@ -4025,6 +4033,7 @@ function renderTrackList() {
     row.innerHTML = `
       <span class="tr-num">${track.number}</span>
       <span class="tr-name">${trackLabel(track)}</span>
+      ${currentPoint && doneTracks.includes(trackKey(currentPoint, i)) ? '<svg class="tr-check" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>' : ''}
       <svg class="tr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6,4 20,12 6,20" fill="currentColor" stroke="none"></polygon></svg>
     `;
     row.addEventListener('click', () => {
@@ -4153,7 +4162,7 @@ function updateProgressUI(pct) {
   progressThumb.style.left = pct + '%';
   peekProgressFill.style.width = pct + '%';
 }
-/* ---------- Postęp trasy: punkt główny jest zaliczony, gdy którekolwiek jego nagranie wysłuchane w 80%+ ---------- */
+/* ---------- Postęp trasy: punkt jest zaliczony, gdy wysłuchana jest połowa jego nagrań (nagranie = 90%) ---------- */
 const MAIN_POINT_IDS = POINTS.filter(p => p.type === 'main').map(p => p.id);
 const doneMainCount = () => doneIds.filter(id => MAIN_POINT_IDS.includes(id)).length;
 // na trasie liczą się tylko punkty główne, w trybie bez trasy — wszystkie (główne + dodatkowe)
@@ -4239,11 +4248,17 @@ document.getElementById('route-list-close').addEventListener('click', () => rout
 document.getElementById('route-list-scrim').addEventListener('click', () => routeListEl.classList.add('hidden'));
 function markPointDone() {
   const p = loadedPoint;
-  if (!p || (p.type !== 'main' && p.type !== 'extra') || doneIds.includes(p.id)) return;
-  doneIds.push(p.id);
-  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(doneIds)); } catch (_) {}
-  updateRouteProgress();
-  applyMarkerState(p.id);
+  if (!p || (p.type !== 'main' && p.type !== 'extra')) return;
+  const key = trackKey(p, loadedTrackIndex);
+  if (doneTracks.includes(key)) return;
+  doneTracks.push(key);
+  try { localStorage.setItem(TRACKS_KEY, JSON.stringify(doneTracks)); } catch (_) {}
+  if (pointIsDone(p) && !doneIds.includes(p.id)) {
+    doneIds.push(p.id);
+    updateRouteProgress();
+    applyMarkerState(p.id);
+  }
+  if (currentPoint === p) renderTrackList(); // ptaszek przy nagraniu
 }
 // najpierw pytamy "czy na pewno?" — wyzerowania nie da się cofnąć
 const confirmEl = document.getElementById('confirm-screen');
@@ -4259,15 +4274,16 @@ document.getElementById('settings-progress-row').addEventListener('click', () =>
   confirmEl.classList.remove('hidden');
 });
 function resetProgress() {
-  const old = doneIds; doneIds = [];
-  try { localStorage.removeItem(PROGRESS_KEY); } catch (_) {}
+  const old = doneIds; doneIds = []; doneTracks = [];
+  try { localStorage.removeItem(TRACKS_KEY); localStorage.removeItem(PROGRESS_KEY); } catch (_) {}
+  if (currentPoint && currentPoint.type !== 'intro') renderTrackList();
   updateRouteProgress();
   old.forEach(applyMarkerState);
   settingsScreenEl.classList.add('hidden');
   showInfoToast(t('progressResetDone'));
 }
 audioEl.addEventListener('timeupdate', () => {
-  if (audioEl.duration && audioEl.currentTime / audioEl.duration >= 0.8) markPointDone();
+  if (audioEl.duration && audioEl.currentTime / audioEl.duration >= 0.9) markPointDone();
   if (!audioEl.duration || seeking) return;
   updateProgressUI((audioEl.currentTime / audioEl.duration) * 100);
   showTimes(audioEl.currentTime);
