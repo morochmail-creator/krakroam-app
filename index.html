@@ -455,10 +455,11 @@
     position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 11;
   }
   #route-progress {
-    position: absolute; top: calc(78px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 10;
-    background: var(--route); border: 1.5px solid var(--line-strong); color: #fff;
-    border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.25); pointer-events: none;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--brass); border: 1.5px solid var(--brass-deep); color: #14110d;
+    box-shadow: var(--shadow-float);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; letter-spacing: -0.02em; pointer-events: none;
   }
   #route-progress.hidden { display: none; }
   #nav-top-bar.hidden { display: none; }
@@ -1197,7 +1198,6 @@
     <div id="arrival-toast-title">Jesteś na miejscu!</div>
     <div id="arrival-toast-sub">Odtwórz: <span id="arrival-toast-track">—</span></div>
   </div>
-  <div id="route-progress" class="hidden"></div>
   <div id="info-toast" class="hidden" role="status"></div>
 
   <div id="topbar">
@@ -1223,6 +1223,7 @@
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </button>
+      <div id="route-progress" class="hidden"></div>
     </div>
   </div>
 
@@ -3867,7 +3868,8 @@ try { doneIds = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]').filter(id
 const routeProgressEl = document.getElementById('route-progress');
 function updateRouteProgress() {
   if (!routeChosen) { routeProgressEl.classList.add('hidden'); return; }
-  routeProgressEl.textContent = t('progressLabel').replace('{n}', doneIds.length).replace('{m}', MAIN_POINT_IDS.length);
+  routeProgressEl.textContent = doneIds.length + '/' + MAIN_POINT_IDS.length;
+  routeProgressEl.setAttribute('aria-label', t('progressLabel').replace('{n}', doneIds.length).replace('{m}', MAIN_POINT_IDS.length));
   routeProgressEl.classList.remove('hidden');
 }
 function markPointDone() {
