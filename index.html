@@ -492,6 +492,7 @@
   .rl-mark svg { width: 14px; height: 14px; stroke: #14110d; opacity: 0; }
   .rl-item.done .rl-mark svg { opacity: 1; }
   .rl-item.done { color: var(--ink); }
+  .rl-num { font-size: 11.5px; font-weight: 800; color: var(--ink); letter-spacing: -0.04em; }
   .rl-item.intro .rl-mark { font-size: 12px; font-weight: 800; color: var(--ink-dim); }
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
@@ -3947,7 +3948,9 @@ function renderRouteList() {
     pts.forEach(p => {
       const row = document.createElement('div');
       row.className = 'rl-item ' + type + (doneIds.includes(p.id) ? ' done' : '');
-      row.innerHTML = '<span class="rl-mark">' + CHECK_SVG + '</span>';
+      // punkty główne: numer w kółku wg kolejności trasy (zaliczony = złote kółko z numerem); dodatkowe: ptaszek
+      const num = type === 'main' && p.tracks[0] ? String(p.tracks[0].number).split('.')[0] : '';
+      row.innerHTML = '<span class="rl-mark">' + (num ? '<b class="rl-num">' + num + '</b>' : CHECK_SVG) + '</span>';
       const name = document.createElement('span');
       name.textContent = pointName(p);
       row.appendChild(name);
