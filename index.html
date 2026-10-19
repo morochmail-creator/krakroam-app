@@ -3137,6 +3137,29 @@ function formatNavDuration(seconds) {
   return min + t('navMinWalk');
 }
 
+// kawałek linii trasy od miejsca najbliższego "from" do celu (oba muszą leżeć przy linii, max ~60 m),
+// albo null — wtedy nawigacja liczy zwykłą trasę pieszą
+const ROUTE_SNAP_METERS = 60;
+function routeSegmentTo(from, target) {
+  if (typeof ROUTE_LINE === 'undefined' || !ROUTE_LINE.length) return null;
+  const nearestIdx = (pt, maxIdx) => {
+    let best = -1, bestD = Infinity;
+    for (let i = 0; i <= maxIdx; i++) {
+      const d = distMeters(pt, ROUTE_LINE[i]);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return { i: best, d: bestD };
+  };
+  const to = nearestIdx(target, ROUTE_LINE.length - 1);
+  if (to.d > ROUTE_SNAP_METERS || to.i < 1) return null;
+  const fr = nearestIdx(from, to.i - 1); // początek szukamy tylko PRZED celem (trasa idzie w jedną stronę)
+  if (fr.d > ROUTE_SNAP_METERS) return null;
+  const coords = [from].concat(ROUTE_LINE.slice(fr.i, to.i + 1), [target]);
+  let distance = 0;
+  for (let i = 1; i < coords.length; i++) distance += distMeters(coords[i - 1], coords[i]);
+  return { coords, distance };
+}
+
 let routeRequestSeq = 0; // numer ostatniego zapytania — starsze odpowiedzi (np. do poprzedniego celu) są ignorowane
 
 async function requestWalkingRoute(userLatLng, force) {
@@ -3149,6 +3172,16 @@ async function requestWalkingRoute(userLatLng, force) {
   const targetName = navTargetName;
   routingInFlight = true;
   lastRoutedLatLng = userLatLng;
+  // na wybranej trasie, gdy jesteś przy złotej linii, prowadzimy dokładnie po niej (a nie na skróty
+  // przez ulice) — wtedy niebieska linia nawigacji pokrywa się z linią trasy zamiast ją przecinać
+  const along = routeChosen ? routeSegmentTo(userLatLng, target) : null;
+  if (along) {
+    drawGuideLine(along.coords);
+    if (navTopDistance) navTopDistance.textContent = formatNavDistance(along.distance);
+    if (navTopSub) navTopSub.textContent = formatNavDuration(along.distance / 1.25) + ' · ' + targetName; // ~4,5 km/h
+    routingInFlight = false;
+    return;
+  }
   // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
   drawGuideLine([userLatLng, target]);
   if (navTopDistance) navTopDistance.textContent = t('navCalculating');
