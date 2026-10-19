@@ -2910,7 +2910,7 @@ let routeChosen = false;    // czy user wybrał konkretną trasę (nie "zwiedzaj
 let reachedNavTarget = false; // czy user dotarł już blisko aktualnego celu nawigacji
 // 20 m zamiast 10 m: GPS w telefonie między kamienicami często myli się o 10–20 m, więc przy 10 m
 // komunikat "Jesteś na miejscu!" potrafił się w ogóle nie pojawić, mimo że stałeś pod zabytkiem
-const START_PROXIMITY_METERS = 20;
+const START_PROXIMITY_METERS = 25; // GPS w uliczkach Starego Miasta myli się o 15–30 m — 20 m bywało za mało
 let watching = false;
 let watchId = null;
 let lastRoutedLatLng = null;
@@ -3282,6 +3282,7 @@ function startLocationTracking(flyOnFirstFix) {
     if (navActive) {
       requestWalkingRoute(userLatLng);
     }
+    if (typeof updateNextPointBtn === 'function' && currentPoint) updateNextPointBtn();
   }, err => {
     document.getElementById('gps-hint').classList.add('hidden');
     // chwilowy brak sygnału (np. w bramie) — śledzenie trwa dalej, nic nie robimy;
@@ -3341,6 +3342,11 @@ function startNavigation(targetPoint, opts) {
     navTargetName = pointName(targetPoint);
     navTargetPointRef = targetPoint;
   }
+  // nowa nawigacja najpierw całkiem wyłącza poprzednią (linia, cel, liczenie trasy w toku) — wcześniej
+  // stara nawigacja potrafiła "przebić się" przez nową, np. po "Prowadź mnie tutaj" + "Kolejny punkt"
+  stopNavigation();
+  routeRequestSeq++;
+  routingInFlight = false;
   if (typeof navTopIconShowsTarget !== 'undefined') navTopIconShowsTarget = true; // nowa nawigacja = pierwszy klik znów pokazuje cel
   sfx.play('navStart');
   navActive = true;
@@ -3441,6 +3447,19 @@ function nextMainPoint(point) {
   if (!routeChosen || !point || point.type !== 'main') return null;
   const mains = POINTS.filter(p => p.type === 'main');
   return mains[mains.indexOf(point) + 1] || null;
+}
+// przycisk widać tylko przy punkcie: pojawia się do 50 m, znika dopiero powyżej 65 m (żeby nie migał
+// przy skaczącym GPS); bez GPS widać go zawsze, żeby nikomu nie zniknął na dobre
+const NEXT_BTN_SHOW_M = 50, NEXT_BTN_HIDE_M = 65;
+function updateNextPointBtn(fresh) {
+  const btn = document.getElementById('sheet-nextpt-btn');
+  let show = !!nextMainPoint(currentPoint);
+  if (show && gpsMarker) {
+    const u = gpsMarker.getLatLng();
+    const d = distMeters([u.lat, u.lng], [currentPoint.lat, currentPoint.lng]);
+    show = d <= ((fresh || btn.classList.contains('hidden')) ? NEXT_BTN_SHOW_M : NEXT_BTN_HIDE_M);
+  }
+  btn.classList.toggle('hidden', !show);
 }
 document.getElementById('sheet-nextpt-btn').addEventListener('click', () => {
   const from = currentPoint, to = nextMainPoint(currentPoint);
@@ -3962,7 +3981,7 @@ function openSheet(point, opts) {
   const gotoBtn = document.getElementById('sheet-goto-btn');
   gotoBtn.classList.remove('hidden');
   // "Kolejny punkt" — tylko na wybranej trasie, przy punkcie głównym, który ma po sobie następny
-  document.getElementById('sheet-nextpt-btn').classList.toggle('hidden', !nextMainPoint(point));
+  updateNextPointBtn(true);
 
   if (!keepAudio) loadTrack(); // gdy coś gra (z tego lub innego punktu), zostawiamy to w spokoju
   else updateTrackPhoto();
