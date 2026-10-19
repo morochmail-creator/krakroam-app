@@ -3657,7 +3657,7 @@ function loadRouteIntroPhotos(key) {
 document.querySelectorAll('.district-row:not(.disabled)').forEach(row => {
   const src = 'foto/trasa-' + row.dataset.district + '.jpg?v=' + PHOTO_VER;
   const probe = new Image();
-  probe.onload = () => { const c = row.querySelector('.dr-cover'); c.style.backgroundImage = 'url("' + src + '")'; c.style.backgroundPosition = 'center top'; };
+  probe.onload = () => { const c = row.querySelector('.dr-cover'); c.style.backgroundImage = 'url("' + src + '")'; c.style.backgroundPosition = 'center 25%'; c.style.height = '112px'; };
   probe.src = src;
 });
 
