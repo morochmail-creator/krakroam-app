@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -2305,7 +2305,9 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 
 const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 19,
-  keepBuffer: isSlowConnection ? 1 : 3
+  keepBuffer: isSlowConnection ? 1 : 3,
+  updateWhenIdle: isSlowConnection ? true : false, // na słabym internecie nie ściągamy kafelków "w locie" podczas przesuwania
+  updateWhenZooming: false
 });
 
 satLayer.addTo(map);
@@ -2371,8 +2373,16 @@ function prefetchTilesForArea() {
   loadNext();
 }
 
-// startujemy dopiero, gdy główny widok mapy się już wyrenderuje, żeby nie konkurować o pasmo z pierwszym ładowaniem
-setTimeout(prefetchTilesForArea, 800);
+// startujemy dopiero, gdy główny widok mapy się już wyrenderuje, żeby nie konkurować o pasmo z pierwszym ładowaniem.
+// Jeśli działa "schowek" apki (sw.js), czekamy aż przejmie stronę — wtedy doładowane kafelki zostają w telefonie
+// i później, na słabym zasięgu albo bez internetu, mapa centrum jest od razu.
+setTimeout(() => {
+  if (!('serviceWorker' in navigator) || navigator.serviceWorker.controller) { prefetchTilesForArea(); return; }
+  let started = false;
+  const go = () => { if (!started) { started = true; prefetchTilesForArea(); } };
+  navigator.serviceWorker.addEventListener('controllerchange', go);
+  setTimeout(go, 6000);
+}, 800);
 
 /* ============================================================
    DŹWIĘKI INTERFEJSU (kliknięcia, start nawigacji, menu)
@@ -3856,6 +3866,32 @@ audioEl.addEventListener('pause', () => setPlayIcon(false));
 audioEl.addEventListener('durationchange', () => { if (isFinite(audioEl.duration)) showTimes(audioEl.currentTime); });
 audioEl.addEventListener('error', () => { setPlayIcon(false); if (audioEl.getAttribute('src')) noAudioNote.style.display = 'block'; }); // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
 
+// Doładowanie NASTĘPNEGO nagrania w tle, gdy obecne już się całe wczytało (albo gra od 30 s).
+// "Schowek" apki (sw.js) zapisuje je w telefonie, więc "następne" startuje od razu, nawet przy słabym zasięgu.
+let prefetchedFor = null, prefetchTimer = null;
+function prefetchNextTrack() {
+  const src = audioEl.getAttribute('src');
+  if (!src || prefetchedFor === src) return;
+  prefetchedFor = src;
+  clearTimeout(prefetchTimer);
+  const list = playableTracks();
+  const pos = list.findIndex(x => x.point === loadedPoint && x.i === loadedTrackIndex);
+  const next = pos >= 0 ? list[pos + 1] : null;
+  if (!next) return;
+  fetch(next.point.tracks[next.i].audio).then(r => r.blob()).catch(() => {});
+}
+function fullyBuffered() {
+  const b = audioEl.buffered, d = audioEl.duration;
+  return b.length > 0 && isFinite(d) && d > 0 && b.end(b.length - 1) >= d - 1;
+}
+['progress', 'timeupdate'].forEach(ev => audioEl.addEventListener(ev, () => { if (prefetchedFor !== audioEl.getAttribute('src') && fullyBuffered()) prefetchNextTrack(); }));
+audioEl.addEventListener('playing', () => {
+  if (fullyBuffered()) { prefetchNextTrack(); return; }
+  const src = audioEl.getAttribute('src');
+  clearTimeout(prefetchTimer);
+  prefetchTimer = setTimeout(() => { if (audioEl.getAttribute('src') === src && !audioEl.paused) prefetchNextTrack(); }, 30000);
+});
+
 // przewijanie: stuknięcie lub przeciągnięcie palcem po pasku postępu
 // przewijanie palcem: pasek w odtwarzaczu i cienka linia na zsuniętym pasku
 function seekPct(e, el) {
@@ -4155,6 +4191,11 @@ if (savedLang && savedUnlocked) {
   document.getElementById('pw-screen').classList.remove('hidden');
 }
 // jeśli brak zapamiętanego języka — ekran wyboru języka zostaje domyślnie widoczny, nic więcej nie robimy
+
+// "Schowek" apki w telefonie (sw.js): szybsze otwieranie, mapa i nagrania z pamięci telefonu na słabym zasięgu
+if ('serviceWorker' in navigator && !/^(www\.)?krakroam\.pl$/.test(location.hostname)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+}
 </script>
 </body>
 </html>
