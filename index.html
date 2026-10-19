@@ -3631,9 +3631,11 @@ function openRouteIntro(districtKey) {
 }
 
 // zdjęcia trasy: foto/trasa-<klucz>-1.jpg, -2, -3 — puste miejsca zostają jako ramki z aparatem, aż wrzucisz pliki
+// ?v=2 — telefon nie bierze starej odpowiedzi "brak pliku" zapamiętanej, zanim zdjęcia wgraliśmy; przy podmianie zdjęć podbij numer
+const PHOTO_VER = '2';
 function loadRouteIntroPhotos(key) {
   document.querySelectorAll('#route-intro-photos .ri-photo').forEach((slot, i) => {
-    const src = 'foto/trasa-' + key + '-' + (i + 1) + '.jpg';
+    const src = 'foto/trasa-' + key + '-' + (i + 1) + '.jpg?v=' + PHOTO_VER;
     slot.classList.remove('has-photo');
     slot.style.backgroundImage = '';
     slot.onclick = null;
@@ -3653,9 +3655,9 @@ function loadRouteIntroPhotos(key) {
 }
 // okładki kart w menu: foto/trasa-<klucz>.jpg (gradient, dopóki nie ma pliku)
 document.querySelectorAll('.district-row:not(.disabled)').forEach(row => {
-  const src = 'foto/trasa-' + row.dataset.district + '.jpg';
+  const src = 'foto/trasa-' + row.dataset.district + '.jpg?v=' + PHOTO_VER;
   const probe = new Image();
-  probe.onload = () => { row.querySelector('.dr-cover').style.backgroundImage = 'url("' + src + '")'; };
+  probe.onload = () => { const c = row.querySelector('.dr-cover'); c.style.backgroundImage = 'url("' + src + '")'; c.style.backgroundPosition = 'center top'; };
   probe.src = src;
 });
 
