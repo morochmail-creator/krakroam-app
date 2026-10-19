@@ -3913,10 +3913,13 @@ function updateProgressUI(pct) {
 /* ---------- Postęp trasy: punkt główny jest zaliczony, gdy którekolwiek jego nagranie wysłuchane w 80%+ ---------- */
 const MAIN_POINT_IDS = POINTS.filter(p => p.type === 'main').map(p => p.id);
 const doneMainCount = () => doneIds.filter(id => MAIN_POINT_IDS.includes(id)).length;
+// na trasie liczą się tylko punkty główne, w trybie bez trasy — wszystkie (główne + dodatkowe)
+const progressDone = () => routeChosen ? doneMainCount() : doneIds.length;
+const progressTotal = () => routeChosen ? MAIN_POINT_IDS.length : POINTS.length;
 const routeProgressEl = document.getElementById('route-progress');
 function updateRouteProgress() {
-  document.getElementById('route-progress-text').textContent = doneMainCount() + '/' + MAIN_POINT_IDS.length;
-  routeProgressEl.setAttribute('aria-label', t('progressLabel').replace('{n}', doneMainCount()).replace('{m}', MAIN_POINT_IDS.length));
+  document.getElementById('route-progress-text').textContent = progressDone() + '/' + progressTotal();
+  routeProgressEl.setAttribute('aria-label', t('progressLabel').replace('{n}', progressDone()).replace('{m}', progressTotal()));
   routeProgressEl.classList.remove('hidden');
   if (!routeListEl.classList.contains('hidden')) renderRouteList();
 }
@@ -3924,7 +3927,7 @@ const routeListEl = document.getElementById('route-list-screen');
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 function renderRouteList() {
   document.getElementById('route-list-title').textContent = t('routeListTitle');
-  document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', doneMainCount()).replace('{m}', MAIN_POINT_IDS.length);
+  document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', progressDone()).replace('{m}', progressTotal());
   const body = document.getElementById('route-list-body');
   body.innerHTML = '';
   // wstęp (audio 0) na samej górze — inaczej po przejściu do punktu 1 nie było jak do niego wrócić
