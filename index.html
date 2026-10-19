@@ -358,6 +358,11 @@
   .ri-photo svg { width: 30px; height: 30px; stroke: var(--ink-dim); opacity: 0.6; }
   .ri-photo.has-photo { border: none; cursor: pointer; }
   .ri-photo.has-photo svg { display: none; }
+  .ri-photo.has-photo::after {
+    content: ""; position: absolute; right: 8px; bottom: 8px; width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(20, 17, 13, 0.55) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4.5 4.5M11 8.5v5M8.5 11h5'/%3E%3C/svg%3E") center / 18px no-repeat;
+    pointer-events: none;
+  }
   #route-intro-desc { font-size: 14.5px; color: var(--ink); line-height: 1.55; margin-bottom: 22px; }
   #route-intro-highlights-label {
     font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px;
