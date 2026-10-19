@@ -455,13 +455,43 @@
     position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 11;
   }
   #route-progress {
-    width: 46px; height: 46px; border-radius: 50%;
+    position: absolute; left: 12px; top: 40%; z-index: 10;
+    display: flex; align-items: center; gap: 7px;
     background: var(--brass); border: 1.5px solid var(--brass-deep); color: #14110d;
-    box-shadow: var(--shadow-float);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 800; letter-spacing: -0.02em; pointer-events: none;
+    border-radius: 999px; padding: 9px 14px 9px 11px;
+    box-shadow: var(--shadow-float); cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: -0.01em;
   }
+  #route-progress svg { width: 17px; height: 17px; stroke: #14110d; }
+  #route-progress:active { transform: scale(0.95); }
   #route-progress.hidden { display: none; }
+  #route-list-screen { position: absolute; inset: 0; z-index: 115; display: flex; align-items: center; justify-content: center; padding: 24px; transition: opacity 0.3s ease, visibility 0.3s ease; }
+  #route-list-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #route-list-scrim { position: absolute; inset: 0; background: rgba(27,26,23,0.5); }
+  #route-list-inner {
+    position: relative; width: 100%; max-width: 360px; max-height: 80vh; overflow-y: auto;
+    background: var(--paper); border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-card); padding: 22px 16px 16px; box-shadow: var(--shadow-plate);
+  }
+  #route-list-close {
+    position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
+    font-size: 19px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center;
+  }
+  #route-list-title { font-size: 19px; font-weight: 800; color: var(--ink); margin: 0 40px 2px 4px; letter-spacing: -0.01em; }
+  #route-list-count { font-size: 13px; font-weight: 700; color: var(--brass-deep); margin: 0 4px 10px; }
+  .rl-header { font-size: 12px; font-weight: 700; color: var(--ink-dim); margin: 14px 4px 6px; }
+  .rl-item { display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-radius: 12px; cursor: pointer; color: var(--ink); font-size: 14.5px; font-weight: 600; }
+  .rl-item:active { background: var(--paper-2); }
+  .rl-item.extra { font-weight: 500; font-size: 13.5px; color: var(--ink-dim); }
+  .rl-mark {
+    flex: none; width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: center;
+  }
+  .rl-item.done .rl-mark { background: var(--brass); border-color: var(--brass-deep); }
+  .rl-mark svg { width: 14px; height: 14px; stroke: #14110d; opacity: 0; }
+  .rl-item.done .rl-mark svg { opacity: 1; }
+  .rl-item.done { color: var(--ink); }
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
@@ -1198,6 +1228,16 @@
     <div id="arrival-toast-title">Jesteś na miejscu!</div>
     <div id="arrival-toast-sub">Odtwórz: <span id="arrival-toast-track">—</span></div>
   </div>
+  <button id="route-progress" class="hidden" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg><span id="route-progress-text"></span></button>
+  <div id="route-list-screen" class="hidden">
+    <div id="route-list-scrim"></div>
+    <div id="route-list-inner">
+      <button id="route-list-close" aria-label="Zamknij">×</button>
+      <div id="route-list-title"></div>
+      <div id="route-list-count"></div>
+      <div id="route-list-body"></div>
+    </div>
+  </div>
   <div id="info-toast" class="hidden" role="status"></div>
 
   <div id="topbar">
@@ -1223,7 +1263,6 @@
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </button>
-      <div id="route-progress" class="hidden"></div>
     </div>
   </div>
 
@@ -1475,6 +1514,9 @@ const TRANSLATIONS = {
     logoutBtn: "Wyloguj",
     progressLabel: "Zaliczone punkty: {n} z {m}",
     progressReset: "Zacznij trasę od nowa",
+    routeListTitle: "Punkty na trasie",
+    listMain: "Punkty główne",
+    listExtra: "Punkty dodatkowe",
     soundOn: "Dźwięki: włączone",
     soundOff: "Dźwięki: wyłączone",
     routeIntroKicker: "Witamy w Krakowie",
@@ -1547,6 +1589,9 @@ const TRANSLATIONS = {
     logoutBtn: "Вийти",
     progressLabel: "Пройдено точок: {n} з {m}",
     progressReset: "Почати маршрут спочатку",
+    routeListTitle: "Точки маршруту",
+    listMain: "Головні точки",
+    listExtra: "Додаткові точки",
     soundOn: "Звуки: увімкнено",
     soundOff: "Звуки: вимкнено",
     routeIntroKicker: "Ласкаво просимо до Кракова",
@@ -1619,6 +1664,9 @@ const TRANSLATIONS = {
     logoutBtn: "Log out",
     progressLabel: "Stops done: {n} of {m}",
     progressReset: "Restart the route",
+    routeListTitle: "Route stops",
+    listMain: "Main stops",
+    listExtra: "Extra stops",
     soundOn: "Sounds: on",
     soundOff: "Sounds: off",
     routeIntroKicker: "Welcome to Krakow",
@@ -1691,6 +1739,9 @@ const TRANSLATIONS = {
     logoutBtn: "Abmelden",
     progressLabel: "Erledigte Stopps: {n} von {m}",
     progressReset: "Route neu starten",
+    routeListTitle: "Stopps der Route",
+    listMain: "Hauptstationen",
+    listExtra: "Zusatzstationen",
     soundOn: "Töne: an",
     soundOff: "Töne: aus",
     routeIntroKicker: "Willkommen in Krakau",
@@ -1763,6 +1814,9 @@ const TRANSLATIONS = {
     logoutBtn: "Cerrar sesión",
     progressLabel: "Paradas hechas: {n} de {m}",
     progressReset: "Reiniciar la ruta",
+    routeListTitle: "Paradas de la ruta",
+    listMain: "Paradas principales",
+    listExtra: "Paradas adicionales",
     soundOn: "Sonidos: activados",
     soundOff: "Sonidos: desactivados",
     routeIntroKicker: "Bienvenido a Cracovia",
@@ -3868,10 +3922,42 @@ try { doneIds = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]').filter(id
 const routeProgressEl = document.getElementById('route-progress');
 function updateRouteProgress() {
   if (!routeChosen) { routeProgressEl.classList.add('hidden'); return; }
-  routeProgressEl.textContent = doneIds.length + '/' + MAIN_POINT_IDS.length;
+  document.getElementById('route-progress-text').textContent = doneIds.length + '/' + MAIN_POINT_IDS.length;
   routeProgressEl.setAttribute('aria-label', t('progressLabel').replace('{n}', doneIds.length).replace('{m}', MAIN_POINT_IDS.length));
   routeProgressEl.classList.remove('hidden');
+  if (!routeListEl.classList.contains('hidden')) renderRouteList();
 }
+const routeListEl = document.getElementById('route-list-screen');
+const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+function renderRouteList() {
+  document.getElementById('route-list-title').textContent = t('routeListTitle');
+  document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', doneIds.length).replace('{m}', MAIN_POINT_IDS.length);
+  const body = document.getElementById('route-list-body');
+  body.innerHTML = '';
+  [['main', 'listMain'], ['extra', 'listExtra']].forEach(([type, hdrKey]) => {
+    const pts = POINTS.filter(p => p.type === type);
+    if (!pts.length) return;
+    const h = document.createElement('div');
+    h.className = 'rl-header'; h.textContent = t(hdrKey);
+    body.appendChild(h);
+    pts.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'rl-item ' + type + (type === 'main' && doneIds.includes(p.id) ? ' done' : '');
+      if (type === 'main') row.innerHTML = '<span class="rl-mark">' + CHECK_SVG + '</span>';
+      const name = document.createElement('span');
+      name.textContent = pointName(p);
+      row.appendChild(name);
+      row.addEventListener('click', () => {
+        routeListEl.classList.add('hidden');
+        openSheet(p);
+      });
+      body.appendChild(row);
+    });
+  });
+}
+routeProgressEl.addEventListener('click', () => { sfx.play('menuUp'); renderRouteList(); routeListEl.classList.remove('hidden'); });
+document.getElementById('route-list-close').addEventListener('click', () => routeListEl.classList.add('hidden'));
+document.getElementById('route-list-scrim').addEventListener('click', () => routeListEl.classList.add('hidden'));
 function markPointDone() {
   const p = loadedPoint;
   if (!p || p.type !== 'main' || loadedTrackIndex !== 0 || doneIds.includes(p.id)) return;
