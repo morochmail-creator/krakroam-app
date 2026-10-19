@@ -480,20 +480,35 @@
   }
   #route-list-title { font-size: 19px; font-weight: 800; color: var(--ink); margin: 0 40px 2px 4px; letter-spacing: -0.01em; }
   #route-list-count { font-size: 13px; font-weight: 700; color: var(--brass-deep); margin: 0 4px 10px; }
-  .rl-header { font-size: 12px; font-weight: 700; color: var(--ink-dim); margin: 14px 4px 6px; }
-  .rl-item { display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-radius: 12px; cursor: pointer; color: var(--ink); font-size: 14.5px; font-weight: 600; }
-  .rl-item:active { background: var(--paper-2); }
-  .rl-item.extra { font-weight: 500; font-size: 13.5px; color: var(--ink-dim); }
-  .rl-mark {
-    flex: none; width: 24px; height: 24px; border-radius: 50%;
-    border: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: center;
+  .rl-header {
+    font-size: 11px; font-weight: 800; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em;
+    margin: 18px 6px 4px;
   }
-  .rl-item.done .rl-mark { background: var(--brass); border-color: var(--brass-deep); }
-  .rl-mark svg { width: 14px; height: 14px; stroke: #14110d; opacity: 0; }
-  .rl-item.done .rl-mark svg { opacity: 1; }
-  .rl-item.done { color: var(--ink); }
-  .rl-num { font-size: 11.5px; font-weight: 800; color: var(--ink); letter-spacing: -0.04em; }
-  .rl-item.intro .rl-mark { font-size: 12px; font-weight: 800; color: var(--ink-dim); }
+  .rl-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 6px; min-height: 48px;
+    border-bottom: 1px solid var(--line); cursor: pointer;
+    color: var(--ink); font-size: 14.5px; font-weight: 600; line-height: 1.25;
+  }
+  .rl-item:last-child { border-bottom: none; }
+  .rl-item:active { background: var(--paper-2); border-radius: 10px; }
+  .rl-item.extra { font-weight: 500; font-size: 14px; }
+  .rl-item.intro { border-bottom: none; background: var(--paper-2); border-radius: 12px; padding: 10px 10px; margin-top: 4px; }
+  .rl-name { flex: 1; min-width: 0; }
+  /* znaczek z lewej: złote kółko z numerem (jak punkt główny na mapie), wstęp — szare kółko z 0 */
+  .rl-mark {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums;
+  }
+  .rl-item.main .rl-mark { background: var(--brass-tint); border: 1.5px solid var(--brass); color: var(--brass-deep); }
+  .rl-item.intro .rl-mark { background: var(--paper); border: 1.5px solid var(--line-strong); color: var(--ink); }
+  .rl-dot { width: 11px; height: 11px; border-radius: 50%; background: #ece6d6; box-shadow: 0 0 0 1.5px var(--ink-dim); }
+  /* odsłuchany: zielony ptaszek po prawej */
+  .rl-check {
+    flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--ok);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rl-check svg { width: 14px; height: 14px; stroke: #fff; }
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
@@ -3930,18 +3945,24 @@ function renderRouteList() {
   document.getElementById('route-list-count').textContent = t('progressLabel').replace('{n}', progressDone()).replace('{m}', progressTotal());
   const body = document.getElementById('route-list-body');
   body.innerHTML = '';
+  // jeden wiersz: z lewej znaczek (numer w kółku / kropka), nazwa, z prawej zielony ptaszek gdy odsłuchany
+  const addRow = (point, kind, markHtml, done) => {
+    const row = document.createElement('div');
+    row.className = 'rl-item ' + kind + (done ? ' done' : '');
+    row.innerHTML = '<span class="rl-mark">' + markHtml + '</span>';
+    const name = document.createElement('span');
+    name.className = 'rl-name';
+    name.textContent = pointName(point);
+    row.appendChild(name);
+    if (done) row.insertAdjacentHTML('beforeend', '<span class="rl-check">' + CHECK_SVG + '</span>');
+    row.addEventListener('click', () => {
+      routeListEl.classList.add('hidden');
+      openSheet(point);
+    });
+    body.appendChild(row);
+  };
   // wstęp (audio 0) na samej górze — inaczej po przejściu do punktu 1 nie było jak do niego wrócić
-  const intro = document.createElement('div');
-  intro.className = 'rl-item intro';
-  intro.innerHTML = '<span class="rl-mark">0</span>';
-  const introName = document.createElement('span');
-  introName.textContent = pointName(INTRO_POINT);
-  intro.appendChild(introName);
-  intro.addEventListener('click', () => {
-    routeListEl.classList.add('hidden');
-    openSheet(INTRO_POINT);
-  });
-  body.appendChild(intro);
+  addRow(INTRO_POINT, 'intro', '0', false);
   [['main', 'listMain'], ['extra', 'listExtra']].forEach(([type, hdrKey]) => {
     const pts = POINTS.filter(p => p.type === type);
     if (!pts.length) return;
@@ -3949,19 +3970,9 @@ function renderRouteList() {
     h.className = 'rl-header'; h.textContent = t(hdrKey);
     body.appendChild(h);
     pts.forEach(p => {
-      const row = document.createElement('div');
-      row.className = 'rl-item ' + type + (doneIds.includes(p.id) ? ' done' : '');
-      // punkty główne: numer w kółku wg kolejności trasy (zaliczony = złote kółko z numerem); dodatkowe: ptaszek
+      // punkty główne: numer wg kolejności trasy; dodatkowe: mała kropka jak na mapie
       const num = type === 'main' && p.tracks[0] ? String(p.tracks[0].number).split('.')[0] : '';
-      row.innerHTML = '<span class="rl-mark">' + (num ? '<b class="rl-num">' + num + '</b>' : CHECK_SVG) + '</span>';
-      const name = document.createElement('span');
-      name.textContent = pointName(p);
-      row.appendChild(name);
-      row.addEventListener('click', () => {
-        routeListEl.classList.add('hidden');
-        openSheet(p);
-      });
-      body.appendChild(row);
+      addRow(p, type, num ? num : '<i class="rl-dot"></i>', doneIds.includes(p.id));
     });
   });
 }
