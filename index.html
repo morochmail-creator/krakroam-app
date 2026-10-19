@@ -541,14 +541,31 @@
   #arrival-toast-title { color: #fff; font-size: 15px; font-weight: 700; }
   #arrival-toast-sub { color: rgba(255,255,255,0.85); font-size: 12.5px; margin-top: 2px; }
 
-  /* ---------- Pinezka celu nawigacji na mapie (czysto wizualna, nieklikalna) ---------- */
-  /* prawdziwy kształt "kropli", zakotwiczony czubkiem w punkcie, żeby "brzuch" pinezki
-     wisiał NAD punktem, a nie na nim — nigdy nie zasłania markera punktu pod spodem */
-  .nav-target-pin {
-    width: 34px; height: 44px;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.55));
+  /* ---------- Cel nawigacji na mapie: niebieski celownik WOKÓŁ kółka punktu ----------
+     Zamiast pinezki wiszącej nad punktem — pierścień leży dookoła kropki, w odstępie od zielonej
+     obwódki "gra/wczytane" (kończy się ~23px od środka), a środek zostaje pusty dla ptaszka.
+     Nieklikalny: stuknięcie przechodzi do samego punktu pod spodem. */
+  .nav-target-ring {
+    position: relative;
+    width: 100%; height: 100%;
+    pointer-events: none;
   }
-  .nav-target-pin svg { width: 100%; height: 100%; display: block; }
+  .nav-target-ring::before {
+    content: ""; position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 3px solid var(--route);
+    box-shadow: 0 0 0 1.5px #fff, inset 0 0 0 1.5px #fff, 0 0 12px 2px rgba(31,111,224,0.55);
+    animation: nav-ring-in 0.35s ease-out;
+  }
+  /* cztery kreski celownika na zewnątrz pierścienia */
+  .nav-target-ring span {
+    position: absolute; left: 50%; top: 50%;
+    width: 3px; height: 8px; margin: -4px 0 0 -1.5px;
+    background: var(--route); border-radius: 2px;
+    box-shadow: 0 0 0 1.5px #fff;
+  }
+  @keyframes nav-ring-in { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .nav-target-ring::before { animation: none; } }
 
   #btn-stack {
     display: flex; flex-direction: column; gap: 10px;
@@ -3130,24 +3147,19 @@ function flyToNavTarget() {
 function showNavTargetMarker() {
   hideNavTargetMarker();
   if (!navTargetLatLng) return;
-  const pinSvg = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 1C7.03 1 3 5.03 3 10c0 6.5 9 13 9 13s9-6.5 9-13c0-4.97-4.03-9-9-9z" fill="#4a90d9"/>
-      <circle cx="12" cy="10" r="3.6" fill="#fff"/>
-    </svg>`;
+  // pierścień dopasowany do wielkości kropki: punkt główny 30px, dodatkowy 18px
+  const isExtra = navTargetPointRef && navTargetPointRef.type === 'extra' &&
+    navTargetPointRef.lat === navTargetLatLng[0] && navTargetPointRef.lng === navTargetLatLng[1];
+  const size = isExtra ? 44 : 58;
+  const r = size / 2 + 6; // kreski celownika tuż za pierścieniem
+  const ticks = [0, 90, 180, 270].map(deg =>
+    `<span style="transform: rotate(${deg}deg) translateY(-${r}px)"></span>`).join('');
   navTargetMarker = L.marker(navTargetLatLng, {
-    // czubek kropli zakotwiczony dokładnie w punkcie (iconAnchor = dół, środek) — reszta pinezki
-    // "wystaje" do góry, więc nigdy nie zasłania markera punktu, który jest pod spodem
-    icon: L.divIcon({ className: '', html: `<div class="nav-target-pin">${pinSvg}</div>`, iconSize: [34, 44], iconAnchor: [17, 44] }),
-    interactive: true,
-    zIndexOffset: 2500
+    icon: L.divIcon({ className: '', html: `<div class="nav-target-ring">${ticks}</div>`, iconSize: [size, size] }),
+    interactive: false,  // stuknięcie trafia w punkt pod spodem
+    keyboard: false,
+    zIndexOffset: -100   // pod kropką punktu, więc nigdy jej nie zasłania
   }).addTo(map);
-  // pinezka celu stoi dokładnie na punkcie i zasłania go palcowi — stuknięcie w nią otwiera ten punkt
-  // (jak stuknięcie w sam punkt), a gdy cel nie jest punktem trasy, kamera po prostu leci nad cel
-  navTargetMarker.on('click', () => {
-    const p = navTargetPointRef;
-    if (p && markersById[p.id]) { sfx.play('point'); openSheet(p); }
-    else flyToNavTarget();
-  });
 }
 function hideNavTargetMarker() {
   if (navTargetMarker) { map.removeLayer(navTargetMarker); navTargetMarker = null; }
