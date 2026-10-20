@@ -12,6 +12,8 @@
 <meta property="og:description" content="Zwiedzaj Kraków z mapą, GPS i nagraniami o zabytkach.">
 <meta property="og:image" content="/icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="/www/img/wawel-m.jpg" media="(max-width: 720px)">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -19,7 +21,8 @@
     --ink: #1b1a17; --ink-dim: #716b60; --line: #e4e0d6;
     --gold: #f2b01e; --gold-deep: #a9802f; --gold-tint: #f3e6c8;
   }
-  * { box-sizing: border-box; margin: 0; }
+  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
   body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--paper); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
@@ -135,7 +138,9 @@
   @media (max-width: 720px) {
     .partners { grid-template-columns: 1fr; padding: 36px 22px; }
     section { padding: 60px 0; }
-    .hero { padding: 88px 0 44px; }
+    .hero { padding: 88px 0 44px; background-image: linear-gradient(180deg, rgba(20,17,13,0.82) 0%, rgba(20,17,13,0.62) 45%, rgba(20,17,13,0.92) 100%), url('/www/img/wawel-m.jpg'); }
+    .partners .btn2 { display: block; }
+    .wrap { padding: 0 16px; }
   }
 </style>
 </head>
@@ -169,7 +174,7 @@
 <main>
   <div class="hero" id="start">
     <div class="wrap">
-      <img class="logo" src="/icon-512.png" alt="KrakRoam">
+      <img class="logo" src="/icon-192.png" width="84" height="84" alt="KrakRoam">
       <h1><span data-i18n="h1a"></span> <em data-i18n="h1b"></em></h1>
       <p data-i18n="what"></p>
       <div class="samples" id="probki">
@@ -200,7 +205,7 @@
   <section id="o-nas">
     <div class="wrap">
       <div class="about">
-        <div class="about-badge"><img src="/icon-512.png" alt="KrakRoam"></div>
+        <div class="about-badge"><img src="/icon-512.png" alt="KrakRoam" loading="lazy"></div>
         <div class="about-text">
           <div class="kicker" data-i18n="ak"></div>
           <h2 data-i18n="ah"></h2>
