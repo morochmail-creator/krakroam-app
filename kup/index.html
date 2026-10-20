@@ -115,11 +115,17 @@
   .hero.fade h1, .hero.fade .sub { opacity: 0; }
   .hero h1 { min-height: 2.24em; }
   .hero .sub { min-height: 2.9em; }
-  .phone { position: relative; width: 230px; margin: 0 auto; padding: 7px; border-radius: 38px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
-  .slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 31px; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+  .carousel { position: relative; margin: 0 -16px; }
+  .slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding: 4px 0 18px; }
   .slides::-webkit-scrollbar { display: none; }
-  .slides img { flex: 0 0 100%; display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; scroll-snap-align: center; scroll-snap-stop: always; }
-  .dots { display: flex; justify-content: center; gap: 4px; margin-top: 10px; }
+  .slide { flex: 0 0 100%; display: flex; justify-content: center; scroll-snap-align: center; scroll-snap-stop: always; }
+  .phone { width: 250px; padding: 7px; border-radius: 40px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
+  .phone img { display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; border-radius: 33px; }
+  .arrow { position: absolute; top: 50%; z-index: 2; width: 48px; height: 48px; margin-top: -33px; border: 0; border-radius: 50%; background: var(--gold); color: var(--dark); display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,0.45); }
+  .arrow svg { width: 24px; height: 24px; }
+  .arrow:active { transform: scale(0.94); }
+  .arrow.prev { left: 10px; } .arrow.next { right: 10px; }
+  .dots { display: flex; justify-content: center; gap: 4px; margin-top: -6px; position: relative; }
   .dots button { width: 24px; height: 24px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center; }
   .dots button::after { content: ""; width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,0.3); transition: width .2s, background .2s; }
   .dots button.on::after { width: 20px; background: var(--gold); }
@@ -139,12 +145,16 @@
   </div>
 
   <div>
-    <div class="phone"><div class="slides" id="slides">
-      <img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192">
-      <img src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" loading="lazy">
-      <img src="/www/img/apka-nawigacja.webp" alt="" width="560" height="1192" loading="lazy">
-      <img src="/www/img/apka-lista.webp" alt="" width="560" height="1192" loading="lazy">
-    </div></div>
+    <div class="carousel">
+      <div class="slides" id="slides">
+        <div class="slide"><div class="phone"><img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192"></div></div>
+        <div class="slide"><div class="phone"><img src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" loading="lazy"></div></div>
+        <div class="slide"><div class="phone"><img src="/www/img/apka-nawigacja.webp" alt="" width="560" height="1192" loading="lazy"></div></div>
+        <div class="slide"><div class="phone"><img src="/www/img/apka-lista.webp" alt="" width="560" height="1192" loading="lazy"></div></div>
+      </div>
+      <button type="button" class="arrow prev" id="prev" aria-label="&lsaquo;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button type="button" class="arrow next" id="next" aria-label="&rsaquo;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
     <div class="dots" id="dots"></div>
   </div>
 
@@ -469,6 +479,8 @@
     slides.addEventListener('scroll', function () { mark(Math.round(slides.scrollLeft / slides.clientWidth)); }, { passive: true });
     function stopAuto() { clearInterval(autoT); autoT = null; }
     ['touchstart', 'pointerdown', 'wheel'].forEach(function (ev) { slides.addEventListener(ev, stopAuto, { passive: true }); });
+    document.getElementById('prev').addEventListener('click', function () { stopAuto(); go((cur + SL.length - 1) % SL.length); });
+    document.getElementById('next').addEventListener('click', function () { stopAuto(); go((cur + 1) % SL.length); });
     autoT = setInterval(function () { go((cur + 1) % SL.length); }, 4500);
     mark(0);
 
