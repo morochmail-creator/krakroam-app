@@ -444,7 +444,7 @@
   #topbar {
     position: absolute; top: 0; left: 0; right: 0; z-index: 10;
     display: flex; align-items: center; justify-content: flex-end;
-    padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 16px;
+    padding: calc(30px + env(safe-area-inset-top, 0px)) 18px 16px;
     /* pasek jest na całą szerokość, ale pusty — nie może łapać stuknięć, bo punkty pod nim "nie reagowały" */
     pointer-events: none;
   }
@@ -452,7 +452,7 @@
 
   /* ---------- Pasek nawigacji (na górze, niezależny od panelu audio na dole) ---------- */
   #nav-top-bar {
-    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 11;
+    position: absolute; top: calc(30px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 11;
   }
   #route-progress {
     position: absolute; left: 14px; bottom: calc(100% + 10px); z-index: 2; pointer-events: auto;
@@ -569,7 +569,7 @@
 
   /* ---------- Komunikat "jesteś na miejscu" ---------- */
   #arrival-toast {
-    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+    position: absolute; top: calc(30px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
     z-index: 40; max-width: calc(100vw - 32px);
     background: var(--route); border-radius: 16px; border: 1.5px solid var(--line-strong);
     padding: 13px 18px; text-align: center; cursor: pointer;
@@ -977,7 +977,7 @@
 
   /* ---------- Krótki komunikat informacyjny (np. brak GPS) ---------- */
   #info-toast {
-    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+    position: absolute; top: calc(30px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
     z-index: 41; width: max-content; max-width: calc(100vw - 32px);
     background: var(--ink); color: var(--paper); border-radius: 14px;
     padding: 12px 16px; font-size: 13.5px; font-weight: 600; text-align: center;
@@ -988,7 +988,7 @@
 
   /* ---------- Przypomnienie "włącz lokalizację" (co jakiś czas, gdy GPS nie działa) ---------- */
   #gps-reminder {
-    position: absolute; top: calc(76px + env(safe-area-inset-top, 0px)); left: 16px; right: 72px;
+    position: absolute; top: calc(90px + env(safe-area-inset-top, 0px)); left: 16px; right: 72px;
     z-index: 42; display: flex; align-items: center; gap: 10px;
     background: var(--ink); color: var(--paper); border-radius: 16px;
     padding: 11px 10px 11px 14px; box-shadow: var(--shadow-float);
