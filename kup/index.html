@@ -77,7 +77,7 @@
   .email:focus { border-color: var(--gold); }
   .email.bad { border-color: #e5484d; }
 
-  .pay { width: 100%; border: 0; border-radius: 999px; background: var(--gold); color: var(--dark); font: 800 18px/1 'Inter', -apple-system, sans-serif; padding: 17px; cursor: pointer; box-shadow: 0 10px 30px rgba(242,176,30,0.3); }
+  .pay { width: 100%; border: 0; border-radius: 999px; background: #1fb85a; color: #fff; font: 800 18px/1 'Inter', -apple-system, sans-serif; padding: 17px; cursor: pointer; box-shadow: 0 10px 30px rgba(31,184,90,0.4); }
   .pay:active { transform: scale(0.98); }
   .fine { text-align: center; color: var(--dim); font-size: 12px; line-height: 1.45; }
   .fine b { color: rgba(255,255,255,0.85); font-weight: 600; }
@@ -97,7 +97,10 @@
   .bb-txt { flex: 1; min-width: 0; }
   .bb-txt b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bb-txt small { color: var(--dim); font-size: 12px; }
-  .bb-btn { border: 0; border-radius: 999px; background: var(--gold); color: var(--dark); font: 800 17px/1 'Inter', -apple-system, sans-serif; padding: 15px 22px; cursor: pointer; box-shadow: 0 8px 24px rgba(242,176,30,0.3); white-space: nowrap; }
+  .bb-btn { border: 0; border-radius: 999px; background: #1fb85a; color: #fff; font: 800 17px/1 'Inter', -apple-system, sans-serif; padding: 15px 24px; cursor: pointer; box-shadow: 0 8px 24px rgba(31,184,90,0.45); white-space: nowrap; animation: pulse 2.4s ease-in-out infinite; }
+  .bb-btn:active { transform: scale(0.97); }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 8px 24px rgba(31,184,90,0.45), 0 0 0 0 rgba(31,184,90,0.5); } 50% { box-shadow: 0 8px 24px rgba(31,184,90,0.45), 0 0 0 8px rgba(31,184,90,0); } }
+  @media (prefers-reduced-motion: reduce) { .bb-btn { animation: none; } }
   .shade { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,0.55); opacity: 0; pointer-events: none; transition: opacity .2s; }
   .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; max-width: 460px; margin: 0 auto; max-height: 92vh; max-height: 92svh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: #1c1812; border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .25s ease; }
   body.buying .shade { opacity: 1; pointer-events: auto; }
