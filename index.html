@@ -541,8 +541,10 @@
   #nav-top-icon {
     flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
     background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
+    cursor: pointer; border: 2px solid #14110d; /* czarna obwódka — widać, że to osobny przycisk */
+    transition: transform 0.1s ease;
   }
+  #nav-top-icon:active { transform: scale(0.92); }
   #nav-top-icon svg { width: 17px; height: 17px; stroke: #fff; }
   #nav-top-text { min-width: 0; flex: 1 1 auto; }
   #nav-top-distance { font-size: 17px; font-weight: 700; color: #fff; white-space: nowrap; line-height: 1.15; }
@@ -3527,7 +3529,7 @@ function startNavigation(targetPoint, opts) {
   stopNavigation();
   routeRequestSeq++;
   routingInFlight = false;
-  if (typeof navTopIconShowsTarget !== 'undefined') navTopIconShowsTarget = true; // nowa nawigacja = pierwszy klik znów pokazuje cel
+  if (typeof updateNavTopIcon === 'function') updateNavTopIcon(); // ikona kółka wg tego, gdzie jest kamera
   sfx.play('navStart');
   navActive = true;
   reachedNavTarget = false;
@@ -3593,15 +3595,41 @@ document.getElementById('nav-top-close').addEventListener('click', () => {
   sfx.play('navStop');
   stopNavigation();
 });
-let navTopIconShowsTarget = true; // na zmianę: pierwszy klik = cel, drugi klik = Ty
-document.getElementById('nav-top-icon').addEventListener('click', () => {
+/* Kółko po lewej w pasku nawigacji pokazuje, DOKĄD poleci kamera po stuknięciu:
+   - kamera jest na Tobie -> ikona zabytku (stuknięcie = lot nad zabytek, do którego prowadzi nawigacja),
+   - kamera jest gdzie indziej -> ludzik (stuknięcie = powrót do Ciebie).
+   Ikona sama się zmienia po każdym ruchu mapy, więc zawsze pasuje do tego, co widać. */
+const navTopIconEl = document.getElementById('nav-top-icon');
+const NAV_ICON_WALKER = navTopIconEl.innerHTML;
+const NAV_ICON_MONUMENT = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3 9.5 12 4l9 5.5"></path><path d="M4 9.5h16"></path>
+  <path d="M6 12v6M10 12v6M14 12v6M18 12v6"></path><path d="M3.5 20.5h17"></path></svg>`;
+let navTopIconShowsTarget = true; // true = ikona zabytku (lot do celu), false = ludzik (lot do Ciebie)
+function cameraOnUser() {
+  if (!gpsMarker) return false;
+  const p = map.latLngToContainerPoint(gpsMarker.getLatLng()), s = map.getSize();
+  return Math.abs(p.x - s.x / 2) < s.x * 0.3 && Math.abs(p.y - s.y / 2) < s.y * 0.3;
+}
+function setNavTopIcon(showTarget) {
+  if (showTarget === navTopIconShowsTarget && navTopIconEl.dataset.ready) return;
+  navTopIconShowsTarget = showTarget;
+  navTopIconEl.dataset.ready = '1';
+  navTopIconEl.innerHTML = showTarget ? NAV_ICON_MONUMENT : NAV_ICON_WALKER;
+}
+function updateNavTopIcon() {
+  setNavTopIcon(!gpsMarker || cameraOnUser());
+}
+map.on('moveend', updateNavTopIcon);
+setNavTopIcon(true);
+navTopIconEl.addEventListener('click', () => {
   if (navTopIconShowsTarget) {
     flyToNavTarget();
+    if (gpsMarker) setNavTopIcon(false); // od razu ludzik — następne stuknięcie wraca do Ciebie
   } else if (gpsMarker) {
     if (viewMode3D) follow3D(true);
     else map.flyTo(gpsMarker.getLatLng(), 18, { duration: 1.1 });
+    setNavTopIcon(true);
   }
-  navTopIconShowsTarget = !navTopIconShowsTarget;
 });
 
 document.getElementById('nav-top-peek').addEventListener('click', () => {
