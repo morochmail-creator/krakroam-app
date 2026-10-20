@@ -155,7 +155,7 @@
     <div class="wrap">
       <ul>
         <li><a href="#start" data-i18n="mHome"></a></li>
-        <li><a href="#start" data-i18n="mFeat"></a></li>
+        <li><a href="#probki" data-i18n="mFeat"></a></li>
         <li><a href="#o-nas" class="hl" data-i18n="nav"></a></li>
         <li><a href="#galeria" data-i18n="mGal"></a></li>
         <li><a href="#partnerzy" data-i18n="mPart"></a></li>
@@ -172,7 +172,7 @@
       <img class="logo" src="/icon-512.png" alt="KrakRoam">
       <h1><span data-i18n="h1a"></span> <em data-i18n="h1b"></em></h1>
       <p data-i18n="what"></p>
-      <div class="samples">
+      <div class="samples" id="probki">
         <div class="sample" data-src="/audio/pl/3_1_Legenda_o_trebaczu.mp3">
           <div><div class="where" data-i18n="p1w"></div><h3 data-i18n="p1t"></h3></div>
           <div class="player">
@@ -273,7 +273,7 @@
       pl: {
         title: 'KrakRoam – audioprzewodnik po Krakowie',
         mHome: "Start", mFeat: "Posłuchaj próbki", mGal: "Galeria", mPart: "Dla partnerów", mLang: "Język", mMenu: "Menu",
-        h1a: 'Kraków w Twoich słuchawkach.', h1b: 'Zwiedzaj po swojemu.',
+        h1a: 'Kraków w Twoich słuchawkach.', h1b: 'Zwiedzaj w swoim tempie.',
         heroP: 'Audioprzewodnik w telefonie: mapa, GPS, gotowe trasy i ciekawe historie o zabytkach. Bez instalowania aplikacji.',
         chooseLang: 'Wybierz język przewodnika', worksIn: 'Działa w przeglądarce telefonu',
         k1: "Posłuchaj za darmo",
@@ -467,7 +467,21 @@
     burger.addEventListener('click', function () {
       closeLangs(); var o = header.classList.toggle('open'); burger.setAttribute('aria-expanded', o ? 'true' : 'false');
     });
-    document.querySelectorAll('#menu a:not(#menu-lang), .hdr-link').forEach(function (a) { a.addEventListener('click', closeMenu); });
+    // przewijanie do sekcji liczone ręcznie (na części telefonów samo #kotwica przy zamykaniu menu nie działało)
+    document.querySelectorAll('#menu a[href^="#"]:not(#menu-lang), .hdr-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var t = document.querySelector(a.getAttribute('href'));
+        closeMenu(); closeLangs();
+        if (!t) return;
+        e.preventDefault();
+        requestAnimationFrame(function () {
+          var y = a.getAttribute('href') === '#start' ? 0 : t.getBoundingClientRect().top + window.pageYOffset - 80;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+          try { history.replaceState(null, '', a.getAttribute('href')); } catch (x) {}
+        });
+      });
+    });
+    document.querySelectorAll('#menu a.app-link').forEach(function (a) { a.addEventListener('click', closeMenu); });
     function onScroll() { header.classList.toggle('solid', window.scrollY > 40); }
     window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     var saved = null;
