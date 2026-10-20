@@ -816,16 +816,18 @@
     background: conic-gradient(from 0deg, rgba(31,111,224,0.55) 0deg, rgba(31,111,224,0.55) 70deg, rgba(31,111,224,0) 70deg, rgba(31,111,224,0) 360deg);
     border-radius: 50%;
     transform: rotate(-35deg);
-    transition: transform 0.2s linear;
+    /* bez CSS-owego przejścia: kompas wysyła kilkadziesiąt odczytów na sekundę i każde nowe przejście
+       przerywało poprzednie — stożek drgał. Wygładzanie robi teraz skrypt (patrz beamLoop). */
+    will-change: transform;
     mask-image: radial-gradient(circle, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.15) 100%);
     -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.15) 100%);
   }
   .gps-dot {
     position: relative; z-index: 2;
-    width: 18px; height: 18px; border-radius: 50%;
+    width: 24px; height: 24px; border-radius: 50%;
     background: var(--route);
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 6px rgba(31,111,224,0.3), 0 2px 6px rgba(0,0,0,0.4);
+    border: 3.5px solid #fff;
+    box-shadow: 0 0 0 7px rgba(31,111,224,0.3), 0 2px 6px rgba(0,0,0,0.45);
   }
 
   #sheet-backdrop {
@@ -3027,26 +3029,74 @@ let routingInFlight = false;
 let navTargetLatLng = null; // null = brak wybranego celu — kropka nawigacji nic wtedy nie robi po tapnięciu
 let navTargetName = null;
 
+/* ---------- Płynny ruch kropki GPS ----------
+   Telefon podaje pozycję mniej więcej co sekundę, więc kropka "skakała" od punktu do punktu.
+   Teraz jedzie płynnie od starej do nowej pozycji przez mniej więcej tyle czasu, ile minęło od
+   poprzedniego odczytu (wygląda jak ciągły marsz). Duży skok (np. pierwsze złapanie GPS po wyjściu
+   z budynku, > 150 m) — kropka przeskakuje od razu, żeby nie "jechała" przez pół miasta. */
+let gpsAnim = 0, lastGpsFixAt = 0;
+function moveGpsMarkerSmoothly(to) {
+  const now = performance.now();
+  const gap = lastGpsFixAt ? now - lastGpsFixAt : 1000;
+  lastGpsFixAt = now;
+  cancelAnimationFrame(gpsAnim);
+  const from = gpsMarker.getLatLng();
+  const meters = distMeters([from.lat, from.lng], to);
+  if (meters > 150 || meters < 0.3 || document.hidden) { gpsMarker.setLatLng(to); return; }
+  const dur = Math.max(300, Math.min(1500, gap * 0.9));
+  const t0 = now;
+  const step = t => {
+    const k = Math.min(1, (t - t0) / dur);
+    gpsMarker.setLatLng([from.lat + (to[0] - from.lat) * k, from.lng + (to[1] - from.lng) * k]);
+    if (k < 1) gpsAnim = requestAnimationFrame(step);
+  };
+  gpsAnim = requestAnimationFrame(step);
+}
+
 /* ---------- Kompas: kierunek, w którym patrzy telefon ---------- */
 let compassStarted = false;
 let currentBeamRotation = -35; // aktualna wartość kąta zastosowana do transformu (może przekraczać 0-360, żeby liczyć "najkrótszą drogę")
 let currentMapHeadingRotation = 0; // to samo, ale dla obrotu CAŁEJ mapy w trybie 3D (heading-up)
 
-let lastCompassHeading = null; // ostatni odczyt kompasu — potrzebny, żeby poprawić stożek po obróceniu mapy palcami
-function updateBeamRotation(heading) {
-  lastCompassHeading = heading;
+let lastCompassHeading = null; // ostatni (wygładzony) kierunek — potrzebny też po obróceniu mapy palcami
+/* Stożek "gdzie patrzysz" podczas chodzenia wariował: kompas w telefonie przy marszu (bujanie ręką, kroki)
+   wysyła bardzo "rozedrgane" odczyty, a każdy od razu kręcił stożkiem. Teraz:
+   - odczyty są uśredniane (filtr — jak amortyzator), więc pojedyncze skoki nie szarpią stożkiem,
+   - stożek obraca się płynnie w rytmie ekranu (beamLoop), a drobne zmiany < 1,5° są pomijane,
+   - gdy kompas nic nie wysyła (lub jest niewiarygodny), a Ty idziesz — kierunek bierzemy z GPS (kierunek marszu). */
+let headingVec = null;          // uśredniony kierunek jako wektor (unika problemu 359° -> 0°)
+let lastCompassEventAt = 0;
+let beamRaf = 0;
+function feedHeading(heading, weight) {
+  const r = heading * Math.PI / 180, x = Math.sin(r), y = Math.cos(r);
+  if (!headingVec) headingVec = { x, y };
+  else { headingVec.x += (x - headingVec.x) * weight; headingVec.y += (y - headingVec.y) * weight; }
+  lastCompassHeading = (Math.atan2(headingVec.x, headingVec.y) * 180 / Math.PI + 360) % 360;
+  if (!beamRaf) beamRaf = requestAnimationFrame(beamLoop);
+}
+function beamLoop() {
+  beamRaf = 0;
+  if (lastCompassHeading === null) return;
   if (!gpsMarker) return;
   const el = gpsMarker.getElement();
-  if (!el) return;
-  const beam = el.querySelector('.gps-beam');
+  const beam = el && el.querySelector('.gps-beam');
   if (!beam) return;
-
   // + obrót mapy: gdy mapa jest obrócona palcami, kierunek na ekranie przesuwa się o ten sam kąt
-  const target = heading + (canRotateMap ? map.getBearing() : 0) - 35;
-  // liczymy najkrótszą różnicę kątową (-180..180), żeby stożek nigdy nie "skakał" przy przejściu przez 0/360
-  let diff = ((target - currentBeamRotation + 540) % 360) - 180;
-  currentBeamRotation += diff;
+  const target = lastCompassHeading + (canRotateMap ? map.getBearing() : 0) - 35;
+  // najkrótsza różnica kątowa (-180..180), żeby stożek nigdy nie zrobił pełnego obrotu przy 359→0
+  const diff = ((target - currentBeamRotation + 540) % 360) - 180;
+  if (Math.abs(diff) < 1.5) {
+    beam.style.transform = `rotate(${currentBeamRotation}deg)`; // na wypadek, gdyby kropka została narysowana od nowa
+    return;
+  }
+  currentBeamRotation += diff * 0.35; // dojeżdża do celu w kilku klatkach — płynnie
   beam.style.transform = `rotate(${currentBeamRotation}deg)`;
+  beamRaf = requestAnimationFrame(beamLoop);
+}
+function updateBeamRotation(heading) {
+  // wywoływane też po obróceniu mapy — wtedy tylko odświeżamy stożek
+  if (heading !== lastCompassHeading) feedHeading(heading, 0.25);
+  else if (!beamRaf) beamRaf = requestAnimationFrame(beamLoop);
 }
 
 function updateMapHeadingRotation(heading) {
@@ -3059,17 +3109,21 @@ function updateMapHeadingRotation(heading) {
 function handleOrientation(e) {
   let heading;
   if (typeof e.webkitCompassHeading === 'number') {
+    if (e.webkitCompassAccuracy < 0) return; // iOS: kompas niewiarygodny (np. przy metalu) — pomijamy
     heading = e.webkitCompassHeading; // iOS Safari — już zgodnie z ruchem wskazówek zegara od północy
   } else if (e.absolute && e.alpha !== null && e.alpha !== undefined) {
     heading = 360 - e.alpha; // Android / inne przeglądarki
+    // telefon obrócony poziomo — kierunek liczony od "góry ekranu"
+    const so = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
+    heading = (heading + so + 360) % 360;
   } else {
     return;
   }
+  lastCompassEventAt = Date.now();
+  if (!viewMode3D) { feedHeading(heading, 0.15); return; }
   if (viewMode3D) {
     // w trybie 3D cała mapa obraca się pod Tobą (heading-up) — stożek GPS zostaje zwrócony "do góry" (patrz setViewMode3D)
     updateMapHeadingRotation(heading);
-  } else {
-    updateBeamRotation(heading);
   }
 }
 
@@ -3436,8 +3490,14 @@ function startLocationTracking(flyOnFirstFix) {
       // interactive: false — niewidzialny kwadrat 90x90 px wokół kropki GPS "zjadał" stuknięcia w punkty
       // leżące obok Ciebie (czyli prawie zawsze te, które turysta chce akurat kliknąć)
       gpsMarker = L.marker(userLatLng, { icon: gpsIcon, interactive: false, keyboard: false, zIndexOffset: -100 }).addTo(map);
+      gpsMarker.on('add', () => updateBeamRotation(lastCompassHeading));
     } else {
-      gpsMarker.setLatLng(userLatLng);
+      moveGpsMarkerSmoothly(userLatLng);
+    }
+    // brak (wiarygodnego) kompasu, a Ty idziesz — stożek pokazuje kierunek marszu z GPS
+    const c = pos.coords;
+    if (Date.now() - lastCompassEventAt > 3000 && c.heading !== null && !isNaN(c.heading) && c.speed > 0.8) {
+      feedHeading(c.heading, 0.5);
     }
     document.getElementById('gps-hint').classList.add('hidden'); // zgoda uzyskana — tłumaczący tekst już niepotrzebny
     if (viewMode3D) {
