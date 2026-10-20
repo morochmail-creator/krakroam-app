@@ -47,7 +47,8 @@
   .sample .fill { height: 100%; width: 0; background: var(--gold); }
   .sample .txt { flex: 1; min-width: 0; }
 
-  .opts { display: grid; gap: 8px; }
+  .opts { display: grid; gap: 8px; margin-top: 4px; }
+  .rdesc { margin-left: 0; }
   .opt { position: relative; border: 2px solid var(--line); background: rgba(255,255,255,0.05); border-radius: 18px; padding: 12px 14px; cursor: pointer; transition: border-color .15s, background .15s; }
   .opt.on { border-color: var(--gold); background: rgba(242,176,30,0.10); }
   .opt-head { display: flex; align-items: center; gap: 12px; }
@@ -65,7 +66,13 @@
   .route { border: 1.5px solid var(--line); background: rgba(0,0,0,0.25); color: #fff; font: 600 13px/1.2 'Inter', -apple-system, sans-serif; border-radius: 11px; padding: 10px 4px; cursor: pointer; }
   .route.on { border-color: var(--gold); background: var(--gold); color: var(--dark); }
 
-  .email { width: 100%; font: 500 16px 'Inter', -apple-system, sans-serif; color: #fff; background: rgba(255,255,255,0.08); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; outline: none; }
+  .desc { display: none; color: rgba(255,255,255,0.78); font-size: 13px; line-height: 1.4; margin: 8px 0 0 34px; }
+  .opt.on .desc { display: block; }
+  .opt.on .rdesc:empty { display: none; }
+  .emails { display: grid; gap: 6px; }
+  .warn { display: flex; gap: 8px; align-items: flex-start; color: rgba(255,255,255,0.8); font-size: 12.5px; line-height: 1.35; }
+  .warn svg { width: 16px; height: 16px; flex: none; color: var(--gold); margin-top: 1px; }
+  .email { width: 100%; font: 500 16px 'Inter', -apple-system, sans-serif; color: #fff; background: rgba(255,255,255,0.08); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; outline: none; }
   .email::placeholder { color: rgba(255,255,255,0.45); }
   .email:focus { border-color: var(--gold); }
   .email.bad { border-color: #e5484d; }
@@ -102,18 +109,21 @@
     <p class="sub" data-i18n="sub"></p>
   </div>
 
-  <div class="feats">
-    <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span data-i18n="f1"></span></div>
-    <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg><span data-i18n="f2"></span></div>
-    <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg><span data-i18n="f3"></span></div>
-  </div>
-
   <button type="button" class="sample" id="sample">
     <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
     <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill" id="sfill" style="display:block"></span></span></span>
   </button>
 
   <div class="opts" role="radiogroup">
+    <div class="opt on" data-opt="all" role="radio" tabindex="0" aria-checked="true">
+      <span class="badge" data-i18n="best"></span>
+      <div class="opt-head">
+        <span class="radio"></span>
+        <span class="opt-name"><b data-i18n="allT"></b><small data-i18n="allS"></small></span>
+        <span class="price">35 <span>zł</span></span>
+      </div>
+      <p class="desc" data-i18n="allD"></p>
+    </div>
     <div class="opt" data-opt="one" role="radio" tabindex="0">
       <div class="opt-head">
         <span class="radio"></span>
@@ -125,21 +135,18 @@
         <button type="button" class="route" data-route="kaz">Kazimierz</button>
         <button type="button" class="route" data-route="ghetto" data-i18n="rGhetto"></button>
       </div>
-    </div>
-    <div class="opt on" data-opt="all" role="radio" tabindex="0">
-      <span class="badge" data-i18n="best"></span>
-      <div class="opt-head">
-        <span class="radio"></span>
-        <span class="opt-name"><b data-i18n="allT"></b><small data-i18n="allS"></small></span>
-        <span class="price">35 <span>zł</span></span>
-      </div>
+      <p class="desc rdesc" id="rdesc"></p>
     </div>
   </div>
 
   <div class="bottom">
-    <input class="email" id="email" type="email" inputmode="email" autocomplete="email" data-i18n-ph="emailPh">
+    <div class="emails">
+      <input class="email" id="email" type="email" inputmode="email" autocomplete="email" data-i18n-ph="emailPh">
+      <input class="email" id="email2" type="email" inputmode="email" autocomplete="off" data-i18n-ph="email2Ph">
+    </div>
+    <p class="warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span data-i18n="warn"></span></p>
     <button type="button" class="pay" id="pay"></button>
-    <p class="fine"><b data-i18n="fine1"></b><br><span data-i18n="fine2"></span></p>
+    <p class="fine" data-i18n="fine2"></p>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -168,8 +175,14 @@
         sub: 'Bez aplikacji i bez grupy. Zwiedzasz w swoim tempie.',
         f1: 'Mapa z GPS', f2: '60+ nagrań', f3: 'Trasy z linią',
         sampleT: 'Posłuchaj próbki', sampleS: 'Legenda o Trębaczu · 1:23',
-        oneT: '1 trasa', oneS: 'Dostęp na 7 dni', rOld: 'Stare Miasto', rGhetto: 'Getto',
+        oneT: '1 trasa', oneS: 'Dostęp na 7 dni · wybierz trasę', rOld: 'Stare Miasto', rGhetto: 'Getto',
         allT: 'Całe miasto', allS: 'Wszystkie trasy · dostęp na 7 dni', best: 'Najlepszy wybór',
+        email2Ph: 'Powtórz e-mail', warn: 'Sprawdź, czy adres jest poprawny. Na niego wyślemy hasło dostępu do aplikacji.',
+        allD: 'Wszystkie 3 trasy: Stare Miasto, Kazimierz i Getto. Ponad 60 nagrań, mapa z GPS i linia prowadząca od punktu do punktu.',
+        rdOld: 'Rynek, Sukiennice, Kościół Mariacki, Wieża Ratuszowa, Collegium Maius i mury obronne. Legendy i historia serca Krakowa.',
+        rdKaz: 'Dawna żydowska dzielnica: synagogi, klimatyczne uliczki i Plac Nowy. Historia ludzi, którzy tu żyli.',
+        rdGhetto: 'Podgórze i getto z czasów wojny: Plac Bohaterów Getta, apteka Pod Orłem i fabryka Schindlera.',
+        mismatch: 'Adresy e-mail się różnią',
         emailPh: 'Twój e-mail', pay: 'Zapłać', fine1: 'Link i hasło przyjdą od razu na maila.',
         fine2: 'BLIK · karta · Apple Pay · Google Pay',
         pickRoute: 'Wybierz trasę', badEmail: 'Wpisz poprawny adres e-mail', soon: 'Płatności ruszą już wkrótce.'
@@ -180,8 +193,14 @@
         sub: 'Без застосунку і без групи. Гуляй у своєму темпі.',
         f1: 'Мапа з GPS', f2: '60+ записів', f3: 'Маршрути з лінією',
         sampleT: 'Послухай зразок', sampleS: 'Легенда про сурмача · 1:23 · польською',
-        oneT: '1 маршрут', oneS: 'Доступ на 7 днів', rOld: 'Старе місто', rGhetto: 'Гетто',
+        oneT: '1 маршрут', oneS: 'Доступ на 7 днів · обери маршрут', rOld: 'Старе місто', rGhetto: 'Гетто',
         allT: 'Усе місто', allS: 'Усі маршрути · доступ на 7 днів', best: 'Найкращий вибір',
+        email2Ph: 'Повтори e-mail', warn: 'Перевір, чи адреса правильна. На неї ми надішлемо пароль доступу до застосунку.',
+        allD: 'Усі 3 маршрути: Старе місто, Казімеж і Гетто. Понад 60 записів, мапа з GPS і лінія від точки до точки.',
+        rdOld: 'Ринкова площа, Сукенниці, Маріацький костел, Ратушна вежа, Collegium Maius і міські мури. Легенди та історія серця Кракова.',
+        rdKaz: 'Колишній єврейський квартал: синагоги, атмосферні вулички та площа Новий. Історія людей, які тут жили.',
+        rdGhetto: 'Подгуже і гетто воєнних часів: площа Героїв Гетто, аптека «Під орлом» і фабрика Шиндлера.',
+        mismatch: 'Адреси e-mail відрізняються',
         emailPh: 'Твій e-mail', pay: 'Оплатити', fine1: 'Посилання і пароль одразу прийдуть на пошту.',
         fine2: 'BLIK · картка · Apple Pay · Google Pay',
         pickRoute: 'Обери маршрут', badEmail: 'Введи правильну адресу e-mail', soon: 'Оплата запрацює зовсім скоро.'
@@ -192,8 +211,14 @@
         sub: 'No app, no group. Explore at your own pace.',
         f1: 'GPS map', f2: '60+ recordings', f3: 'Guided routes',
         sampleT: 'Listen to a sample', sampleS: 'The Legend of the Trumpeter · 1:23 · in Polish',
-        oneT: '1 route', oneS: '7-day access', rOld: 'Old Town', rGhetto: 'Ghetto',
+        oneT: '1 route', oneS: '7-day access · choose a route', rOld: 'Old Town', rGhetto: 'Ghetto',
         allT: 'Whole city', allS: 'All routes · 7-day access', best: 'Best value',
+        email2Ph: 'Repeat your email', warn: 'Make sure your address is correct. We\'ll send your app access password there.',
+        allD: 'All 3 routes: Old Town, Kazimierz and the Ghetto. 60+ recordings, a GPS map and a guiding line from stop to stop.',
+        rdOld: 'Main Square, Cloth Hall, St. Mary\'s Basilica, Town Hall Tower, Collegium Maius and the city walls. Legends and history of Kraków\'s heart.',
+        rdKaz: 'The old Jewish quarter: synagogues, atmospheric lanes and Plac Nowy. The story of the people who lived here.',
+        rdGhetto: 'Podgórze and the wartime ghetto: Ghetto Heroes Square, the Eagle Pharmacy and Schindler\'s Factory.',
+        mismatch: 'The email addresses don\'t match',
         emailPh: 'Your email', pay: 'Pay', fine1: 'Your link and password arrive by email right away.',
         fine2: 'BLIK · card · Apple Pay · Google Pay',
         pickRoute: 'Choose a route', badEmail: 'Enter a valid email address', soon: 'Payments are coming very soon.'
@@ -204,8 +229,14 @@
         sub: 'Ohne App und ohne Gruppe. In deinem Tempo.',
         f1: 'Karte mit GPS', f2: '60+ Aufnahmen', f3: 'Routen mit Linie',
         sampleT: 'Hörprobe', sampleS: 'Die Legende vom Trompeter · 1:23 · auf Polnisch',
-        oneT: '1 Route', oneS: 'Zugang für 7 Tage', rOld: 'Altstadt', rGhetto: 'Ghetto',
+        oneT: '1 Route', oneS: 'Zugang für 7 Tage · Route wählen', rOld: 'Altstadt', rGhetto: 'Ghetto',
         allT: 'Ganze Stadt', allS: 'Alle Routen · Zugang für 7 Tage', best: 'Beste Wahl',
+        email2Ph: 'E-Mail wiederholen', warn: 'Prüfe, ob die Adresse stimmt. Dorthin schicken wir dein Passwort für die App.',
+        allD: 'Alle 3 Routen: Altstadt, Kazimierz und das Ghetto. Über 60 Aufnahmen, Karte mit GPS und eine Linie von Punkt zu Punkt.',
+        rdOld: 'Hauptmarkt, Tuchhallen, Marienkirche, Rathausturm, Collegium Maius und Stadtmauern. Legenden und Geschichte im Herzen Krakaus.',
+        rdKaz: 'Das alte jüdische Viertel: Synagogen, stimmungsvolle Gassen und der Plac Nowy. Die Geschichte der Menschen, die hier lebten.',
+        rdGhetto: 'Podgórze und das Ghetto der Kriegszeit: Platz der Ghettohelden, Apotheke Unter dem Adler und Schindlers Fabrik.',
+        mismatch: 'Die E-Mail-Adressen stimmen nicht überein',
         emailPh: 'Deine E-Mail', pay: 'Bezahlen', fine1: 'Link und Passwort kommen sofort per E-Mail.',
         fine2: 'BLIK · Karte · Apple Pay · Google Pay',
         pickRoute: 'Wähle eine Route', badEmail: 'Gib eine gültige E-Mail-Adresse ein', soon: 'Zahlungen starten in Kürze.'
@@ -216,8 +247,14 @@
         sub: 'Sin app y sin grupo. Explora a tu ritmo.',
         f1: 'Mapa con GPS', f2: '60+ grabaciones', f3: 'Rutas guiadas',
         sampleT: 'Escucha una muestra', sampleS: 'La leyenda del trompetista · 1:23 · en polaco',
-        oneT: '1 ruta', oneS: 'Acceso de 7 días', rOld: 'Casco antiguo', rGhetto: 'Gueto',
+        oneT: '1 ruta', oneS: 'Acceso de 7 días · elige una ruta', rOld: 'Casco antiguo', rGhetto: 'Gueto',
         allT: 'Toda la ciudad', allS: 'Todas las rutas · acceso de 7 días', best: 'Mejor opción',
+        email2Ph: 'Repite tu e-mail', warn: 'Comprueba que la dirección es correcta. Ahí te enviaremos la contraseña de acceso a la app.',
+        allD: 'Las 3 rutas: Casco antiguo, Kazimierz y el Gueto. Más de 60 grabaciones, mapa con GPS y una línea que te guía de punto a punto.',
+        rdOld: 'Plaza del Mercado, Lonja de los Paños, Basílica de Santa María, Torre del Ayuntamiento, Collegium Maius y las murallas. Leyendas e historia del corazón de Cracovia.',
+        rdKaz: 'El antiguo barrio judío: sinagogas, callejuelas con encanto y la Plac Nowy. La historia de quienes vivieron aquí.',
+        rdGhetto: 'Podgórze y el gueto de la guerra: Plaza de los Héroes del Gueto, la Farmacia del Águila y la Fábrica de Schindler.',
+        mismatch: 'Las direcciones de e-mail no coinciden',
         emailPh: 'Tu e-mail', pay: 'Pagar', fine1: 'El enlace y la contraseña llegan al instante por correo.',
         fine2: 'BLIK · tarjeta · Apple Pay · Google Pay',
         pickRoute: 'Elige una ruta', badEmail: 'Escribe un e-mail válido', soon: 'Los pagos llegarán muy pronto.'
@@ -238,6 +275,8 @@
     flag.addEventListener('click', function (e) { e.stopPropagation(); toggleLangs(!langs.classList.contains('open')); });
     document.addEventListener('click', function (e) { if (!langs.contains(e.target)) toggleLangs(false); });
 
+    var RD = { old: 'rdOld', kaz: 'rdKaz', ghetto: 'rdGhetto' };
+    function routeDesc() { document.getElementById('rdesc').textContent = route ? T[lang][RD[route]] : ''; }
     function payLabel() { pay.textContent = T[lang].pay + ' ' + PRICE[opt] + ' zł'; }
     function set(l) {
       lang = l; var d = T[l];
@@ -246,7 +285,7 @@
       document.querySelectorAll('[data-i18n-ph]').forEach(function (el) { el.placeholder = d[el.dataset.i18nPh]; });
       langs.querySelectorAll('.lang-btn').forEach(function (b) { b.classList.toggle('on', b.dataset.lang === l); });
       flag.innerHTML = FLAGS[l] + l.toUpperCase();
-      payLabel();
+      payLabel(); routeDesc();
       try { localStorage.setItem('krakroam_site_lang', l); } catch (e) {}
     }
 
@@ -263,6 +302,7 @@
       r.addEventListener('click', function () {
         route = r.dataset.route;
         document.querySelectorAll('.route').forEach(function (x) { x.classList.toggle('on', x === r); });
+        routeDesc();
       });
     });
 
@@ -270,10 +310,12 @@
     function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2600); }
 
     var email = document.getElementById('email');
-    email.addEventListener('input', function () { email.classList.remove('bad'); });
+    var email2 = document.getElementById('email2');
+    [email, email2].forEach(function (el) { el.addEventListener('input', function () { el.classList.remove('bad'); }); });
     pay.addEventListener('click', function () {
       if (opt === 'one' && !route) return toast(T[lang].pickRoute);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) { email.classList.add('bad'); email.focus(); return toast(T[lang].badEmail); }
+      if (email2.value.trim().toLowerCase() !== email.value.trim().toLowerCase()) { email2.classList.add('bad'); email2.focus(); return toast(T[lang].mismatch); }
       // tu podepniemy płatność (Stripe), na razie tylko wygląd
       toast(T[lang].soon);
     });
