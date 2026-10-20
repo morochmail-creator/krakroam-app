@@ -100,6 +100,14 @@
   .bb-txt b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bb-txt small { display: block; color: var(--dim); font-size: 12px; line-height: 1.3; margin-top: 2px; }
   .buybar { cursor: pointer; }
+  .buy-inline { width: 100%; margin-top: 4px; border: 0; border-radius: 999px; background: #1fb85a; color: #fff; font: 800 17px/1 'Inter', -apple-system, sans-serif; padding: 16px; cursor: pointer; box-shadow: 0 8px 24px rgba(31,184,90,0.35); }
+  .buy-inline:active { transform: scale(0.98); }
+  .bi-price { font-weight: 600; opacity: 0.9; }
+  .offer { text-align: center; background: rgba(242,176,30,0.10); border: 1.5px solid rgba(242,176,30,0.5); border-radius: 20px; padding: 18px 16px 16px; display: grid; gap: 6px; }
+  .offer b { font-size: 19px; font-weight: 800; }
+  .offer span { color: var(--dim); font-size: 14px; }
+  .offer .buy-inline { margin-top: 8px; }
+  .offer .buy-inline span { color: #fff; font-size: inherit; }
   .bb-btn { border: 0; border-radius: 999px; background: #1fb85a; color: #fff; font: 800 17px/1 'Inter', -apple-system, sans-serif; padding: 15px 24px; cursor: pointer; box-shadow: 0 8px 24px rgba(31,184,90,0.45); white-space: nowrap; animation: pulse 2.4s ease-in-out infinite; }
   .bb-btn:active { transform: scale(0.97); }
   @keyframes pulse { 0%, 100% { box-shadow: 0 8px 24px rgba(31,184,90,0.45), 0 0 0 0 rgba(31,184,90,0.5); } 50% { box-shadow: 0 8px 24px rgba(31,184,90,0.45), 0 0 0 8px rgba(31,184,90,0); } }
@@ -177,6 +185,7 @@
       <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
       <span class="txt"><b data-i18n="sample2T"></b><small data-i18n="sample2S"></small><span class="bar"><span class="fill"></span></span></span>
     </button>
+    <button type="button" class="buy-inline open-buy"><span data-i18n="buyNow"></span> <span class="bi-price" data-i18n="fromPrice"></span></button>
   </div>
 
   <div class="sec">
@@ -196,6 +205,12 @@
       <div><b>Kazimierz</b><span data-i18n="rdKaz"></span></div>
       <div><b data-i18n="rGhetto"></b><span data-i18n="rdGhetto"></span></div>
     </div>
+  </div>
+
+  <div class="offer">
+    <b data-i18n="offerT"></b>
+    <span data-i18n="offerP"></span>
+    <button type="button" class="buy-inline open-buy"><span data-i18n="buyNow"></span> <span class="bi-price" data-i18n="fromPrice"></span></button>
   </div>
 
 </div>
@@ -295,6 +310,9 @@
         c4t: 'Bez instalowania',
         c4p: 'Działa w przeglądarce, wystarczy link z maila.',
         days7: 'dostęp na 7 dni',
+        buyNow: 'Kup dostęp', fromPrice: '· od 20 zł',
+        offerT: 'Gotowy na spacer?',
+        offerP: 'Całe miasto za 35 zł albo jedna trasa za 20 zł. Dostęp na 7 dni, link i hasło od razu na maila.',
         rec60: '60+ nagrań',
         buy: 'Kup',
         chooseT: 'Wybierz dostęp',
@@ -333,6 +351,9 @@
         c4t: 'Без встановлення',
         c4p: 'Працює в браузері, достатньо посилання з пошти.',
         days7: 'доступ на 7 днів',
+        buyNow: 'Купити доступ', fromPrice: '· від 20 zł',
+        offerT: 'Готовий до прогулянки?',
+        offerP: 'Усе місто за 35 zł або один маршрут за 20 zł. Доступ на 7 днів, посилання і пароль одразу на пошту.',
         rec60: '60+ записів',
         buy: 'Купити',
         chooseT: 'Обери доступ',
@@ -371,6 +392,9 @@
         c4t: 'Nothing to install',
         c4p: 'Works in your browser, just open the link from your email.',
         days7: '7-day access',
+        buyNow: 'Get access', fromPrice: '· from 20 zł',
+        offerT: 'Ready for a walk?',
+        offerP: 'The whole city for 35 zł or one route for 20 zł. 7-day access, link and password straight to your email.',
         rec60: '60+ recordings',
         buy: 'Buy',
         chooseT: 'Choose your access',
@@ -409,6 +433,9 @@
         c4t: 'Ohne Installation',
         c4p: 'Läuft im Browser, einfach den Link aus der E-Mail öffnen.',
         days7: 'Zugang für 7 Tage',
+        buyNow: 'Zugang kaufen', fromPrice: '· ab 20 zł',
+        offerT: 'Bereit für einen Spaziergang?',
+        offerP: 'Die ganze Stadt für 35 zł oder eine Route für 20 zł. Zugang für 7 Tage, Link und Passwort sofort per E-Mail.',
         rec60: '60+ Aufnahmen',
         buy: 'Kaufen',
         chooseT: 'Zugang wählen',
@@ -447,6 +474,9 @@
         c4t: 'Sin instalar nada',
         c4p: 'Funciona en el navegador, solo abre el enlace del correo.',
         days7: 'acceso de 7 días',
+        buyNow: 'Comprar acceso', fromPrice: '· desde 20 zł',
+        offerT: '¿Listo para un paseo?',
+        offerP: 'Toda la ciudad por 35 zł o una ruta por 20 zł. Acceso de 7 días, enlace y contraseña al instante en tu correo.',
         rec60: '60+ grabaciones',
         buy: 'Comprar',
         chooseT: 'Elige tu acceso',
@@ -580,6 +610,7 @@
     function closeSheet() { document.body.classList.remove('buying'); }
     var buybar = document.getElementById('buybar');
     buybar.addEventListener('click', openSheet);
+    document.querySelectorAll('.open-buy').forEach(function (b) { b.addEventListener('click', openSheet); });
     buybar.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet(); } });
     document.getElementById('shade').addEventListener('click', closeSheet);
     document.getElementById('x').addEventListener('click', closeSheet);
