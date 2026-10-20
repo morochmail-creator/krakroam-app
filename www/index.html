@@ -101,7 +101,8 @@
   .bar { flex: 1; min-width: 0; }
   .track { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.18); position: relative; cursor: pointer; touch-action: none; }
   .track::after { content: ""; position: absolute; left: 0; right: 0; top: -12px; bottom: -12px; }
-  .fill { height: 100%; width: 0; border-radius: 3px; background: var(--gold); }
+  .fill { height: 100%; width: 0; border-radius: 3px; background: var(--gold); position: relative; }
+  .fill::after { content: ""; position: absolute; right: -8px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(242,176,30,0.25); }
   .time { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 8px; font-variant-numeric: tabular-nums; }
   .samples-note:empty { display: none; }
   .samples-note { color: rgba(255,255,255,0.55); font-size: 13px; margin-top: 12px; }
@@ -425,26 +426,37 @@
     function fmt(t) { t = Math.floor(t || 0); return Math.floor(t / 60) + ':' + ('0' + t % 60).slice(-2); }
     var players = [];
     document.querySelectorAll('.sample').forEach(function (box) {
-      var au = new Audio(); au.preload = 'none';
+      var au = new Audio(); au.preload = 'metadata'; au.src = box.dataset.src;
+      var dragging = false;
       var fill = box.querySelector('.fill'), cur = box.querySelector('.cur'), dur = box.querySelector('.dur'), track = box.querySelector('.track');
       players.push(au);
       box.querySelector('.play').addEventListener('click', function () {
-        if (!au.src) au.src = box.dataset.src;
         if (au.paused) { players.forEach(function (o) { if (o !== au) o.pause(); }); au.play(); } else au.pause();
       });
       au.addEventListener('play', function () { box.classList.add('playing'); });
       au.addEventListener('pause', function () { box.classList.remove('playing'); });
       au.addEventListener('loadedmetadata', function () { dur.textContent = fmt(au.duration); });
       au.addEventListener('timeupdate', function () {
+        if (dragging) return;
         cur.textContent = fmt(au.currentTime);
         fill.style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0';
       });
       au.addEventListener('ended', function () { au.currentTime = 0; });
-      track.addEventListener('pointerdown', function (e) {
+      function seekTo(e, commit) {
         if (!au.duration) return;
-        var r = track.getBoundingClientRect();
-        au.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * au.duration;
+        var r = track.getBoundingClientRect(), f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        fill.style.width = (f * 100) + '%'; cur.textContent = fmt(f * au.duration);
+        if (commit) au.currentTime = f * au.duration;
+      }
+      track.addEventListener('pointerdown', function (e) {
+        if (!au.duration) { au.load(); return; }
+        dragging = true; try { track.setPointerCapture(e.pointerId); } catch (x) {}
+        seekTo(e, false);
       });
+      track.addEventListener('pointermove', function (e) { if (dragging) seekTo(e, false); });
+      function endDrag(e) { if (!dragging) return; dragging = false; seekTo(e, true); }
+      track.addEventListener('pointerup', endDrag);
+      track.addEventListener('pointercancel', function () { dragging = false; });
     });
     var header = document.querySelector('header'), burger = document.getElementById('burger');
     function closeMenu() { header.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); }
