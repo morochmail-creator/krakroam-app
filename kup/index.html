@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KrakRoam – kup audioprzewodnik</title>
+<meta name="theme-color" content="#14110d">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --dark: #14110d; --gold: #f2b01e; --line: rgba(255,255,255,0.14); --dim: rgba(255,255,255,0.62); }
+  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; background: var(--dark); }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; min-height: 100vh; min-height: 100svh;
+    background: linear-gradient(180deg, rgba(20,17,13,0.80) 0%, rgba(20,17,13,0.93) 38%, var(--dark) 70%), url('/www/img/wawel-m.jpg') center top/cover no-repeat, var(--dark); }
+  .page { max-width: 460px; margin: 0 auto; min-height: 100vh; min-height: 100svh; padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; position: relative; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; color: #fff; text-decoration: none; }
+  .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  .flag { display: inline-flex; align-items: center; gap: 7px; border: 0; font: 700 13px/1 'Inter', -apple-system, sans-serif; color: #fff; background: rgba(255,255,255,0.1); padding: 6px 11px 6px 6px; border-radius: 999px; cursor: pointer; }
+  .flag svg, .lang-btn svg { width: 24px; height: 16px; border-radius: 3px; flex: none; }
+  .langs { display: none; position: absolute; right: 0; top: 44px; z-index: 5; background: #221d16; border: 1px solid var(--line); border-radius: 16px; padding: 6px; box-shadow: 0 14px 40px rgba(0,0,0,0.5); }
+  .langs.open { display: grid; }
+  .lang-btn { display: flex; align-items: center; gap: 10px; border: 0; background: none; color: #fff; font: 600 15px/1 'Inter', -apple-system, sans-serif; padding: 11px 12px; border-radius: 10px; cursor: pointer; text-align: left; }
+  .lang-btn.on { background: rgba(242,176,30,0.16); color: var(--gold); }
+
+  h1 { font-size: 26px; line-height: 1.12; letter-spacing: -0.02em; font-weight: 800; margin-top: 4px; }
+  h1 em { font-style: normal; color: var(--gold); }
+  .sub { color: var(--dim); font-size: 14px; margin-top: 6px; }
+
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .feat { background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 14px; padding: 9px 6px; text-align: center; font-size: 12px; font-weight: 600; line-height: 1.25; color: rgba(255,255,255,0.85); }
+  .feat svg { width: 20px; height: 20px; color: var(--gold); display: block; margin: 0 auto 5px; }
+
+  .sample { display: flex; align-items: center; gap: 12px; width: 100%; border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: #fff; border-radius: 14px; padding: 8px 12px 8px 8px; font: inherit; text-align: left; cursor: pointer; }
+  .sample .pp { width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--gold); color: var(--dark); display: grid; place-items: center; }
+  .sample .pp svg { width: 16px; height: 16px; }
+  .sample .i-pause, .sample.playing .i-play { display: none; }
+  .sample.playing .i-pause { display: block; }
+  .sample b { display: block; font-size: 14px; }
+  .sample small { display: block; color: var(--dim); font-size: 12px; }
+  .sample .bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.15); margin-top: 5px; overflow: hidden; }
+  .sample .fill { height: 100%; width: 0; background: var(--gold); }
+  .sample .txt { flex: 1; min-width: 0; }
+
+  .opts { display: grid; gap: 8px; }
+  .opt { position: relative; border: 2px solid var(--line); background: rgba(255,255,255,0.05); border-radius: 18px; padding: 12px 14px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .opt.on { border-color: var(--gold); background: rgba(242,176,30,0.10); }
+  .opt-head { display: flex; align-items: center; gap: 12px; }
+  .radio { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); display: grid; place-items: center; }
+  .opt.on .radio { border-color: var(--gold); }
+  .opt.on .radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); }
+  .opt-name { flex: 1; min-width: 0; }
+  .opt-name b { display: block; font-size: 16px; }
+  .opt-name small { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; }
+  .price { font-size: 22px; font-weight: 800; white-space: nowrap; }
+  .price span { font-size: 13px; font-weight: 700; }
+  .badge { position: absolute; top: -10px; right: 14px; background: var(--gold); color: var(--dark); font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
+  .routes { display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .opt.on .routes { display: grid; }
+  .route { border: 1.5px solid var(--line); background: rgba(0,0,0,0.25); color: #fff; font: 600 13px/1.2 'Inter', -apple-system, sans-serif; border-radius: 11px; padding: 10px 4px; cursor: pointer; }
+  .route.on { border-color: var(--gold); background: var(--gold); color: var(--dark); }
+
+  .email { width: 100%; font: 500 16px 'Inter', -apple-system, sans-serif; color: #fff; background: rgba(255,255,255,0.08); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; outline: none; }
+  .email::placeholder { color: rgba(255,255,255,0.45); }
+  .email:focus { border-color: var(--gold); }
+  .email.bad { border-color: #e5484d; }
+
+  .pay { width: 100%; border: 0; border-radius: 999px; background: var(--gold); color: var(--dark); font: 800 18px/1 'Inter', -apple-system, sans-serif; padding: 17px; cursor: pointer; box-shadow: 0 10px 30px rgba(242,176,30,0.3); }
+  .pay:active { transform: scale(0.98); }
+  .fine { text-align: center; color: var(--dim); font-size: 12px; line-height: 1.45; }
+  .fine b { color: rgba(255,255,255,0.85); font-weight: 600; }
+  .bottom { margin-top: auto; display: grid; gap: 8px; }
+
+  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(20px + env(safe-area-inset-bottom)); max-width: 428px; margin: 0 auto; background: #fff; color: var(--dark); font-weight: 600; font-size: 14px; text-align: center; padding: 14px 16px; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); opacity: 0; transform: translateY(10px); transition: opacity .2s, transform .2s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: none; }
+
+  @media (max-height: 700px) {
+    .page { gap: 9px; }
+    h1 { font-size: 23px; }
+    .feat { padding: 7px 4px; }
+    .opt { padding: 10px 12px; }
+    .pay { padding: 15px; }
+  }
+  @media (max-height: 640px) { .sub { display: none; } .feat svg { display: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <a class="brand" href="/"><img src="/icon-192.png" alt="">KrakRoam</a>
+    <button type="button" class="flag" id="flag" aria-label="Language" aria-expanded="false"></button>
+    <div class="langs" id="langs"></div>
+  </div>
+
+  <div>
+    <h1><span data-i18n="h1a"></span> <em data-i18n="h1b"></em></h1>
+    <p class="sub" data-i18n="sub"></p>
+  </div>
+
+  <div class="feats">
+    <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span data-i18n="f1"></span></div>
+    <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg><span data-i18n="f2"></span></div>
+    <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg><span data-i18n="f3"></span></div>
+  </div>
+
+  <button type="button" class="sample" id="sample">
+    <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+    <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill" id="sfill" style="display:block"></span></span></span>
+  </button>
+
+  <div class="opts" role="radiogroup">
+    <div class="opt" data-opt="one" role="radio" tabindex="0">
+      <div class="opt-head">
+        <span class="radio"></span>
+        <span class="opt-name"><b data-i18n="oneT"></b><small data-i18n="oneS"></small></span>
+        <span class="price">20 <span>zł</span></span>
+      </div>
+      <div class="routes">
+        <button type="button" class="route" data-route="old" data-i18n="rOld"></button>
+        <button type="button" class="route" data-route="kaz">Kazimierz</button>
+        <button type="button" class="route" data-route="ghetto" data-i18n="rGhetto"></button>
+      </div>
+    </div>
+    <div class="opt on" data-opt="all" role="radio" tabindex="0">
+      <span class="badge" data-i18n="best"></span>
+      <div class="opt-head">
+        <span class="radio"></span>
+        <span class="opt-name"><b data-i18n="allT"></b><small data-i18n="allS"></small></span>
+        <span class="price">35 <span>zł</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <input class="email" id="email" type="email" inputmode="email" autocomplete="email" data-i18n-ph="emailPh">
+    <button type="button" class="pay" id="pay"></button>
+    <p class="fine"><b data-i18n="fine1"></b><br><span data-i18n="fine2"></span></p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  (function () {
+    // ?p=kod_partnera z kodu QR: zapamiętujemy, żeby później naliczyć prowizję właściwemu miejscu
+    try {
+      var pq = new URLSearchParams(location.search).get('p');
+      if (pq) localStorage.setItem('krakroam_partner', pq.slice(0, 40));
+    } catch (e) {}
+
+    var FLAGS = {
+      pl: '<svg viewBox="0 0 30 20"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#dc143c"/></svg>',
+      ua: '<svg viewBox="0 0 30 20"><rect width="30" height="10" fill="#0057b7"/><rect y="10" width="30" height="10" fill="#ffd700"/></svg>',
+      en: '<svg viewBox="0 0 60 40"><clipPath id="gbc"><rect width="60" height="40"/></clipPath><g clip-path="url(#gbc)"><rect width="60" height="40" fill="#012169"/><path d="M0,0 60,40M60,0 0,40" stroke="#fff" stroke-width="8"/><path d="M0,0 60,40M60,0 0,40" stroke="#c8102e" stroke-width="3"/><path d="M30,0V40M0,20H60" stroke="#fff" stroke-width="12"/><path d="M30,0V40M0,20H60" stroke="#c8102e" stroke-width="7"/></g></svg>',
+      de: '<svg viewBox="0 0 30 20"><rect width="30" height="7" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/></svg>',
+      es: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#aa151b"/><rect y="5" width="30" height="10" fill="#f1bf00"/></svg>'
+    };
+    var NAMES = { pl: 'Polski', ua: 'Українська', en: 'English', de: 'Deutsch', es: 'Español' };
+    var HTML_LANG = { pl: 'pl', ua: 'uk', en: 'en', de: 'de', es: 'es' };
+    var T = {
+      pl: {
+        title: 'KrakRoam – kup audioprzewodnik',
+        h1a: 'Audioprzewodnik po Krakowie', h1b: 'w Twoim telefonie',
+        sub: 'Bez aplikacji i bez grupy. Zwiedzasz w swoim tempie.',
+        f1: 'Mapa z GPS', f2: '60+ nagrań', f3: 'Trasy z linią',
+        sampleT: 'Posłuchaj próbki', sampleS: 'Legenda o Trębaczu · 1:23',
+        oneT: '1 trasa', oneS: 'Dostęp na 7 dni', rOld: 'Stare Miasto', rGhetto: 'Getto',
+        allT: 'Całe miasto', allS: 'Wszystkie trasy · dostęp na 7 dni', best: 'Najlepszy wybór',
+        emailPh: 'Twój e-mail', pay: 'Zapłać', fine1: 'Link i hasło przyjdą od razu na maila.',
+        fine2: 'BLIK · karta · Apple Pay · Google Pay',
+        pickRoute: 'Wybierz trasę', badEmail: 'Wpisz poprawny adres e-mail', soon: 'Płatności ruszą już wkrótce.'
+      },
+      ua: {
+        title: 'KrakRoam – купити аудіогід',
+        h1a: 'Аудіогід Краковом', h1b: 'у твоєму телефоні',
+        sub: 'Без застосунку і без групи. Гуляй у своєму темпі.',
+        f1: 'Мапа з GPS', f2: '60+ записів', f3: 'Маршрути з лінією',
+        sampleT: 'Послухай зразок', sampleS: 'Легенда про сурмача · 1:23 · польською',
+        oneT: '1 маршрут', oneS: 'Доступ на 7 днів', rOld: 'Старе місто', rGhetto: 'Гетто',
+        allT: 'Усе місто', allS: 'Усі маршрути · доступ на 7 днів', best: 'Найкращий вибір',
+        emailPh: 'Твій e-mail', pay: 'Оплатити', fine1: 'Посилання і пароль одразу прийдуть на пошту.',
+        fine2: 'BLIK · картка · Apple Pay · Google Pay',
+        pickRoute: 'Обери маршрут', badEmail: 'Введи правильну адресу e-mail', soon: 'Оплата запрацює зовсім скоро.'
+      },
+      en: {
+        title: 'KrakRoam – get the audio guide',
+        h1a: 'Kraków audio guide', h1b: 'on your phone',
+        sub: 'No app, no group. Explore at your own pace.',
+        f1: 'GPS map', f2: '60+ recordings', f3: 'Guided routes',
+        sampleT: 'Listen to a sample', sampleS: 'The Legend of the Trumpeter · 1:23 · in Polish',
+        oneT: '1 route', oneS: '7-day access', rOld: 'Old Town', rGhetto: 'Ghetto',
+        allT: 'Whole city', allS: 'All routes · 7-day access', best: 'Best value',
+        emailPh: 'Your email', pay: 'Pay', fine1: 'Your link and password arrive by email right away.',
+        fine2: 'BLIK · card · Apple Pay · Google Pay',
+        pickRoute: 'Choose a route', badEmail: 'Enter a valid email address', soon: 'Payments are coming very soon.'
+      },
+      de: {
+        title: 'KrakRoam – Audioguide kaufen',
+        h1a: 'Audioguide für Krakau', h1b: 'auf deinem Handy',
+        sub: 'Ohne App und ohne Gruppe. In deinem Tempo.',
+        f1: 'Karte mit GPS', f2: '60+ Aufnahmen', f3: 'Routen mit Linie',
+        sampleT: 'Hörprobe', sampleS: 'Die Legende vom Trompeter · 1:23 · auf Polnisch',
+        oneT: '1 Route', oneS: 'Zugang für 7 Tage', rOld: 'Altstadt', rGhetto: 'Ghetto',
+        allT: 'Ganze Stadt', allS: 'Alle Routen · Zugang für 7 Tage', best: 'Beste Wahl',
+        emailPh: 'Deine E-Mail', pay: 'Bezahlen', fine1: 'Link und Passwort kommen sofort per E-Mail.',
+        fine2: 'BLIK · Karte · Apple Pay · Google Pay',
+        pickRoute: 'Wähle eine Route', badEmail: 'Gib eine gültige E-Mail-Adresse ein', soon: 'Zahlungen starten in Kürze.'
+      },
+      es: {
+        title: 'KrakRoam – compra la audioguía',
+        h1a: 'Audioguía de Cracovia', h1b: 'en tu móvil',
+        sub: 'Sin app y sin grupo. Explora a tu ritmo.',
+        f1: 'Mapa con GPS', f2: '60+ grabaciones', f3: 'Rutas guiadas',
+        sampleT: 'Escucha una muestra', sampleS: 'La leyenda del trompetista · 1:23 · en polaco',
+        oneT: '1 ruta', oneS: 'Acceso de 7 días', rOld: 'Casco antiguo', rGhetto: 'Gueto',
+        allT: 'Toda la ciudad', allS: 'Todas las rutas · acceso de 7 días', best: 'Mejor opción',
+        emailPh: 'Tu e-mail', pay: 'Pagar', fine1: 'El enlace y la contraseña llegan al instante por correo.',
+        fine2: 'BLIK · tarjeta · Apple Pay · Google Pay',
+        pickRoute: 'Elige una ruta', badEmail: 'Escribe un e-mail válido', soon: 'Los pagos llegarán muy pronto.'
+      }
+    };
+    var ORDER = ['pl', 'ua', 'en', 'de', 'es'], PRICE = { one: 20, all: 35 };
+    var lang = 'en', opt = 'all', route = null;
+    var flag = document.getElementById('flag'), langs = document.getElementById('langs'), pay = document.getElementById('pay');
+
+    ORDER.forEach(function (l) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'lang-btn'; b.dataset.lang = l;
+      b.innerHTML = FLAGS[l] + '<span>' + NAMES[l] + '</span>';
+      b.addEventListener('click', function () { set(l); toggleLangs(false); });
+      langs.appendChild(b);
+    });
+    function toggleLangs(o) { langs.classList.toggle('open', o); flag.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+    flag.addEventListener('click', function (e) { e.stopPropagation(); toggleLangs(!langs.classList.contains('open')); });
+    document.addEventListener('click', function (e) { if (!langs.contains(e.target)) toggleLangs(false); });
+
+    function payLabel() { pay.textContent = T[lang].pay + ' ' + PRICE[opt] + ' zł'; }
+    function set(l) {
+      lang = l; var d = T[l];
+      document.documentElement.lang = HTML_LANG[l]; document.title = d.title;
+      document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = d[el.dataset.i18n]; });
+      document.querySelectorAll('[data-i18n-ph]').forEach(function (el) { el.placeholder = d[el.dataset.i18nPh]; });
+      langs.querySelectorAll('.lang-btn').forEach(function (b) { b.classList.toggle('on', b.dataset.lang === l); });
+      flag.innerHTML = FLAGS[l] + l.toUpperCase();
+      payLabel();
+      try { localStorage.setItem('krakroam_site_lang', l); } catch (e) {}
+    }
+
+    document.querySelectorAll('.opt').forEach(function (o) {
+      function pick() {
+        opt = o.dataset.opt;
+        document.querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === o); x.setAttribute('aria-checked', x === o ? 'true' : 'false'); });
+        payLabel();
+      }
+      o.addEventListener('click', pick);
+      o.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    document.querySelectorAll('.route').forEach(function (r) {
+      r.addEventListener('click', function () {
+        route = r.dataset.route;
+        document.querySelectorAll('.route').forEach(function (x) { x.classList.toggle('on', x === r); });
+      });
+    });
+
+    var toastEl = document.getElementById('toast'), toastT;
+    function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2600); }
+
+    var email = document.getElementById('email');
+    email.addEventListener('input', function () { email.classList.remove('bad'); });
+    pay.addEventListener('click', function () {
+      if (opt === 'one' && !route) return toast(T[lang].pickRoute);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) { email.classList.add('bad'); email.focus(); return toast(T[lang].badEmail); }
+      // tu podepniemy płatność (Stripe), na razie tylko wygląd
+      toast(T[lang].soon);
+    });
+
+    var au = new Audio('/audio/pl/3_1_Legenda_o_trebaczu.mp3'); au.preload = 'none';
+    var sample = document.getElementById('sample'), sfill = document.getElementById('sfill');
+    sample.addEventListener('click', function () { au.paused ? au.play() : au.pause(); });
+    au.addEventListener('play', function () { sample.classList.add('playing'); });
+    au.addEventListener('pause', function () { sample.classList.remove('playing'); });
+    au.addEventListener('timeupdate', function () { sfill.style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0'; });
+    au.addEventListener('ended', function () { au.currentTime = 0; });
+
+    var saved = null, q = null;
+    try { saved = localStorage.getItem('krakroam_site_lang'); } catch (e) {}
+    try { q = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+    var nav = 'en', prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+    for (var i = 0; i < prefs.length; i++) {
+      var c = String(prefs[i]).slice(0, 2).toLowerCase();
+      if (c === 'uk') c = 'ua';
+      if (T[c]) { nav = c; break; }
+    }
+    set(T[q] ? q : (T[saved] ? saved : nav));
+  })();
+</script>
+</body>
+</html>
