@@ -4651,6 +4651,17 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) wake
 try {
   const urlLang = new URLSearchParams(location.search).get('lang');
   if (urlLang && TRANSLATIONS[urlLang]) localStorage.setItem('krakroam_lang', urlLang);
+  // pierwsze wejście bez wybranego języka (np. prosto z kodu QR): bierzemy język telefonu, a gdy go nie obsługujemy — angielski
+  if (!(urlLang && TRANSLATIONS[urlLang]) && !localStorage.getItem('krakroam_lang')) {
+    let auto = 'en';
+    const prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+    for (const p of prefs) {
+      let c = String(p).slice(0, 2).toLowerCase();
+      if (c === 'uk') c = 'ua';
+      if (TRANSLATIONS[c]) { auto = c; break; }
+    }
+    localStorage.setItem('krakroam_lang', auto);
+  }
   if (urlLang) history.replaceState(null, '', location.pathname + location.hash);
 } catch (e) {}
 const savedLang = localStorage.getItem('krakroam_lang');

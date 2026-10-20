@@ -454,9 +454,16 @@
     window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     var saved = null;
     try { saved = localStorage.getItem('krakroam_site_lang'); } catch (e) {}
-    var nav = (navigator.language || 'pl').slice(0, 2).toLowerCase();
-    if (nav === 'uk') nav = 'ua';
-    set(T[saved] ? saved : (T[nav] ? nav : 'en'));
+    // język telefonu: bierzemy pierwszy z listy preferowanych języków, który obsługujemy (uk = ukraiński), inaczej angielski
+    var nav = 'en', prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+    for (var i = 0; i < prefs.length; i++) {
+      var c = String(prefs[i]).slice(0, 2).toLowerCase();
+      if (c === 'uk') c = 'ua';
+      if (T[c]) { nav = c; break; }
+    }
+    var q = null;
+    try { q = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+    set(T[q] ? q : (T[saved] ? saved : nav));
   })();
 </script>
 </body>
