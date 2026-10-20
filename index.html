@@ -630,6 +630,29 @@
   #confirm-sub { font-size: 14.5px; line-height: 1.45; color: var(--ink-dim); margin-bottom: 20px; }
   #confirm-btns { display: flex; gap: 10px; }
   #confirm-btns button { flex: 1; height: 48px; border-radius: 14px; font: 700 15px 'Inter', sans-serif; cursor: pointer; }
+  /* okienko "jak włączyć lokalizację / kompas" */
+  #perm-screen { position: absolute; inset: 0; z-index: 131; display: flex; align-items: center; justify-content: center; padding: 18px; transition: opacity 0.2s ease, visibility 0.2s ease; }
+  #perm-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #perm-scrim { position: absolute; inset: 0; background: rgba(27,26,23,0.55); }
+  #perm-inner {
+    position: relative; width: 100%; max-width: 380px; max-height: calc(100% - 24px); overflow-y: auto;
+    background: var(--paper); border: 1.5px solid var(--line-strong); border-radius: var(--radius-card);
+    padding: 22px 20px 18px; box-shadow: var(--shadow-plate);
+  }
+  #perm-title { font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 6px; padding-right: 30px; }
+  #perm-sub { font-size: 14px; line-height: 1.45; color: var(--ink-dim); margin-bottom: 12px; }
+  .perm-head { font-size: 13px; font-weight: 800; color: var(--ink); margin: 14px 0 6px; }
+  .perm-steps { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.45; color: var(--ink); }
+  .perm-steps li { margin-bottom: 6px; }
+  .perm-steps b { font-weight: 700; }
+  #perm-btns { display: flex; gap: 10px; margin-top: 16px; }
+  #perm-btns button { flex: 1; height: 48px; border-radius: 14px; font: 700 15px 'Inter', sans-serif; cursor: pointer; }
+  #perm-close-btn { background: var(--paper-2); border: 1.5px solid var(--line); color: var(--ink); }
+  #perm-retry { background: var(--route); border: 1.5px solid var(--route); color: #fff; }
+  #perm-x {
+    position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--paper-2); border: 1px solid var(--line); color: var(--ink); font-size: 18px; cursor: pointer;
+  }
   #confirm-no { background: var(--paper-2); border: 1.5px solid var(--line); color: var(--ink); }
   #confirm-yes { background: var(--danger); border: 1.5px solid var(--danger); color: #fff; }
   #settings-scrim {
@@ -1340,6 +1363,19 @@
       <div id="route-list-empty" class="hidden"></div>
     </div>
   </div>
+  <div id="perm-screen" class="hidden" role="dialog" aria-modal="true" aria-labelledby="perm-title">
+    <div id="perm-scrim"></div>
+    <div id="perm-inner">
+      <button id="perm-x" aria-label="Zamknij">×</button>
+      <div id="perm-title"></div>
+      <div id="perm-sub"></div>
+      <div id="perm-body"></div>
+      <div id="perm-btns">
+        <button id="perm-close-btn"></button>
+        <button id="perm-retry"></button>
+      </div>
+    </div>
+  </div>
   <div id="confirm-screen" class="hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
     <div id="confirm-scrim"></div>
     <div id="confirm-inner">
@@ -1412,6 +1448,10 @@
       <div class="settings-row" id="settings-autoplay-row">
         <span id="settings-autoplay-icon">⏭️</span>
         <span id="settings-autoplay-text">Autoodtwarzanie: włączone</span>
+      </div>
+      <div class="settings-row" id="settings-perm-row">
+        <span>📍</span>
+        <span id="settings-perm-text">Lokalizacja i kompas — jak włączyć</span>
       </div>
       <div class="settings-row" id="settings-progress-row">Wyzeruj odsłuchane punkty</div>
       <div class="settings-row" id="settings-logout-row">Wyloguj</div>
@@ -1673,6 +1713,7 @@ const TRANSLATIONS = {
     nextStop: "Następny przystanek",
     navStraightLine: "w linii prostej",
     gpsReminder: "Lokalizacja wyłączona — nie widzę, gdzie jesteś.", gpsReminderBtn: "Włącz",
+    permRow: "Lokalizacja i kompas — jak włączyć", permTitle: "Jak włączyć lokalizację i kompas", permSub: "Przeglądarka nie ma dostępu do lokalizacji lub kompasu. Bez tego apka nie pokaże, gdzie jesteś i w którą stronę patrzysz.", permRetry: "Spróbuj ponownie", permClose: "Zamknij", permLoc: "📍 Lokalizacja", permCompass: "🧭 Kompas (kierunek patrzenia)", iosLoc: ["W <b>Ustawieniach</b> telefonu: <b>Prywatność i ochrona → Usługi lokalizacji</b> — włącz.", "Niżej na tej liście: <b>Witryny Safari</b> → <b>Podczas używania aplikacji</b> i włącz <b>Dokładna lokalizacja</b>.", "Wróć do Safari, stuknij <b>aA</b> (lub ikonę obok adresu) → <b>Ustawienia witryny</b> → <b>Lokalizacja: Pozwalaj</b>."], iosCompass: ["Stuknij <b>Spróbuj ponownie</b> i w okienku wybierz <b>Pozwól</b> (dostęp do ruchu i orientacji).", "Jeśli wcześniej wybrałeś „Nie pozwalaj”: zamknij kartę z apką, otwórz ją jeszcze raz i stuknij przycisk lokalizacji."], andLoc: ["Przesuń palcem od góry ekranu i włącz <b>Lokalizację</b>.", "W Chrome stuknij ikonę obok adresu strony → <b>Uprawnienia</b> → <b>Lokalizacja</b> → <b>Zezwól</b>.", "Jeśli tego nie ma: Chrome <b>⋮ → Ustawienia → Ustawienia witryn → Lokalizacja</b> → odblokuj app.krakroam.pl."], andCompass: ["Chrome <b>⋮ → Ustawienia → Ustawienia witryn → Czujniki ruchu</b> → <b>Zezwalaj</b>.", "Kompas warto skalibrować: zrób telefonem w powietrzu kilka „ósemek”."], 
     gpsDenied: "Nie widzę Twojej lokalizacji. Włącz GPS i zezwól przeglądarce na dostęp do lokalizacji.",
     introTitleRoute: "Odsłuchaj w drodze na start",
     introTitleFreeRoam: "Odsłuchaj w drodze do historycznego centrum",
@@ -1762,6 +1803,7 @@ const TRANSLATIONS = {
     nextStop: "Наступна зупинка",
     navStraightLine: "по прямій",
     gpsReminder: "Геолокацію вимкнено — не бачу, де ти.", gpsReminderBtn: "Увімкнути",
+    permRow: "Геолокація і компас — як увімкнути", permTitle: "Як увімкнути геолокацію і компас", permSub: "Браузер не має доступу до геолокації або компаса. Без цього застосунок не покаже, де ти і куди дивишся.", permRetry: "Спробувати знову", permClose: "Закрити", permLoc: "📍 Геолокація", permCompass: "🧭 Компас (напрямок погляду)", iosLoc: ["У <b>Параметрах</b> телефону: <b>Приватність і безпека → Служби локації</b> — увімкни.", "Нижче в списку: <b>Сайти Safari</b> → <b>Коли використовується</b> і увімкни <b>Точне розташування</b>.", "Повернися в Safari, торкнися <b>aA</b> (або значка біля адреси) → <b>Параметри вебсайту</b> → <b>Локація: Дозволити</b>."], iosCompass: ["Торкнися <b>Спробувати знову</b> і у вікні вибери <b>Дозволити</b> (доступ до руху й орієнтації).", "Якщо раніше вибрав «Не дозволяти»: закрий вкладку, відкрий застосунок знову й торкнися кнопки геолокації."], andLoc: ["Проведи пальцем від верху екрана й увімкни <b>Локацію</b>.", "У Chrome торкнися значка біля адреси → <b>Дозволи</b> → <b>Локація</b> → <b>Дозволити</b>.", "Якщо його немає: Chrome <b>⋮ → Налаштування → Налаштування сайтів → Локація</b> → розблокуй app.krakroam.pl."], andCompass: ["Chrome <b>⋮ → Налаштування → Налаштування сайтів → Датчики руху</b> → <b>Дозволити</b>.", "Відкалібруй компас: зроби телефоном у повітрі кілька «вісімок»."], 
     gpsDenied: "Не бачу твого місцезнаходження. Увімкни GPS і дозволь браузеру доступ до геолокації.",
     introTitleRoute: "Послухай в дорозі до старту",
     introTitleFreeRoam: "Послухай в дорозі до історичного центру",
@@ -1851,6 +1893,7 @@ const TRANSLATIONS = {
     nextStop: "Next stop",
     navStraightLine: "in a straight line",
     gpsReminder: "Location is off — I can't see where you are.", gpsReminderBtn: "Turn on",
+    permRow: "Location & compass — how to turn on", permTitle: "How to turn on location and compass", permSub: "Your browser has no access to location or the compass. Without it the app can't show where you are or which way you're facing.", permRetry: "Try again", permClose: "Close", permLoc: "📍 Location", permCompass: "🧭 Compass (facing direction)", iosLoc: ["In the phone's <b>Settings</b>: <b>Privacy & Security → Location Services</b> — turn on.", "Further down that list: <b>Safari Websites</b> → <b>While Using the App</b> and turn on <b>Precise Location</b>.", "Back in Safari, tap <b>aA</b> (or the icon next to the address) → <b>Website Settings</b> → <b>Location: Allow</b>."], iosCompass: ["Tap <b>Try again</b> and choose <b>Allow</b> (motion & orientation access).", "If you chose “Don't Allow” before: close the tab, open the app again and tap the location button."], andLoc: ["Swipe down from the top of the screen and turn on <b>Location</b>.", "In Chrome tap the icon next to the address → <b>Permissions</b> → <b>Location</b> → <b>Allow</b>.", "If it's not there: Chrome <b>⋮ → Settings → Site settings → Location</b> → unblock app.krakroam.pl."], andCompass: ["Chrome <b>⋮ → Settings → Site settings → Motion sensors</b> → <b>Allow</b>.", "Calibrate the compass: move the phone in a few figure-eights in the air."], 
     gpsDenied: "We can't see your location. Turn on GPS and allow your browser to use your location.",
     introTitleRoute: "Listen on your way to the start",
     introTitleFreeRoam: "Listen on your way to the historic centre",
@@ -1940,6 +1983,7 @@ const TRANSLATIONS = {
     nextStop: "Nächster Halt",
     navStraightLine: "Luftlinie",
     gpsReminder: "Standort ist aus — ich sehe nicht, wo du bist.", gpsReminderBtn: "Einschalten",
+    permRow: "Standort & Kompass — so einschalten", permTitle: "So schaltest du Standort und Kompass ein", permSub: "Der Browser hat keinen Zugriff auf Standort oder Kompass. Ohne ihn kann die App nicht zeigen, wo du bist und wohin du schaust.", permRetry: "Erneut versuchen", permClose: "Schließen", permLoc: "📍 Standort", permCompass: "🧭 Kompass (Blickrichtung)", iosLoc: ["In den <b>Einstellungen</b> des Handys: <b>Datenschutz & Sicherheit → Ortungsdienste</b> — einschalten.", "Weiter unten in der Liste: <b>Safari-Websites</b> → <b>Beim Verwenden der App</b> und <b>Genauer Standort</b> einschalten.", "Zurück in Safari <b>aA</b> (oder das Symbol neben der Adresse) tippen → <b>Website-Einstellungen</b> → <b>Standort: Erlauben</b>."], iosCompass: ["Tippe auf <b>Erneut versuchen</b> und wähle <b>Erlauben</b> (Zugriff auf Bewegung & Ausrichtung).", "Falls du vorher „Nicht erlauben“ gewählt hast: Tab schließen, App neu öffnen und den Standort-Knopf tippen."], andLoc: ["Vom oberen Bildschirmrand nach unten wischen und <b>Standort</b> einschalten.", "In Chrome das Symbol neben der Adresse tippen → <b>Berechtigungen</b> → <b>Standort</b> → <b>Zulassen</b>.", "Falls nicht vorhanden: Chrome <b>⋮ → Einstellungen → Website-Einstellungen → Standort</b> → app.krakroam.pl freigeben."], andCompass: ["Chrome <b>⋮ → Einstellungen → Website-Einstellungen → Bewegungssensoren</b> → <b>Zulassen</b>.", "Kompass kalibrieren: Handy ein paar Mal in Form einer Acht durch die Luft bewegen."], 
     gpsDenied: "Wir können deinen Standort nicht sehen. Schalte GPS ein und erlaube dem Browser den Standortzugriff.",
     introTitleRoute: "Hör zu, während du zum Start gehst",
     introTitleFreeRoam: "Hör zu, während du zum historischen Zentrum gehst",
@@ -2029,6 +2073,7 @@ const TRANSLATIONS = {
     nextStop: "Siguiente parada",
     navStraightLine: "en línea recta",
     gpsReminder: "Ubicación desactivada: no veo dónde estás.", gpsReminderBtn: "Activar",
+    permRow: "Ubicación y brújula — cómo activarlas", permTitle: "Cómo activar la ubicación y la brújula", permSub: "El navegador no tiene acceso a la ubicación o a la brújula. Sin ello la app no puede mostrar dónde estás ni hacia dónde miras.", permRetry: "Reintentar", permClose: "Cerrar", permLoc: "📍 Ubicación", permCompass: "🧭 Brújula (dirección)", iosLoc: ["En <b>Ajustes</b> del teléfono: <b>Privacidad y seguridad → Localización</b> — actívala.", "Más abajo en esa lista: <b>Sitios web de Safari</b> → <b>Cuando se use la app</b> y activa <b>Ubicación exacta</b>.", "Vuelve a Safari, toca <b>aA</b> (o el icono junto a la dirección) → <b>Ajustes del sitio web</b> → <b>Ubicación: Permitir</b>."], iosCompass: ["Toca <b>Reintentar</b> y elige <b>Permitir</b> (acceso a movimiento y orientación).", "Si antes elegiste «No permitir»: cierra la pestaña, abre la app de nuevo y toca el botón de ubicación."], andLoc: ["Desliza desde arriba de la pantalla y activa la <b>Ubicación</b>.", "En Chrome toca el icono junto a la dirección → <b>Permisos</b> → <b>Ubicación</b> → <b>Permitir</b>.", "Si no aparece: Chrome <b>⋮ → Configuración → Configuración de sitios → Ubicación</b> → desbloquea app.krakroam.pl."], andCompass: ["Chrome <b>⋮ → Configuración → Configuración de sitios → Sensores de movimiento</b> → <b>Permitir</b>.", "Calibra la brújula: mueve el teléfono en el aire haciendo varios «ochos»."], 
     gpsDenied: "No vemos tu ubicación. Activa el GPS y permite que el navegador use tu ubicación.",
     introTitleRoute: "Escucha de camino al inicio",
     introTitleFreeRoam: "Escucha de camino al centro histórico",
@@ -2175,6 +2220,11 @@ function applyTranslations() {
   document.getElementById('pw-lang-text').textContent = t('changeLang');
   document.getElementById('settings-logout-row').textContent = t('logoutBtn');
   document.getElementById('settings-progress-row').textContent = t('progressReset');
+  document.getElementById('settings-perm-text').textContent = t('permRow');
+  document.getElementById('perm-title').textContent = t('permTitle');
+  document.getElementById('perm-retry').textContent = t('permRetry');
+  document.getElementById('perm-close-btn').textContent = t('permClose');
+  document.getElementById('perm-x').setAttribute('aria-label', t('closeLabel'));
   if (typeof updateRouteProgress === 'function') updateRouteProgress();
   if (typeof updateSoundRow === 'function') updateSoundRow();
   if (typeof autoplayNext === 'boolean') updateAutoplayUI();
@@ -3174,8 +3224,11 @@ function startCompass() {
     DeviceOrientationEvent.requestPermission().then(state => {
       if (state === 'granted') {
         window.addEventListener('deviceorientation', handleOrientation, true);
+      } else {
+        compassStarted = false; // przy następnym stuknięciu spróbujemy jeszcze raz
+        showPermHelp('compass');
       }
-    }).catch(() => {});
+    }).catch(() => { compassStarted = false; });
   } else if ('ondeviceorientationabsolute' in window) {
     window.addEventListener('deviceorientationabsolute', handleOrientation, true);
   } else if (typeof DeviceOrientationEvent !== 'undefined') {
@@ -3576,8 +3629,9 @@ function startLocationTracking(flyOnFirstFix) {
     watchId = null;
     btn.classList.remove('active');
     watching = false;
-    // na starcie apki milczymy, ale gdy user SAM stuknął "pokaż moją lokalizację" — mówimy, co zrobić
-    if (flyOnFirstFix) showInfoToast(t('gpsDenied'));
+    // brak zgody na lokalizację — pokazujemy instrukcję, jak ją włączyć (raz na wejście do apki samoczynnie,
+    // a zawsze, gdy user SAM stuknął "pokaż moją lokalizację" / "Włącz")
+    if (flyOnFirstFix || !permHelpAutoShown) { permHelpAutoShown = true; showPermHelp('location'); }
   }, { enableHighAccuracy: true, maximumAge: 5000 });
 }
 
@@ -3618,6 +3672,9 @@ setInterval(() => {
 document.getElementById('gps-reminder-close').addEventListener('click', () => hideGpsReminder(GPS_REMINDER_AFTER_CLOSE_MS));
 document.getElementById('gps-reminder-btn').addEventListener('click', () => {
   hideGpsReminder(GPS_REMINDER_EVERY_MS);
+  retryLocationAccess();
+});
+function retryLocationAccess() {
   if (!navigator.geolocation) { alert(t('gpsUnsupported')); return; }
   startCompass();
   // śledzenie mogło się "zawiesić" (np. GPS wyłączony w telefonie) — zaczynamy od nowa, w ramach kliknięcia,
@@ -3626,6 +3683,49 @@ document.getElementById('gps-reminder-btn').addEventListener('click', () => {
   watchId = null;
   watching = false;
   startLocationTracking(true);
+}
+
+/* ---------- Okienko "jak włączyć lokalizację i kompas" ----------
+   Strona internetowa nie może sama otworzyć ustawień telefonu, więc pokazujemy krótką instrukcję
+   dla telefonu, którego user właśnie używa (iPhone / Android). Wyskakuje samo przy braku zgody,
+   jest też w Ustawieniach. "Spróbuj ponownie" od razu prosi przeglądarkę o dostęp jeszcze raz. */
+let permHelpAutoShown = false;
+const permScreenEl = document.getElementById('perm-screen');
+function phoneKind() {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  return 'other';
+}
+function showPermHelp(focus) {
+  const kind = phoneKind();
+  const list = arr => '<ol class="perm-steps">' + arr.map(x => '<li>' + x + '</li>').join('') + '</ol>';
+  const block = (head, ios, and) => {
+    let h = '<div class="perm-head">' + head + '</div>';
+    if (kind === 'ios') h += list(t(ios));
+    else if (kind === 'android') h += list(t(and));
+    else h += '<div class="perm-head">iPhone</div>' + list(t(ios)) + '<div class="perm-head">Android</div>' + list(t(and));
+    return h;
+  };
+  const loc = block(t('permLoc'), 'iosLoc', 'andLoc');
+  const comp = block(t('permCompass'), 'iosCompass', 'andCompass');
+  document.getElementById('perm-sub').textContent = t('permSub');
+  document.getElementById('perm-body').innerHTML = focus === 'compass' ? comp + loc : loc + comp;
+  gpsReminderEl.classList.add('hidden');
+  permScreenEl.classList.remove('hidden');
+}
+function hidePermHelp() { permScreenEl.classList.add('hidden'); }
+document.getElementById('perm-x').addEventListener('click', hidePermHelp);
+document.getElementById('perm-close-btn').addEventListener('click', hidePermHelp);
+document.getElementById('perm-scrim').addEventListener('click', hidePermHelp);
+document.getElementById('perm-retry').addEventListener('click', () => {
+  hidePermHelp();
+  compassStarted = false;
+  retryLocationAccess();
+});
+document.getElementById('settings-perm-row').addEventListener('click', () => {
+  settingsScreenEl.classList.add('hidden');
+  showPermHelp('location');
 });
 
 /* ============================================================
