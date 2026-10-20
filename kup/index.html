@@ -16,7 +16,7 @@
   html { -webkit-text-size-adjust: 100%; background: var(--dark); }
   body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; min-height: 100vh; min-height: 100svh;
     background: linear-gradient(180deg, rgba(20,17,13,0.80) 0%, rgba(20,17,13,0.93) 38%, var(--dark) 70%), url('/www/img/wawel-m.jpg') center top/cover no-repeat, var(--dark); }
-  .page { max-width: 460px; margin: 0 auto; min-height: 100vh; min-height: 100svh; padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
+  .page { max-width: 460px; margin: 0 auto; padding: 12px 16px calc(100px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 18px; }
 
   .top { display: flex; align-items: center; justify-content: space-between; position: relative; }
   .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; color: #fff; text-decoration: none; }
@@ -81,19 +81,36 @@
   .pay:active { transform: scale(0.98); }
   .fine { text-align: center; color: var(--dim); font-size: 12px; line-height: 1.45; }
   .fine b { color: rgba(255,255,255,0.85); font-weight: 600; }
-  .bottom { margin-top: auto; display: grid; gap: 8px; }
+  .bottom { display: grid; gap: 8px; margin-top: 12px; }
+  .sec { display: grid; gap: 8px; }
+  .kick { color: var(--gold); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .card { background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 16px; padding: 12px; font-size: 13px; line-height: 1.35; color: var(--dim); }
+  .card svg { width: 22px; height: 22px; color: var(--gold); display: block; margin-bottom: 6px; }
+  .card b { display: block; color: #fff; font-size: 14px; margin-bottom: 2px; }
+  .rlist { display: grid; gap: 8px; }
+  .rlist div { background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; font-size: 13px; line-height: 1.4; color: var(--dim); }
+  .rlist b { display: block; color: #fff; font-size: 15px; margin-bottom: 2px; }
+
+  .buybar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: rgba(20,17,13,0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .bb-in { max-width: 428px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .bb-txt { flex: 1; min-width: 0; }
+  .bb-txt b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bb-txt small { color: var(--dim); font-size: 12px; }
+  .bb-btn { border: 0; border-radius: 999px; background: var(--gold); color: var(--dark); font: 800 17px/1 'Inter', -apple-system, sans-serif; padding: 15px 22px; cursor: pointer; box-shadow: 0 8px 24px rgba(242,176,30,0.3); white-space: nowrap; }
+  .shade { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,0.55); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; max-width: 460px; margin: 0 auto; max-height: 92vh; max-height: 92svh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: #1c1812; border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .25s ease; }
+  body.buying .shade { opacity: 1; pointer-events: auto; }
+  body.buying .sheet { transform: none; }
+  body.buying { overflow: hidden; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .sheet-head b { font-size: 19px; font-weight: 800; }
+  .x { width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255,255,255,0.1); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
+  .toast { z-index: 30; }
 
   .toast { position: fixed; left: 16px; right: 16px; bottom: calc(20px + env(safe-area-inset-bottom)); max-width: 428px; margin: 0 auto; background: #fff; color: var(--dark); font-weight: 600; font-size: 14px; text-align: center; padding: 14px 16px; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); opacity: 0; transform: translateY(10px); transition: opacity .2s, transform .2s; pointer-events: none; }
   .toast.show { opacity: 1; transform: none; }
 
-  @media (max-height: 700px) {
-    .page { gap: 9px; }
-    h1 { font-size: 23px; }
-    .feat { padding: 7px 4px; }
-    .opt { padding: 10px 12px; }
-    .pay { padding: 15px; }
-  }
-  @media (max-height: 640px) { .sub { display: none; } .feat svg { display: none; } }
 </style>
 </head>
 <body>
@@ -109,11 +126,48 @@
     <p class="sub" data-i18n="sub"></p>
   </div>
 
-  <button type="button" class="sample" id="sample">
-    <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
-    <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill" id="sfill" style="display:block"></span></span></span>
-  </button>
+  <div class="sec">
+    <div class="kick" data-i18n="kS"></div>
+    <button type="button" class="sample" data-src="/audio/pl/3_1_Legenda_o_trebaczu.mp3">
+      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill"></span></span></span>
+    </button>
+    <button type="button" class="sample" data-src="/audio/pl/10_1_Piwnice_tortury_i_kat.mp3">
+      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      <span class="txt"><b data-i18n="sample2T"></b><small data-i18n="sample2S"></small><span class="bar"><span class="fill"></span></span></span>
+    </button>
+  </div>
 
+  <div class="sec">
+    <div class="kick" data-i18n="kF"></div>
+    <div class="cards">
+    <div class="card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><b data-i18n="c1t"></b><span data-i18n="c1p"></span></div>
+    <div class="card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg><b data-i18n="c2t"></b><span data-i18n="c2p"></span></div>
+    <div class="card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg><b data-i18n="c3t"></b><span data-i18n="c3p"></span></div>
+    <div class="card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><b data-i18n="c4t"></b><span data-i18n="c4p"></span></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="kick" data-i18n="kR"></div>
+    <div class="rlist">
+      <div><b data-i18n="rOld"></b><span data-i18n="rdOld"></span></div>
+      <div><b>Kazimierz</b><span data-i18n="rdKaz"></span></div>
+      <div><b data-i18n="rGhetto"></b><span data-i18n="rdGhetto"></span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="buybar">
+  <div class="bb-in">
+    <div class="bb-txt"><b id="bb-name"></b><small data-i18n="days7"></small></div>
+    <button type="button" class="bb-btn" id="bb-btn"><span data-i18n="buy"></span> <span id="bb-price"></span></button>
+  </div>
+</div>
+<div class="shade" id="shade"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-head"><b data-i18n="chooseT"></b><button type="button" class="x" id="x" aria-label="Close">×</button></div>
   <div class="opts" role="radiogroup">
     <div class="opt on" data-opt="all" role="radio" tabindex="0" aria-checked="true">
       <span class="badge" data-i18n="best"></span>
@@ -174,7 +228,7 @@
         h1a: 'Audioprzewodnik po Krakowie', h1b: 'w Twoim telefonie',
         sub: 'Bez aplikacji i bez grupy. Zwiedzasz w swoim tempie.',
         f1: 'Mapa z GPS', f2: '60+ nagrań', f3: 'Trasy z linią',
-        sampleT: 'Posłuchaj próbki', sampleS: 'Legenda o Trębaczu · 1:23',
+        sampleT: 'Legenda o Trębaczu', sampleS: 'Próbka · 1:23',
         oneT: '1 trasa', oneS: 'Dostęp na 7 dni · wybierz trasę', rOld: 'Stare Miasto', rGhetto: 'Getto',
         allT: 'Całe miasto', allS: 'Wszystkie trasy · dostęp na 7 dni', best: 'Najlepszy wybór',
         email2Ph: 'Powtórz e-mail', warn: 'Sprawdź, czy adres jest poprawny. Na niego wyślemy hasło dostępu do aplikacji.',
@@ -183,6 +237,22 @@
         rdKaz: 'Dawna żydowska dzielnica: synagogi, klimatyczne uliczki i Plac Nowy. Historia ludzi, którzy tu żyli.',
         rdGhetto: 'Podgórze i getto z czasów wojny: Plac Bohaterów Getta, apteka Pod Orłem i fabryka Schindlera.',
         mismatch: 'Adresy e-mail się różnią',
+        kS: 'Posłuchaj próbki',
+        kF: 'Co dostajesz',
+        kR: 'Trasy',
+        sample2T: 'Wieża Ratuszowa: tortury i kat',
+        sample2S: 'Próbka · 1:29',
+        c1t: 'Mapa z GPS',
+        c1p: 'Widzisz, gdzie jesteś i co ciekawego jest obok.',
+        c2t: '60+ nagrań',
+        c2p: 'Krótkie historie, legendy i ciekawostki o zabytkach.',
+        c3t: 'Linia prowadząca',
+        c3p: 'Trasa prowadzi Cię od punktu do punktu.',
+        c4t: 'Bez instalowania',
+        c4p: 'Działa w przeglądarce, wystarczy link z maila.',
+        days7: 'dostęp na 7 dni',
+        buy: 'Kup',
+        chooseT: 'Wybierz dostęp',
         emailPh: 'Twój e-mail', pay: 'Zapłać', fine1: 'Link i hasło przyjdą od razu na maila.',
         fine2: 'BLIK · karta · Apple Pay · Google Pay',
         pickRoute: 'Wybierz trasę', badEmail: 'Wpisz poprawny adres e-mail', soon: 'Płatności ruszą już wkrótce.'
@@ -192,7 +262,7 @@
         h1a: 'Аудіогід Краковом', h1b: 'у твоєму телефоні',
         sub: 'Без застосунку і без групи. Гуляй у своєму темпі.',
         f1: 'Мапа з GPS', f2: '60+ записів', f3: 'Маршрути з лінією',
-        sampleT: 'Послухай зразок', sampleS: 'Легенда про сурмача · 1:23 · польською',
+        sampleT: 'Легенда про сурмача', sampleS: 'Зразок · 1:23 · польською',
         oneT: '1 маршрут', oneS: 'Доступ на 7 днів · обери маршрут', rOld: 'Старе місто', rGhetto: 'Гетто',
         allT: 'Усе місто', allS: 'Усі маршрути · доступ на 7 днів', best: 'Найкращий вибір',
         email2Ph: 'Повтори e-mail', warn: 'Перевір, чи адреса правильна. На неї ми надішлемо пароль доступу до застосунку.',
@@ -201,6 +271,22 @@
         rdKaz: 'Колишній єврейський квартал: синагоги, атмосферні вулички та площа Новий. Історія людей, які тут жили.',
         rdGhetto: 'Подгуже і гетто воєнних часів: площа Героїв Гетто, аптека «Під орлом» і фабрика Шиндлера.',
         mismatch: 'Адреси e-mail відрізняються',
+        kS: 'Послухай зразок',
+        kF: 'Що ти отримуєш',
+        kR: 'Маршрути',
+        sample2T: 'Ратушна вежа: тортури і кат',
+        sample2S: 'Зразок · 1:29 · польською',
+        c1t: 'Мапа з GPS',
+        c1p: 'Бачиш, де ти і що цікавого поруч.',
+        c2t: '60+ записів',
+        c2p: 'Короткі історії, легенди та цікавинки про пам’ятки.',
+        c3t: 'Лінія маршруту',
+        c3p: 'Маршрут веде тебе від точки до точки.',
+        c4t: 'Без встановлення',
+        c4p: 'Працює в браузері, достатньо посилання з пошти.',
+        days7: 'доступ на 7 днів',
+        buy: 'Купити',
+        chooseT: 'Обери доступ',
         emailPh: 'Твій e-mail', pay: 'Оплатити', fine1: 'Посилання і пароль одразу прийдуть на пошту.',
         fine2: 'BLIK · картка · Apple Pay · Google Pay',
         pickRoute: 'Обери маршрут', badEmail: 'Введи правильну адресу e-mail', soon: 'Оплата запрацює зовсім скоро.'
@@ -210,7 +296,7 @@
         h1a: 'Kraków audio guide', h1b: 'on your phone',
         sub: 'No app, no group. Explore at your own pace.',
         f1: 'GPS map', f2: '60+ recordings', f3: 'Guided routes',
-        sampleT: 'Listen to a sample', sampleS: 'The Legend of the Trumpeter · 1:23 · in Polish',
+        sampleT: 'The Legend of the Trumpeter', sampleS: 'Sample · 1:23 · in Polish',
         oneT: '1 route', oneS: '7-day access · choose a route', rOld: 'Old Town', rGhetto: 'Ghetto',
         allT: 'Whole city', allS: 'All routes · 7-day access', best: 'Best value',
         email2Ph: 'Repeat your email', warn: 'Make sure your address is correct. We\'ll send your app access password there.',
@@ -219,6 +305,22 @@
         rdKaz: 'The old Jewish quarter: synagogues, atmospheric lanes and Plac Nowy. The story of the people who lived here.',
         rdGhetto: 'Podgórze and the wartime ghetto: Ghetto Heroes Square, the Eagle Pharmacy and Schindler\'s Factory.',
         mismatch: 'The email addresses don\'t match',
+        kS: 'Listen to a sample',
+        kF: 'What you get',
+        kR: 'Routes',
+        sample2T: 'Town Hall Tower: torture and the executioner',
+        sample2S: 'Sample · 1:29 · in Polish',
+        c1t: 'GPS map',
+        c1p: 'See where you are and what\'s worth seeing nearby.',
+        c2t: '60+ recordings',
+        c2p: 'Short stories, legends and facts about the sights.',
+        c3t: 'Guiding line',
+        c3p: 'The route leads you from stop to stop.',
+        c4t: 'Nothing to install',
+        c4p: 'Works in your browser, just open the link from your email.',
+        days7: '7-day access',
+        buy: 'Buy',
+        chooseT: 'Choose your access',
         emailPh: 'Your email', pay: 'Pay', fine1: 'Your link and password arrive by email right away.',
         fine2: 'BLIK · card · Apple Pay · Google Pay',
         pickRoute: 'Choose a route', badEmail: 'Enter a valid email address', soon: 'Payments are coming very soon.'
@@ -228,7 +330,7 @@
         h1a: 'Audioguide für Krakau', h1b: 'auf deinem Handy',
         sub: 'Ohne App und ohne Gruppe. In deinem Tempo.',
         f1: 'Karte mit GPS', f2: '60+ Aufnahmen', f3: 'Routen mit Linie',
-        sampleT: 'Hörprobe', sampleS: 'Die Legende vom Trompeter · 1:23 · auf Polnisch',
+        sampleT: 'Die Legende vom Trompeter', sampleS: 'Hörprobe · 1:23 · auf Polnisch',
         oneT: '1 Route', oneS: 'Zugang für 7 Tage · Route wählen', rOld: 'Altstadt', rGhetto: 'Ghetto',
         allT: 'Ganze Stadt', allS: 'Alle Routen · Zugang für 7 Tage', best: 'Beste Wahl',
         email2Ph: 'E-Mail wiederholen', warn: 'Prüfe, ob die Adresse stimmt. Dorthin schicken wir dein Passwort für die App.',
@@ -237,6 +339,22 @@
         rdKaz: 'Das alte jüdische Viertel: Synagogen, stimmungsvolle Gassen und der Plac Nowy. Die Geschichte der Menschen, die hier lebten.',
         rdGhetto: 'Podgórze und das Ghetto der Kriegszeit: Platz der Ghettohelden, Apotheke Unter dem Adler und Schindlers Fabrik.',
         mismatch: 'Die E-Mail-Adressen stimmen nicht überein',
+        kS: 'Hörprobe',
+        kF: 'Was du bekommst',
+        kR: 'Routen',
+        sample2T: 'Rathausturm: Folter und Henker',
+        sample2S: 'Hörprobe · 1:29 · auf Polnisch',
+        c1t: 'Karte mit GPS',
+        c1p: 'Du siehst, wo du bist und was es in der Nähe gibt.',
+        c2t: '60+ Aufnahmen',
+        c2p: 'Kurze Geschichten, Legenden und Fakten zu den Sehenswürdigkeiten.',
+        c3t: 'Führungslinie',
+        c3p: 'Die Route führt dich von Punkt zu Punkt.',
+        c4t: 'Ohne Installation',
+        c4p: 'Läuft im Browser, einfach den Link aus der E-Mail öffnen.',
+        days7: 'Zugang für 7 Tage',
+        buy: 'Kaufen',
+        chooseT: 'Zugang wählen',
         emailPh: 'Deine E-Mail', pay: 'Bezahlen', fine1: 'Link und Passwort kommen sofort per E-Mail.',
         fine2: 'BLIK · Karte · Apple Pay · Google Pay',
         pickRoute: 'Wähle eine Route', badEmail: 'Gib eine gültige E-Mail-Adresse ein', soon: 'Zahlungen starten in Kürze.'
@@ -246,7 +364,7 @@
         h1a: 'Audioguía de Cracovia', h1b: 'en tu móvil',
         sub: 'Sin app y sin grupo. Explora a tu ritmo.',
         f1: 'Mapa con GPS', f2: '60+ grabaciones', f3: 'Rutas guiadas',
-        sampleT: 'Escucha una muestra', sampleS: 'La leyenda del trompetista · 1:23 · en polaco',
+        sampleT: 'La leyenda del trompetista', sampleS: 'Muestra · 1:23 · en polaco',
         oneT: '1 ruta', oneS: 'Acceso de 7 días · elige una ruta', rOld: 'Casco antiguo', rGhetto: 'Gueto',
         allT: 'Toda la ciudad', allS: 'Todas las rutas · acceso de 7 días', best: 'Mejor opción',
         email2Ph: 'Repite tu e-mail', warn: 'Comprueba que la dirección es correcta. Ahí te enviaremos la contraseña de acceso a la app.',
@@ -255,6 +373,22 @@
         rdKaz: 'El antiguo barrio judío: sinagogas, callejuelas con encanto y la Plac Nowy. La historia de quienes vivieron aquí.',
         rdGhetto: 'Podgórze y el gueto de la guerra: Plaza de los Héroes del Gueto, la Farmacia del Águila y la Fábrica de Schindler.',
         mismatch: 'Las direcciones de e-mail no coinciden',
+        kS: 'Escucha una muestra',
+        kF: 'Qué obtienes',
+        kR: 'Rutas',
+        sample2T: 'Torre del Ayuntamiento: tortura y verdugo',
+        sample2S: 'Muestra · 1:29 · en polaco',
+        c1t: 'Mapa con GPS',
+        c1p: 'Ves dónde estás y qué hay interesante cerca.',
+        c2t: '60+ grabaciones',
+        c2p: 'Historias cortas, leyendas y curiosidades de los monumentos.',
+        c3t: 'Línea guía',
+        c3p: 'La ruta te lleva de punto a punto.',
+        c4t: 'Sin instalar nada',
+        c4p: 'Funciona en el navegador, solo abre el enlace del correo.',
+        days7: 'acceso de 7 días',
+        buy: 'Comprar',
+        chooseT: 'Elige tu acceso',
         emailPh: 'Tu e-mail', pay: 'Pagar', fine1: 'El enlace y la contraseña llegan al instante por correo.',
         fine2: 'BLIK · tarjeta · Apple Pay · Google Pay',
         pickRoute: 'Elige una ruta', badEmail: 'Escribe un e-mail válido', soon: 'Los pagos llegarán muy pronto.'
@@ -277,7 +411,11 @@
 
     var RD = { old: 'rdOld', kaz: 'rdKaz', ghetto: 'rdGhetto' };
     function routeDesc() { document.getElementById('rdesc').textContent = route ? T[lang][RD[route]] : ''; }
-    function payLabel() { pay.textContent = T[lang].pay + ' ' + PRICE[opt] + ' zł'; }
+    function payLabel() {
+      pay.textContent = T[lang].pay + ' ' + PRICE[opt] + ' zł';
+      document.getElementById('bb-price').textContent = '· ' + PRICE[opt] + ' zł';
+      document.getElementById('bb-name').textContent = opt === 'all' ? T[lang].allT : T[lang].oneT + (route ? ': ' + (route === 'kaz' ? 'Kazimierz' : T[lang][route === 'old' ? 'rOld' : 'rGhetto']) : '');
+    }
     function set(l) {
       lang = l; var d = T[l];
       document.documentElement.lang = HTML_LANG[l]; document.title = d.title;
@@ -302,7 +440,7 @@
       r.addEventListener('click', function () {
         route = r.dataset.route;
         document.querySelectorAll('.route').forEach(function (x) { x.classList.toggle('on', x === r); });
-        routeDesc();
+        routeDesc(); payLabel();
       });
     });
 
@@ -320,13 +458,25 @@
       toast(T[lang].soon);
     });
 
-    var au = new Audio('/audio/pl/3_1_Legenda_o_trebaczu.mp3'); au.preload = 'none';
-    var sample = document.getElementById('sample'), sfill = document.getElementById('sfill');
-    sample.addEventListener('click', function () { au.paused ? au.play() : au.pause(); });
-    au.addEventListener('play', function () { sample.classList.add('playing'); });
-    au.addEventListener('pause', function () { sample.classList.remove('playing'); });
-    au.addEventListener('timeupdate', function () { sfill.style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0'; });
-    au.addEventListener('ended', function () { au.currentTime = 0; });
+    var players = [];
+    document.querySelectorAll('.sample').forEach(function (btn) {
+      var au = new Audio(btn.dataset.src); au.preload = 'none'; players.push(au);
+      var fill = btn.querySelector('.fill');
+      btn.addEventListener('click', function () {
+        if (au.paused) { players.forEach(function (o) { if (o !== au) o.pause(); }); au.play(); } else au.pause();
+      });
+      au.addEventListener('play', function () { btn.classList.add('playing'); });
+      au.addEventListener('pause', function () { btn.classList.remove('playing'); });
+      au.addEventListener('timeupdate', function () { fill.style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0'; });
+      au.addEventListener('ended', function () { au.currentTime = 0; });
+    });
+
+    // pasek zakupu na dole + wysuwany panel
+    function openSheet() { document.body.classList.add('buying'); }
+    function closeSheet() { document.body.classList.remove('buying'); }
+    document.getElementById('bb-btn').addEventListener('click', openSheet);
+    document.getElementById('shade').addEventListener('click', closeSheet);
+    document.getElementById('x').addEventListener('click', closeSheet);
 
     var saved = null, q = null;
     try { saved = localStorage.getItem('krakroam_site_lang'); } catch (e) {}
