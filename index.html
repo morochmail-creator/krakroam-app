@@ -598,9 +598,7 @@
     transition: transform 0.1s ease, background 0.15s ease;
   }
   #brand:active, #locate-btn:active, #settings-btn:active, #view-toggle-btn:active, #north-btn:active { transform: scale(0.94); }
-  /* Przycisk "północ do góry" — widać go tylko, gdy mapa jest obrócona; igła pokazuje, gdzie jest północ */
-  #north-btn { transition: transform 0.1s ease, opacity 0.2s ease; }
-  #north-btn.hidden { opacity: 0; transform: scale(0.6); pointer-events: none; }
+  /* Kompas — widoczny zawsze; czerwona igła pokazuje, gdzie na ekranie jest północ, stuknięcie = północ do góry */
   #north-btn svg { width: 24px; height: 24px; }
   #north-needle { transform-origin: 12px 12px; }
   #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--ink); color: var(--ink); }
@@ -1340,7 +1338,7 @@
           <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
         </svg>
       </button>
-      <button id="north-btn" class="hidden" aria-label="Obróć mapę na północ">
+      <button id="north-btn" aria-label="Obróć mapę na północ">
         <svg viewBox="0 0 24 24"><g id="north-needle">
           <path d="M12 2.5l4 9.5h-8z" fill="#e0483d"></path>
           <path d="M12 21.5l-4-9.5h8z" fill="var(--ink)" opacity="0.55"></path>
@@ -3682,8 +3680,6 @@ const northNeedle = document.getElementById('north-needle');
 function updateNorthBtn() {
   if (!canRotateMap) return;
   const b = map.getBearing();
-  const rotated = Math.min(b, 360 - b) > 0.5;
-  northBtn.classList.toggle('hidden', !rotated);
   northNeedle.style.transform = `rotate(${b}deg)`;
   if (lastCompassHeading !== null && !viewMode3D) updateBeamRotation(lastCompassHeading);
 }
@@ -3701,10 +3697,33 @@ function resetNorth() {
     const ease = 1 - Math.pow(1 - k, 3);
     map.setBearing(from * (1 - ease));
     if (k < 1) northAnim = requestAnimationFrame(step);
+    else straightenMap();
   };
   northAnim = requestAnimationFrame(step);
 }
+// Na koniec "na twardo" ustawiamy dokładnie 0° i przerysowujemy całą mapę od zera (kafelki, linie, punkty),
+// żeby po obrocie nic nie zostało przekrzywione — nawet jeśli w tym czasie trwał inny ruch mapy.
+function straightenMap() {
+  if (!canRotateMap) return;
+  const go = () => {
+    map.setBearing(0);
+    map._resetView(map.getCenter(), map.getZoom(), true);
+    updateNorthBtn();
+  };
+  if (map._animatingZoom || (map._panAnim && map._panAnim._inProgress) || map._flyToFrame) map.once('moveend', go);
+  else go();
+}
 northBtn.addEventListener('click', resetNorth);
+// po obróceniu palcami prawie na północ (±7°) mapa sama "dokleja się" do północy — jak w Google Maps
+const NORTH_SNAP_DEG = 7;
+if (canRotateMap) map.getContainer().addEventListener('touchend', e => {
+  if (e.touches.length) return;
+  setTimeout(() => {
+    const b = map.getBearing();
+    const off = Math.min(b, 360 - b);
+    if (off > 0 && off < NORTH_SNAP_DEG) resetNorth();
+  }, 50);
+});
 
 document.getElementById('locate-btn').addEventListener('click', () => {
   if (!navigator.geolocation) {
