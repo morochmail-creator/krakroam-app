@@ -111,10 +111,18 @@
   .toast { position: fixed; left: 16px; right: 16px; bottom: calc(20px + env(safe-area-inset-bottom)); max-width: 428px; margin: 0 auto; background: #fff; color: var(--dark); font-weight: 600; font-size: 14px; text-align: center; padding: 14px 16px; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); opacity: 0; transform: translateY(10px); transition: opacity .2s, transform .2s; pointer-events: none; }
   .toast.show { opacity: 1; transform: none; }
 
-  .phone { position: relative; width: 230px; margin: 2px auto 0; padding: 7px; border-radius: 38px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
-  .phone img { display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; border-radius: 31px; }
-  .phone::before { content: ""; position: absolute; top: 15px; left: 50%; width: 64px; height: 18px; margin-left: -32px; border-radius: 999px; background: #0b0a08; z-index: 1; }
-
+  .hero h1, .hero .sub { transition: opacity .25s ease; }
+  .hero.fade h1, .hero.fade .sub { opacity: 0; }
+  .hero h1 { min-height: 2.24em; }
+  .hero .sub { min-height: 2.9em; }
+  .phone { position: relative; width: 230px; margin: 0 auto; padding: 7px; border-radius: 38px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
+  .slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 31px; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+  .slides::-webkit-scrollbar { display: none; }
+  .slides img { flex: 0 0 100%; display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; scroll-snap-align: center; scroll-snap-stop: always; }
+  .dots { display: flex; justify-content: center; gap: 4px; margin-top: 10px; }
+  .dots button { width: 24px; height: 24px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  .dots button::after { content: ""; width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,0.3); transition: width .2s, background .2s; }
+  .dots button.on::after { width: 20px; background: var(--gold); }
 </style>
 </head>
 <body>
@@ -125,12 +133,20 @@
     <div class="langs" id="langs"></div>
   </div>
 
-  <div>
-    <h1><span data-i18n="h1a"></span> <em data-i18n="h1b"></em></h1>
-    <p class="sub" data-i18n="sub"></p>
+  <div class="hero" id="hero">
+    <h1><span data-i18n="h1a" id="h1a"></span> <em data-i18n="h1b" id="h1b"></em></h1>
+    <p class="sub" data-i18n="sub" id="hsub"></p>
   </div>
 
-  <div class="phone"><img src="/www/img/apka-rynek.webp" alt="KrakRoam" width="560" height="1192"></div>
+  <div>
+    <div class="phone"><div class="slides" id="slides">
+      <img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192">
+      <img src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" loading="lazy">
+      <img src="/www/img/apka-nawigacja.webp" alt="" width="560" height="1192" loading="lazy">
+      <img src="/www/img/apka-lista.webp" alt="" width="560" height="1192" loading="lazy">
+    </div></div>
+    <div class="dots" id="dots"></div>
+  </div>
 
   <div class="sec">
     <div class="kick" data-i18n="kS"></div>
@@ -233,6 +249,9 @@
         title: 'KrakRoam – kup audioprzewodnik',
         h1a: 'Audioprzewodnik po Krakowie', h1b: 'w Twoim telefonie',
         sub: 'Bez aplikacji i bez grupy. Zwiedzasz w swoim tempie.',
+        s1a: 'Kilka historii', s1b: 'przy każdym zabytku', s1s: 'Historia, legendy i ciekawostki w krótkich nagraniach.',
+        s2a: 'Prowadzi Cię', s2b: 'od punktu do punktu', s2s: 'Niebieska linia pokazuje drogę do kolejnego miejsca.',
+        s3a: 'Wszystkie miejsca', s3b: 'na jednej liście', s3s: 'Widzisz, co już zaliczone, i szukasz po nazwie.',
         f1: 'Mapa z GPS', f2: '60+ nagrań', f3: 'Trasy z linią',
         sampleT: 'Legenda o Trębaczu', sampleS: 'Próbka · 1:23',
         oneT: '1 trasa', oneS: 'Dostęp na 7 dni · wybierz trasę', rOld: 'Stare Miasto', rGhetto: 'Getto',
@@ -267,6 +286,9 @@
         title: 'KrakRoam – купити аудіогід',
         h1a: 'Аудіогід Краковом', h1b: 'у твоєму телефоні',
         sub: 'Без застосунку і без групи. Гуляй у своєму темпі.',
+        s1a: 'Кілька історій', s1b: 'біля кожної пам’ятки', s1s: 'Історія, легенди й цікавинки в коротких записах.',
+        s2a: 'Веде тебе', s2b: 'від точки до точки', s2s: 'Синя лінія показує шлях до наступного місця.',
+        s3a: 'Усі місця', s3b: 'в одному списку', s3s: 'Видно, що вже пройдено, і можна шукати за назвою.',
         f1: 'Мапа з GPS', f2: '60+ записів', f3: 'Маршрути з лінією',
         sampleT: 'Легенда про сурмача', sampleS: 'Зразок · 1:23 · польською',
         oneT: '1 маршрут', oneS: 'Доступ на 7 днів · обери маршрут', rOld: 'Старе місто', rGhetto: 'Гетто',
@@ -301,6 +323,9 @@
         title: 'KrakRoam – get the audio guide',
         h1a: 'Kraków audio guide', h1b: 'on your phone',
         sub: 'No app, no group. Explore at your own pace.',
+        s1a: 'Several stories', s1b: 'at every landmark', s1s: 'History, legends and fun facts in short recordings.',
+        s2a: 'Guides you', s2b: 'from point to point', s2s: 'A blue line shows the way to the next place.',
+        s3a: 'All places', s3b: 'on one list', s3s: 'See what you have visited and search by name.',
         f1: 'GPS map', f2: '60+ recordings', f3: 'Guided routes',
         sampleT: 'The Legend of the Trumpeter', sampleS: 'Sample · 1:23 · in Polish',
         oneT: '1 route', oneS: '7-day access · choose a route', rOld: 'Old Town', rGhetto: 'Ghetto',
@@ -335,6 +360,9 @@
         title: 'KrakRoam – Audioguide kaufen',
         h1a: 'Audioguide für Krakau', h1b: 'auf deinem Handy',
         sub: 'Ohne App und ohne Gruppe. In deinem Tempo.',
+        s1a: 'Mehrere Geschichten', s1b: 'an jedem Ort', s1s: 'Geschichte, Legenden und Kurioses in kurzen Aufnahmen.',
+        s2a: 'Führt dich', s2b: 'von Punkt zu Punkt', s2s: 'Eine blaue Linie zeigt den Weg zum nächsten Ort.',
+        s3a: 'Alle Orte', s3b: 'in einer Liste', s3s: 'Du siehst, was du schon besucht hast, und suchst nach Namen.',
         f1: 'Karte mit GPS', f2: '60+ Aufnahmen', f3: 'Routen mit Linie',
         sampleT: 'Die Legende vom Trompeter', sampleS: 'Hörprobe · 1:23 · auf Polnisch',
         oneT: '1 Route', oneS: 'Zugang für 7 Tage · Route wählen', rOld: 'Altstadt', rGhetto: 'Ghetto',
@@ -369,6 +397,9 @@
         title: 'KrakRoam – compra la audioguía',
         h1a: 'Audioguía de Cracovia', h1b: 'en tu móvil',
         sub: 'Sin app y sin grupo. Explora a tu ritmo.',
+        s1a: 'Varias historias', s1b: 'en cada monumento', s1s: 'Historia, leyendas y curiosidades en grabaciones cortas.',
+        s2a: 'Te guía', s2b: 'de punto a punto', s2s: 'Una línea azul marca el camino al siguiente lugar.',
+        s3a: 'Todos los lugares', s3b: 'en una lista', s3s: 'Ves lo que ya visitaste y buscas por nombre.',
         f1: 'Mapa con GPS', f2: '60+ grabaciones', f3: 'Rutas guiadas',
         sampleT: 'La leyenda del trompetista', sampleS: 'Muestra · 1:23 · en polaco',
         oneT: '1 ruta', oneS: 'Acceso de 7 días · elige una ruta', rOld: 'Casco antiguo', rGhetto: 'Gueto',
@@ -414,6 +445,32 @@
     function toggleLangs(o) { langs.classList.toggle('open', o); flag.setAttribute('aria-expanded', o ? 'true' : 'false'); }
     flag.addEventListener('click', function (e) { e.stopPropagation(); toggleLangs(!langs.classList.contains('open')); });
     document.addEventListener('click', function (e) { if (!langs.contains(e.target)) toggleLangs(false); });
+
+    // karuzela zrzutów: hasło nad telefonem zmienia się razem ze zdjęciem
+    var SL = [['h1a', 'h1b', 'sub'], ['s1a', 's1b', 's1s'], ['s2a', 's2b', 's2s'], ['s3a', 's3b', 's3s']];
+    var slides = document.getElementById('slides'), dotsEl = document.getElementById('dots'), hero = document.getElementById('hero');
+    var cur = 0, autoT = null, fadeT = null;
+    SL.forEach(function (_, i) {
+      var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', String(i + 1));
+      b.addEventListener('click', function () { stopAuto(); go(i); });
+      dotsEl.appendChild(b);
+    });
+    function heroText(i) {
+      var k = SL[i], ids = ['h1a', 'h1b', 'hsub'];
+      ids.forEach(function (id, j) { var el = document.getElementById(id); el.dataset.i18n = k[j]; el.textContent = T[lang][k[j]]; });
+    }
+    function mark(i) {
+      dotsEl.querySelectorAll('button').forEach(function (b, j) { b.classList.toggle('on', j === i); });
+      if (i === cur) return;
+      cur = i; hero.classList.add('fade'); clearTimeout(fadeT);
+      fadeT = setTimeout(function () { heroText(i); hero.classList.remove('fade'); }, 200);
+    }
+    function go(i) { slides.scrollTo({ left: i * slides.clientWidth, behavior: 'smooth' }); }
+    slides.addEventListener('scroll', function () { mark(Math.round(slides.scrollLeft / slides.clientWidth)); }, { passive: true });
+    function stopAuto() { clearInterval(autoT); autoT = null; }
+    ['touchstart', 'pointerdown', 'wheel'].forEach(function (ev) { slides.addEventListener(ev, stopAuto, { passive: true }); });
+    autoT = setInterval(function () { go((cur + 1) % SL.length); }, 4500);
+    mark(0);
 
     var RD = { old: 'rdOld', kaz: 'rdKaz', ghetto: 'rdGhetto' };
     function routeDesc() { document.getElementById('rdesc').textContent = route ? T[lang][RD[route]] : ''; }
