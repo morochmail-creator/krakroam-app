@@ -44,6 +44,7 @@
   .feat { background: rgba(30,26,20,0.7); border: 1px solid var(--line); border-radius: 14px; padding: 9px 6px; text-align: center; font-size: 12px; font-weight: 600; line-height: 1.25; color: rgba(255,255,255,0.85); }
   .feat svg { width: 20px; height: 20px; color: var(--gold); display: block; margin: 0 auto 5px; }
 
+  .slide .sample { width: 270px; }
   .sample { display: flex; align-items: center; gap: 12px; width: 100%; border: 1px solid var(--line); background: rgba(30,26,20,0.7); color: #fff; border-radius: 14px; padding: 8px 12px 8px 8px; font: inherit; text-align: left; cursor: pointer; }
   .sample .pp { width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--gold); color: var(--dark); display: grid; place-items: center; }
   .sample .pp svg { width: 16px; height: 16px; }
@@ -141,7 +142,7 @@
   /* telefony gasną przy krawędziach, zanim dojadą pod strzałki */
   .slides { -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 8px, #000 56px, #000 calc(100% - 56px), transparent calc(100% - 8px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, transparent 8px, #000 56px, #000 calc(100% - 56px), transparent calc(100% - 8px), transparent 100%); }
   .slide .phone { will-change: transform, opacity; }
-  .slide { flex: 0 0 100%; display: flex; justify-content: center; scroll-snap-align: center; scroll-snap-stop: always; }
+  .slide { flex: 0 0 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 12px; scroll-snap-align: center; scroll-snap-stop: always; }
   .phone { width: 250px; padding: 7px; border-radius: 40px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
   .phone img { display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; border-radius: 33px; background: #2a2c26; }
   .arrow { position: absolute; top: 50%; z-index: 2; width: 48px; height: 48px; margin-top: -33px; border: 0; border-radius: 50%; background: var(--gold); color: var(--dark); display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,0.45); }
@@ -171,8 +172,8 @@
   <div>
     <div class="carousel">
       <div class="slides" id="slides">
-        <div class="slide"><div class="phone"><img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192" fetchpriority="high" decoding="async"></div></div>
-        <div class="slide"><div class="phone"><img data-src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" decoding="async"></div></div>
+        <div class="slide"><div class="phone"><img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192" fetchpriority="high" decoding="async"></div><button type="button" class="sample" data-src="/audio/pl/3_1_Legenda_o_trebaczu.mp3">      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>      <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill"></span></span></span>    </button></div>
+        <div class="slide"><div class="phone"><img data-src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" decoding="async"></div><button type="button" class="sample" data-src="/audio/pl/10_1_Piwnice_tortury_i_kat.mp3">      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>      <span class="txt"><b data-i18n="sample2T"></b><small data-i18n="sample2S"></small><span class="bar"><span class="fill"></span></span></span>    </button></div>
         <div class="slide"><div class="phone"><img data-src="/www/img/apka-nawigacja.webp" alt="" width="560" height="1192" decoding="async"></div></div>
         <div class="slide"><div class="phone"><img data-src="/www/img/apka-lista.webp" alt="" width="560" height="1192" decoding="async"></div></div>
       </div>
@@ -183,15 +184,6 @@
   </div>
 
   <div class="sec">
-    <div class="kick" data-i18n="kS"></div>
-    <button type="button" class="sample" data-src="/audio/pl/3_1_Legenda_o_trebaczu.mp3">
-      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
-      <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill"></span></span></span>
-    </button>
-    <button type="button" class="sample" data-src="/audio/pl/10_1_Piwnice_tortury_i_kat.mp3">
-      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
-      <span class="txt"><b data-i18n="sample2T"></b><small data-i18n="sample2S"></small><span class="bar"><span class="fill"></span></span></span>
-    </button>
     <button type="button" class="buy-inline open-buy"><span data-i18n="buyNow"></span> <span class="bi-price" data-i18n="fromPrice"></span></button>
   </div>
 
@@ -521,6 +513,7 @@
       ids.forEach(function (id, j) { var el = document.getElementById(id); el.dataset.i18n = k[j]; el.textContent = T[lang][k[j]]; });
     }
     function mark(i) {
+      if (i !== cur && players) players.forEach(function (a) { a.pause(); });
       dotsEl.querySelectorAll('button').forEach(function (b, j) { b.classList.toggle('on', j === i); });
       if (i === cur) return;
       cur = i; hero.classList.add('fade'); clearTimeout(fadeT);
@@ -606,7 +599,7 @@
       btn.addEventListener('click', function () {
         if (au.paused) { players.forEach(function (o) { if (o !== au) o.pause(); }); au.play(); } else au.pause();
       });
-      au.addEventListener('play', function () { btn.classList.add('playing'); });
+      au.addEventListener('play', function () { btn.classList.add('playing'); stopAuto(); });
       au.addEventListener('pause', function () { btn.classList.remove('playing'); });
       au.addEventListener('timeupdate', function () { fill.style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0'; });
       au.addEventListener('ended', function () { au.currentTime = 0; });
