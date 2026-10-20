@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#14110d">
 <link rel="icon" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="preload" as="image" href="/www/img/apka-rynek.webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -142,7 +143,7 @@
   .slide .phone { will-change: transform, opacity; }
   .slide { flex: 0 0 100%; display: flex; justify-content: center; scroll-snap-align: center; scroll-snap-stop: always; }
   .phone { width: 250px; padding: 7px; border-radius: 40px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
-  .phone img { display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; border-radius: 33px; }
+  .phone img { display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; border-radius: 33px; background: #2a2c26; }
   .arrow { position: absolute; top: 50%; z-index: 2; width: 48px; height: 48px; margin-top: -33px; border: 0; border-radius: 50%; background: var(--gold); color: var(--dark); display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,0.45); }
   .arrow svg { width: 24px; height: 24px; }
   .arrow:active { transform: scale(0.94); }
@@ -170,10 +171,10 @@
   <div>
     <div class="carousel">
       <div class="slides" id="slides">
-        <div class="slide"><div class="phone"><img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192"></div></div>
-        <div class="slide"><div class="phone"><img src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" loading="lazy"></div></div>
-        <div class="slide"><div class="phone"><img src="/www/img/apka-nawigacja.webp" alt="" width="560" height="1192" loading="lazy"></div></div>
-        <div class="slide"><div class="phone"><img src="/www/img/apka-lista.webp" alt="" width="560" height="1192" loading="lazy"></div></div>
+        <div class="slide"><div class="phone"><img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192" fetchpriority="high" decoding="async"></div></div>
+        <div class="slide"><div class="phone"><img data-src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" decoding="async"></div></div>
+        <div class="slide"><div class="phone"><img data-src="/www/img/apka-nawigacja.webp" alt="" width="560" height="1192" decoding="async"></div></div>
+        <div class="slide"><div class="phone"><img data-src="/www/img/apka-lista.webp" alt="" width="560" height="1192" decoding="async"></div></div>
       </div>
       <button type="button" class="arrow prev" id="prev" aria-label="&lsaquo;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <button type="button" class="arrow next" id="next" aria-label="&rsaquo;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
@@ -525,7 +526,7 @@
       cur = i; hero.classList.add('fade'); clearTimeout(fadeT);
       fadeT = setTimeout(function () { heroText(i); hero.classList.remove('fade'); }, 200);
     }
-    function go(i) { slides.scrollTo({ left: i * slides.clientWidth, behavior: 'smooth' }); }
+    function go(i) { loadShots(); slides.scrollTo({ left: i * slides.clientWidth, behavior: 'smooth' }); }
     var slideEls = slides.querySelectorAll('.slide');
     function fadeSlides() {
       // im dalej telefon od środka, tym mniejszy i bardziej przezroczysty
@@ -614,6 +615,9 @@
     // pasek zakupu na dole + wysuwany panel
     function openSheet() { document.body.classList.add('buying'); }
     function closeSheet() { document.body.classList.remove('buying'); }
+    // pozostałe zrzuty ładujemy dopiero po wczytaniu strony, żeby pierwszy był od razu
+    function loadShots() { document.querySelectorAll('.phone img[data-src]').forEach(function (im) { im.src = im.dataset.src; im.removeAttribute('data-src'); }); }
+    if (document.readyState === 'complete') loadShots(); else window.addEventListener('load', loadShots);
     var bgs = document.querySelectorAll('#bgfx div'), bgOn = 0, bgLoaded = false;
     function bgScroll() {
       if (!bgLoaded) { bgLoaded = true; bgs.forEach(function (d) { if (d.dataset.bg) d.style.backgroundImage = "url('" + d.dataset.bg + "')"; }); }
