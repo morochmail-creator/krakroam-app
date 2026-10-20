@@ -963,6 +963,31 @@
   }
   #info-toast.hidden { opacity: 0; transform: translateX(-50%) translateY(-12px); pointer-events: none; }
 
+  /* ---------- Przypomnienie "włącz lokalizację" (co jakiś czas, gdy GPS nie działa) ---------- */
+  #gps-reminder {
+    position: absolute; top: calc(76px + env(safe-area-inset-top, 0px)); left: 16px; right: 72px;
+    z-index: 42; display: flex; align-items: center; gap: 10px;
+    background: var(--ink); color: var(--paper); border-radius: 16px;
+    padding: 11px 10px 11px 14px; box-shadow: var(--shadow-float);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  #gps-reminder.hidden { opacity: 0; transform: translateY(-12px); pointer-events: none; }
+  #gps-reminder-text { flex: 1; font-size: 13px; font-weight: 600; line-height: 1.3; }
+  #gps-reminder-btn {
+    flex: none; background: var(--route); color: #fff; border: none; border-radius: 11px;
+    font-size: 13.5px; font-weight: 700; padding: 10px 13px; cursor: pointer;
+  }
+  #gps-reminder-close {
+    flex: none; width: 26px; height: 26px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,0.14); color: var(--paper); font-size: 16px; cursor: pointer;
+  }
+  /* przycisk lokalizacji "pulsuje" na czerwono, dopóki GPS nie działa */
+  #locate-btn.gps-off { animation: gps-off-pulse 1.6s ease-out infinite; }
+  @keyframes gps-off-pulse {
+    0%   { box-shadow: var(--shadow-float), 0 0 0 0 rgba(224,72,61,0.7); }
+    100% { box-shadow: var(--shadow-float), 0 0 0 14px rgba(224,72,61,0); }
+  }
+
   #track-list {
     display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;
     max-height: var(--track-list-h, 168px); overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
@@ -1327,6 +1352,11 @@
     </div>
   </div>
   <div id="info-toast" class="hidden" role="status"></div>
+  <div id="gps-reminder" class="hidden" role="alert">
+    <div id="gps-reminder-text"></div>
+    <button id="gps-reminder-btn"></button>
+    <button id="gps-reminder-close" aria-label="Zamknij">×</button>
+  </div>
 
   <div id="topbar">
     <div id="btn-stack">
@@ -1642,6 +1672,7 @@ const TRANSLATIONS = {
     photoSoon: "Zdjęcie wkrótce",
     nextStop: "Następny przystanek",
     navStraightLine: "w linii prostej",
+    gpsReminder: "Lokalizacja wyłączona — nie widzę, gdzie jesteś.", gpsReminderBtn: "Włącz",
     gpsDenied: "Nie widzę Twojej lokalizacji. Włącz GPS i zezwól przeglądarce na dostęp do lokalizacji.",
     introTitleRoute: "Odsłuchaj w drodze na start",
     introTitleFreeRoam: "Odsłuchaj w drodze do historycznego centrum",
@@ -1730,6 +1761,7 @@ const TRANSLATIONS = {
     photoSoon: "Фото незабаром",
     nextStop: "Наступна зупинка",
     navStraightLine: "по прямій",
+    gpsReminder: "Геолокацію вимкнено — не бачу, де ти.", gpsReminderBtn: "Увімкнути",
     gpsDenied: "Не бачу твого місцезнаходження. Увімкни GPS і дозволь браузеру доступ до геолокації.",
     introTitleRoute: "Послухай в дорозі до старту",
     introTitleFreeRoam: "Послухай в дорозі до історичного центру",
@@ -1818,6 +1850,7 @@ const TRANSLATIONS = {
     photoSoon: "Photo coming soon",
     nextStop: "Next stop",
     navStraightLine: "in a straight line",
+    gpsReminder: "Location is off — I can't see where you are.", gpsReminderBtn: "Turn on",
     gpsDenied: "We can't see your location. Turn on GPS and allow your browser to use your location.",
     introTitleRoute: "Listen on your way to the start",
     introTitleFreeRoam: "Listen on your way to the historic centre",
@@ -1906,6 +1939,7 @@ const TRANSLATIONS = {
     photoSoon: "Foto folgt bald",
     nextStop: "Nächster Halt",
     navStraightLine: "Luftlinie",
+    gpsReminder: "Standort ist aus — ich sehe nicht, wo du bist.", gpsReminderBtn: "Einschalten",
     gpsDenied: "Wir können deinen Standort nicht sehen. Schalte GPS ein und erlaube dem Browser den Standortzugriff.",
     introTitleRoute: "Hör zu, während du zum Start gehst",
     introTitleFreeRoam: "Hör zu, während du zum historischen Zentrum gehst",
@@ -1994,6 +2028,7 @@ const TRANSLATIONS = {
     photoSoon: "Foto próximamente",
     nextStop: "Siguiente parada",
     navStraightLine: "en línea recta",
+    gpsReminder: "Ubicación desactivada: no veo dónde estás.", gpsReminderBtn: "Activar",
     gpsDenied: "No vemos tu ubicación. Activa el GPS y permite que el navegador use tu ubicación.",
     introTitleRoute: "Escucha de camino al inicio",
     introTitleFreeRoam: "Escucha de camino al centro histórico",
@@ -2150,6 +2185,9 @@ function applyTranslations() {
   document.getElementById('settings-map-label').textContent = t('settingsMapView');
   document.getElementById('settings-account-label').textContent = t('settingsAccount');
   document.getElementById('gps-hint').textContent = t('gpsHint');
+  document.getElementById('gps-reminder-text').textContent = t('gpsReminder');
+  document.getElementById('gps-reminder-btn').textContent = t('gpsReminderBtn');
+  document.getElementById('gps-reminder-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('photo-viewer-empty-text').textContent = t('photoSoon');
   document.getElementById('sheet-goto-btn').setAttribute('aria-label', t('gotoHereBtn'));
   document.getElementById('sheet-nextpt-btn').setAttribute('aria-label', t('nextPointBtn'));
@@ -3021,6 +3059,7 @@ let reachedNavTarget = false; // czy user dotarł już blisko aktualnego celu na
 const START_PROXIMITY_METERS = 25; // GPS w uliczkach Starego Miasta myli się o 15–30 m — 20 m bywało za mało
 let watching = false;
 let watchId = null;
+let gpsTrackingStartedAt = 0;
 let lastRoutedLatLng = null;
 let routingInFlight = false;
 
@@ -3476,6 +3515,7 @@ function startLocationTracking(flyOnFirstFix) {
   const btn = document.getElementById('locate-btn');
   btn.classList.add('active');
   watching = true;
+  gpsTrackingStartedAt = Date.now();
   let firstFix = true;
 
   watchId = navigator.geolocation.watchPosition(pos => {
@@ -3500,6 +3540,8 @@ function startLocationTracking(flyOnFirstFix) {
       feedHeading(c.heading, 0.5);
     }
     document.getElementById('gps-hint').classList.add('hidden'); // zgoda uzyskana — tłumaczący tekst już niepotrzebny
+    lastGpsOkAt = Date.now();
+    updateGpsOffState();
     if (viewMode3D) {
       follow3D(); // w 3D kamera sama podąża za Tobą przy każdej aktualizacji pozycji
     } else if (firstFix && flyOnFirstFix) {
@@ -3538,6 +3580,53 @@ function startLocationTracking(flyOnFirstFix) {
     if (flyOnFirstFix) showInfoToast(t('gpsDenied'));
   }, { enableHighAccuracy: true, maximumAge: 5000 });
 }
+
+/* ============================================================
+   PRZYPOMNIENIE O LOKALIZACJI
+   Gdy lokalizacja nie działa (brak zgody, wyłączony GPS w telefonie albo od dłuższej chwili brak
+   pozycji), apka co jakiś czas pokazuje pasek "Lokalizacja jest wyłączona" z przyciskiem "Włącz".
+   Pierwszy raz po ~20 s w apce, potem co 2 minuty (po ręcznym zamknięciu — co 4 minuty), tylko
+   gdy apka jest na ekranie. Do tego przycisk lokalizacji pulsuje na czerwono, dopóki GPS nie działa.
+============================================================ */
+let lastGpsOkAt = 0;
+let gpsReminderNextAt = Date.now() + 20000;
+const GPS_REMINDER_EVERY_MS = 120000, GPS_REMINDER_AFTER_CLOSE_MS = 240000;
+const GPS_STALE_MS = 45000; // tyle bez żadnej pozycji = traktujemy jak wyłączony GPS
+const gpsReminderEl = document.getElementById('gps-reminder');
+function gpsIsOff() {
+  return !watching || !lastGpsOkAt || Date.now() - lastGpsOkAt > GPS_STALE_MS;
+}
+function updateGpsOffState() {
+  const off = locationFlowStarted && gpsIsOff();
+  document.getElementById('locate-btn').classList.toggle('gps-off', off);
+  if (!off) gpsReminderEl.classList.add('hidden');
+}
+function hideGpsReminder(nextInMs) {
+  gpsReminderEl.classList.add('hidden');
+  gpsReminderNextAt = Date.now() + nextInMs;
+}
+setInterval(() => {
+  updateGpsOffState();
+  if (!locationFlowStarted || document.hidden || !gpsIsOff()) return;
+  // świeżo po starcie śledzenia dajemy telefonowi chwilę na złapanie pozycji
+  if (watching && !lastGpsOkAt && Date.now() - gpsTrackingStartedAt < 20000) return;
+  if (Date.now() < gpsReminderNextAt || !gpsReminderEl.classList.contains('hidden')) return;
+  gpsReminderEl.classList.remove('hidden');
+  gpsReminderNextAt = Date.now() + GPS_REMINDER_EVERY_MS;
+  setTimeout(() => { if (!gpsReminderEl.classList.contains('hidden')) hideGpsReminder(GPS_REMINDER_EVERY_MS); }, 12000);
+}, 3000);
+document.getElementById('gps-reminder-close').addEventListener('click', () => hideGpsReminder(GPS_REMINDER_AFTER_CLOSE_MS));
+document.getElementById('gps-reminder-btn').addEventListener('click', () => {
+  hideGpsReminder(GPS_REMINDER_EVERY_MS);
+  if (!navigator.geolocation) { alert(t('gpsUnsupported')); return; }
+  startCompass();
+  // śledzenie mogło się "zawiesić" (np. GPS wyłączony w telefonie) — zaczynamy od nowa, w ramach kliknięcia,
+  // żeby przeglądarka mogła od razu zapytać o zgodę
+  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+  watchId = null;
+  watching = false;
+  startLocationTracking(true);
+});
 
 /* ============================================================
    PASEK NAWIGACJI NA GÓRZE — całkowicie niezależny od panelu audio na dole
