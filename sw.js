@@ -17,7 +17,7 @@ const MAX_TILES = 2500;            // ok. 50–80 MB zdjęć satelitarnych, star
 const AUDIO_FRESH_MS = 3 * 24 * 3600 * 1000; // po 3 dniach sprawdzamy, czy nagranie nie zostało podmienione
 const PAGE_TIMEOUT_MS = 4000;
 
-const SHELL_FILES = ['/', '/manifest.json', '/icon-180.png', '/icon-192.png'];
+const SHELL_FILES = ['/', '/manifest.json', '/icon-180.png', '/icon-192.png', '/lib/leaflet-rotate-0.2.8.js'];
 const LIB_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css',

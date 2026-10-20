@@ -589,7 +589,7 @@
     display: flex; flex-direction: column; gap: 10px;
     position: relative;
   }
-  #brand, #locate-btn, #settings-btn, #view-toggle-btn {
+  #brand, #locate-btn, #settings-btn, #view-toggle-btn, #north-btn {
     width: 46px; height: 46px; border-radius: 50%;
     background: var(--paper); border: 1.5px solid var(--line-strong);
     box-shadow: var(--shadow-float);
@@ -597,7 +597,12 @@
     cursor: pointer;
     transition: transform 0.1s ease, background 0.15s ease;
   }
-  #brand:active, #locate-btn:active, #settings-btn:active, #view-toggle-btn:active { transform: scale(0.94); }
+  #brand:active, #locate-btn:active, #settings-btn:active, #view-toggle-btn:active, #north-btn:active { transform: scale(0.94); }
+  /* Przycisk "północ do góry" — widać go tylko, gdy mapa jest obrócona; igła pokazuje, gdzie jest północ */
+  #north-btn { transition: transform 0.1s ease, opacity 0.2s ease; }
+  #north-btn.hidden { opacity: 0; transform: scale(0.6); pointer-events: none; }
+  #north-btn svg { width: 24px; height: 24px; }
+  #north-needle { transform-origin: 12px 12px; }
   #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--ink); color: var(--ink); }
   #locate-btn.active { background: var(--route); }
   #locate-btn.active svg { stroke: #fff; color: #fff; }
@@ -1335,6 +1340,12 @@
           <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
         </svg>
       </button>
+      <button id="north-btn" class="hidden" aria-label="Obróć mapę na północ">
+        <svg viewBox="0 0 24 24"><g id="north-needle">
+          <path d="M12 2.5l4 9.5h-8z" fill="#e0483d"></path>
+          <path d="M12 21.5l-4-9.5h8z" fill="var(--ink)" opacity="0.55"></path>
+        </g></svg>
+      </button>
       <button id="settings-btn" aria-label="Ustawienia">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -1471,6 +1482,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+<!-- obracanie mapy dwoma palcami (leaflet-rotate 0.2.8, kopia w repo — działa też offline przez sw.js) -->
+<script src="/lib/leaflet-rotate-0.2.8.js"></script>
 <script>
 /* ============================================================
    HASŁO DOSTĘPU
@@ -1594,7 +1607,7 @@ const TRANSLATIONS = {
     gpsHint: "Potrzebujemy Twojej lokalizacji, żeby pokazywać, gdzie jesteś, i liczyć trasę do kolejnych punktów.",
     view3dOn: "Włącz widok 3D", view3dOff: "Wyłącz widok 3D",
     closeLabel: "Zamknij", backToMenu: "Wróć do wyboru trasy",
-    locateLabel: "Pokaż moją lokalizację", layersLabel: "Wybierz widok mapy",
+    northLabel: "Obróć mapę na północ", locateLabel: "Pokaż moją lokalizację", layersLabel: "Wybierz widok mapy",
     navToggleLabel: "Pokaż/ukryj trasę do startu",
     changeLang: "Zmień język",
     startPointLabel: "Punkt startowy",
@@ -1682,7 +1695,7 @@ const TRANSLATIONS = {
     gpsHint: "Потрібне твоє місцезнаходження, щоб показувати, де ти, і рахувати маршрут до наступних точок.",
     view3dOn: "Увімкнути вигляд 3D", view3dOff: "Вимкнути вигляд 3D",
     closeLabel: "Закрити", backToMenu: "Повернутися до вибору маршруту",
-    locateLabel: "Показати моє місцезнаходження", layersLabel: "Обрати вигляд карти",
+    northLabel: "Повернути карту на північ", locateLabel: "Показати моє місцезнаходження", layersLabel: "Обрати вигляд карти",
     navToggleLabel: "Показати/приховати маршрут до старту",
     changeLang: "Змінити мову",
     startPointLabel: "Початкова точка",
@@ -1770,7 +1783,7 @@ const TRANSLATIONS = {
     gpsHint: "We need your location to show where you are and work out the route to each stop.",
     view3dOn: "Turn on 3D view", view3dOff: "Turn off 3D view",
     closeLabel: "Close", backToMenu: "Back to route selection",
-    locateLabel: "Show my location", layersLabel: "Choose map view",
+    northLabel: "Turn map to north", locateLabel: "Show my location", layersLabel: "Choose map view",
     navToggleLabel: "Show/hide the route to the start",
     changeLang: "Change language",
     startPointLabel: "Starting point",
@@ -1858,7 +1871,7 @@ const TRANSLATIONS = {
     gpsHint: "Wir benötigen deinen Standort, um zu zeigen, wo du bist, und die Route zu den Stationen zu berechnen.",
     view3dOn: "3D-Ansicht einschalten", view3dOff: "3D-Ansicht ausschalten",
     closeLabel: "Schließen", backToMenu: "Zurück zur Routenauswahl",
-    locateLabel: "Meinen Standort anzeigen", layersLabel: "Kartenansicht wählen",
+    northLabel: "Karte nach Norden drehen", locateLabel: "Meinen Standort anzeigen", layersLabel: "Kartenansicht wählen",
     navToggleLabel: "Route zum Start ein-/ausblenden",
     changeLang: "Sprache ändern",
     startPointLabel: "Startpunkt",
@@ -1946,7 +1959,7 @@ const TRANSLATIONS = {
     gpsHint: "Necesitamos tu ubicación para mostrar dónde estás y calcular la ruta a cada parada.",
     view3dOn: "Activar vista 3D", view3dOff: "Desactivar vista 3D",
     closeLabel: "Cerrar", backToMenu: "Volver a elegir ruta",
-    locateLabel: "Mostrar mi ubicación", layersLabel: "Elegir vista del mapa",
+    northLabel: "Orientar el mapa al norte", locateLabel: "Mostrar mi ubicación", layersLabel: "Elegir vista del mapa",
     navToggleLabel: "Mostrar/ocultar la ruta al inicio",
     changeLang: "Cambiar idioma",
     startPointLabel: "Punto de partida",
@@ -2142,6 +2155,7 @@ function applyTranslations() {
   document.getElementById('district-menu-close').setAttribute('aria-label', t('closeLabel'));
   document.getElementById('brand').setAttribute('aria-label', t('backToMenu'));
   document.getElementById('locate-btn').setAttribute('aria-label', t('locateLabel'));
+  document.getElementById('north-btn').setAttribute('aria-label', t('northLabel'));
   document.getElementById('nav-top-close').setAttribute('aria-label', t('sheetCollapseLabel'));
   document.getElementById('settings-title').textContent = t('settingsTitle');
   document.getElementById('lang-menu-sub').textContent = t('langMenuSub');
@@ -2512,10 +2526,58 @@ const initialCityBounds = L.latLngBounds(
 );
 // wspólny "rysownik" linii (trasa złota, linia prowadząca niebieska) — patrz redrawLinesWhileZooming niżej
 const lineRenderer = L.svg({ padding: 0.5 });
+const canRotateMap = typeof L.Map.prototype.setBearing === 'function'; // biblioteka obracania wczytana
+// Obrót dwoma palcami startuje dopiero po wyraźnym skręcie palców — patrz OBRACANIE MAPY niżej.
+// Musi być ustawione PRZED utworzeniem mapy (biblioteka podpina obsługę dotyku przy starcie mapy).
+const ROTATE_START_DEG = 14;
+if (canRotateMap && L.Map.TouchGestures) {
+  const TG = L.Map.TouchGestures.prototype;
+  const origStart = TG._onTouchStart, origMove = TG._onTouchMove, origEnd = TG._onTouchEnd;
+  const touchAngle = (m, e) => {
+    const v = m.mouseEventToContainerPoint(e.touches[0]).subtract(m.mouseEventToContainerPoint(e.touches[1]));
+    return { v, deg: Math.atan2(v.y, v.x) * 180 / Math.PI };
+  };
+  TG._onTouchStart = function (e) {
+    origStart.call(this, e);
+    this._rotWanted = !!this._rotating;
+    this._rotLocked = this._rotWanted;
+    if (this._rotWanted) this._rotStartDeg = touchAngle(this._map, e).deg;
+  };
+  TG._onTouchMove = function (e) {
+    if (this._rotLocked && e.touches && e.touches.length === 2) {
+      const a = touchAngle(this._map, e);
+      const d = ((a.deg - this._rotStartDeg + 540) % 360) - 180;
+      if (Math.abs(d) < ROTATE_START_DEG) {
+        this._rotating = false;
+      } else {
+        // od tej chwili obrót idzie za palcami — liczony od bieżącego ułożenia, więc mapa nie "skacze"
+        this._rotLocked = false;
+        this._rotating = true;
+        this._startTheta = Math.atan(a.v.x / a.v.y);
+        this._startBearing = this._map.getBearing() + (a.v.y < 0 ? 180 : 0);
+      }
+    }
+    origMove.call(this, e);
+  };
+  TG._onTouchEnd = function (e) {
+    origEnd.call(this, e);
+    // biblioteka przy samym stuknięciu dwoma palcami (bez ruchu) nie sprzątała po sobie — kolejne gesty
+    // dwoma palcami potrafiły wtedy przestać działać
+    this._zooming = this._rotating = this._rotLocked = false;
+    L.DomEvent
+      .off(document, 'touchmove', this._onTouchMove, this)
+      .off(document, 'touchend touchcancel', this._onTouchEnd, this);
+  };
+}
+
 const map = L.map('map', {
   zoomControl: false,
   attributionControl: false,
-  renderer: lineRenderer
+  renderer: lineRenderer,
+  rotate: canRotateMap,   // obracanie mapy dwoma palcami (patrz OBRACANIE MAPY niżej)
+  touchRotate: canRotateMap,
+  shiftKeyRotate: false,
+  rotateControl: false    // własny przycisk północy (#north-btn) zamiast domyślnego z biblioteki
 }).fitBounds(initialCityBounds, { padding: [36, 36] });
 
 // Linie na mapie: Leaflet przy płynnym locie kamery (flyTo — np. "pokaż mnie", "leć do celu") i przy
@@ -2532,22 +2594,57 @@ map.on('zoom', () => {
 const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
 const isSlowConnection = !!(conn && (conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType)));
 
-const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  subdomains: 'abc',
-  keepBuffer: isSlowConnection ? 1 : 3,
-  updateWhenIdle: isSlowConnection ? true : false,
-  updateWhenZooming: false
-});
+/* ---------- PŁYNNE PRZESUWANIE MAPY ----------
+   Wcześniej przy przesuwaniu na brzegach ekranu pojawiały się puste (czarne) kwadraty, które dopiero po
+   chwili wypełniały się mapą. Teraz:
+   1) "Zapas" — kafelki ładujemy nie tylko na sam ekran, ale też pas wokół niego (TILE_PRELOAD_PX), więc
+      zanim palcem dociągniesz mapę, ten kawałek zwykle już jest w telefonie.
+   2) "Podkład" — pod zwykłą mapą leży ta sama mapa w mniejszej szczegółowości (2 poziomy zoomu niżej,
+      ~16x mniej kafelków na ten sam obszar, ładuje się błyskawicznie i z dużym zapasem). Gdy ostry kafelek
+      jeszcze się ładuje, widać pod nim lekko rozmytą mapę zamiast pustego pola — ostra wersja płynnie na nią
+      "wjeżdża" (jak w Google Maps). */
+const TILE_PRELOAD_PX = isSlowConnection ? 0 : 384;
+function withPreload(layer, px) {
+  if (!px) return layer;
+  const orig = layer._getTiledPixelBounds;
+  layer._getTiledPixelBounds = function (center) {
+    const b = orig.call(this, center);
+    return L.bounds(b.min.subtract([px, px]), b.max.add([px, px]));
+  };
+  return layer;
+}
+function makeTileLayers(url, extra) {
+  const main = withPreload(L.tileLayer(url, Object.assign({
+    maxZoom: 19,
+    zIndex: 2,
+    keepBuffer: isSlowConnection ? 1 : 4,
+    updateWhenIdle: isSlowConnection ? true : false, // na słabym internecie nie ściągamy kafelków "w locie" podczas przesuwania
+    updateWhenZooming: false,
+    updateInterval: 120
+  }, extra)), TILE_PRELOAD_PX);
+  const under = withPreload(L.tileLayer(url, Object.assign({
+    maxZoom: 19,
+    zIndex: 1,
+    tileSize: 1024,   // kafelek z 2 poziomów niżej rozciągnięty 4x = ten sam obszar co 16 zwykłych
+    zoomOffset: -2,
+    keepBuffer: 3,
+    updateWhenIdle: false,
+    updateWhenZooming: false,
+    className: 'tile-underlay'
+  }, extra)), 1024);
+  return { main, under };
+}
 
-const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 19,
-  keepBuffer: isSlowConnection ? 1 : 3,
-  updateWhenIdle: isSlowConnection ? true : false, // na słabym internecie nie ściągamy kafelków "w locie" podczas przesuwania
-  updateWhenZooming: false
-});
+const osmTiles = makeTileLayers('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { subdomains: 'abc' });
+const satTiles = makeTileLayers('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+const osmLayer = osmTiles.main;
+const satLayer = satTiles.main;
+function showTiles(on, off) {
+  [off.main, off.under].forEach(l => { if (map.hasLayer(l)) map.removeLayer(l); });
+  [on.under, on.main].forEach(l => { if (!map.hasLayer(l)) l.addTo(map); });
+}
 
-satLayer.addTo(map);
+showTiles(satTiles, osmTiles);
 
 /* ============================================================
    WSTĘPNE DOŁADOWANIE KAFELKÓW DLA CAŁEGO OBSZARU CENTRUM
@@ -2745,12 +2842,10 @@ function setMapMode(mode) {
   });
 
   if (mode === 'satellite') {
-    if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
-    if (!map.hasLayer(satLayer)) satLayer.addTo(map);
+    showTiles(satTiles, osmTiles);
     appEl.style.setProperty('--map-bg', '#14110d');
   } else {
-    if (map.hasLayer(satLayer)) map.removeLayer(satLayer);
-    if (!map.hasLayer(osmLayer)) osmLayer.addTo(map);
+    showTiles(osmTiles, satTiles);
     appEl.style.setProperty('--map-bg', mode === 'light' ? '#eef0ec' : '#14110d');
   }
 }
@@ -2937,14 +3032,17 @@ let compassStarted = false;
 let currentBeamRotation = -35; // aktualna wartość kąta zastosowana do transformu (może przekraczać 0-360, żeby liczyć "najkrótszą drogę")
 let currentMapHeadingRotation = 0; // to samo, ale dla obrotu CAŁEJ mapy w trybie 3D (heading-up)
 
+let lastCompassHeading = null; // ostatni odczyt kompasu — potrzebny, żeby poprawić stożek po obróceniu mapy palcami
 function updateBeamRotation(heading) {
+  lastCompassHeading = heading;
   if (!gpsMarker) return;
   const el = gpsMarker.getElement();
   if (!el) return;
   const beam = el.querySelector('.gps-beam');
   if (!beam) return;
 
-  const target = heading - 35;
+  // + obrót mapy: gdy mapa jest obrócona palcami, kierunek na ekranie przesuwa się o ten sam kąt
+  const target = heading + (canRotateMap ? map.getBearing() : 0) - 35;
   // liczymy najkrótszą różnicę kątową (-180..180), żeby stożek nigdy nie "skakał" przy przejściu przez 0/360
   let diff = ((target - currentBeamRotation + 540) % 360) - 180;
   currentBeamRotation += diff;
@@ -3498,6 +3596,42 @@ document.getElementById('sheet-goto-btn').addEventListener('click', () => {
   setSheetPeek(true); // zwijamy panel audio, żeby nawigacja na górze była dobrze widoczna
 });
 
+/* ============================================================
+   OBRACANIE MAPY dwoma palcami (biblioteka leaflet-rotate)
+   - samo przybliżanie/oddalanie palcami NIE obraca mapy: obrót "łapie" dopiero po wyraźnym skręcie
+     palców (ROTATE_START_DEG), jak w Google Maps — inaczej mapa kręciłaby się przy każdym szczypnięciu,
+   - gdy mapa jest obrócona, pod przyciskiem lokalizacji pojawia się kompas; stuknięcie = płynny powrót
+     północy do góry.
+============================================================ */
+const northBtn = document.getElementById('north-btn');
+const northNeedle = document.getElementById('north-needle');
+function updateNorthBtn() {
+  if (!canRotateMap) return;
+  const b = map.getBearing();
+  const rotated = Math.min(b, 360 - b) > 0.5;
+  northBtn.classList.toggle('hidden', !rotated);
+  northNeedle.style.transform = `rotate(${b}deg)`;
+  if (lastCompassHeading !== null && !viewMode3D) updateBeamRotation(lastCompassHeading);
+}
+if (canRotateMap) map.on('rotate', updateNorthBtn);
+
+let northAnim = 0;
+function resetNorth() {
+  if (!canRotateMap) return;
+  cancelAnimationFrame(northAnim);
+  let from = map.getBearing();
+  if (from > 180) from -= 360; // najkrótszą drogą
+  const t0 = performance.now(), dur = 380;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur);
+    const ease = 1 - Math.pow(1 - k, 3);
+    map.setBearing(from * (1 - ease));
+    if (k < 1) northAnim = requestAnimationFrame(step);
+  };
+  northAnim = requestAnimationFrame(step);
+}
+northBtn.addEventListener('click', resetNorth);
+
 document.getElementById('locate-btn').addEventListener('click', () => {
   if (!navigator.geolocation) {
     alert(t('gpsUnsupported'));
@@ -3972,7 +4106,11 @@ function flyToPointBehindSheet(point) {
   const availableHeight = window.innerHeight - sheetHeight;
   const desiredScreenY = availableHeight * 0.65; // trochę niżej niż idealny środek
   const verticalOffset = (window.innerHeight / 2) - desiredScreenY;
-  const targetPoint = map.project([point.lat, point.lng], targetZoom).add([0, verticalOffset]);
+  // przesunięcie "w dół ekranu" — przy obróconej mapie ekranowy dół to inny kierunek na mapie
+  const shift = L.point(0, verticalOffset);
+  const bearingRad = canRotateMap ? map.getBearing() * Math.PI / 180 : 0;
+  const targetPoint = map.project([point.lat, point.lng], targetZoom)
+    .add(bearingRad && shift.rotate ? shift.rotate(-bearingRad) : shift);
   const targetLatLng = map.unproject(targetPoint, targetZoom);
   map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
 }
