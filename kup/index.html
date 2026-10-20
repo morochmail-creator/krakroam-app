@@ -111,6 +111,10 @@
   .toast { position: fixed; left: 16px; right: 16px; bottom: calc(20px + env(safe-area-inset-bottom)); max-width: 428px; margin: 0 auto; background: #fff; color: var(--dark); font-weight: 600; font-size: 14px; text-align: center; padding: 14px 16px; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); opacity: 0; transform: translateY(10px); transition: opacity .2s, transform .2s; pointer-events: none; }
   .toast.show { opacity: 1; transform: none; }
 
+  .phone { position: relative; width: 230px; margin: 2px auto 0; padding: 7px; border-radius: 38px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
+  .phone img { display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; border-radius: 31px; }
+  .phone::before { content: ""; position: absolute; top: 15px; left: 50%; width: 64px; height: 18px; margin-left: -32px; border-radius: 999px; background: #0b0a08; z-index: 1; }
+
 </style>
 </head>
 <body>
@@ -125,6 +129,8 @@
     <h1><span data-i18n="h1a"></span> <em data-i18n="h1b"></em></h1>
     <p class="sub" data-i18n="sub"></p>
   </div>
+
+  <div class="phone"><img src="/www/img/apka-rynek.webp" alt="KrakRoam" width="560" height="1192"></div>
 
   <div class="sec">
     <div class="kick" data-i18n="kS"></div>
