@@ -3219,7 +3219,7 @@ async function fetchWalkingRouteFrom(baseUrl, from, to) {
   const url = `${baseUrl}/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
   // limit czasu — "zawieszony" serwer wcześniej blokował liczenie trasy na zawsze
   const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  const timer = ctrl ? setTimeout(() => ctrl.abort(), 8000) : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 12000) : null; // słaby zasięg: dajemy serwerowi więcej czasu (pytamy dwa naraz)
   let res;
   try {
     res = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
@@ -3271,63 +3271,136 @@ function routeSegmentTo(from, target) {
 
 let routeRequestSeq = 0; // numer ostatniego zapytania — starsze odpowiedzi (np. do poprzedniego celu) są ignorowane
 
+/* ---------- Nawigacja na słabym internecie ----------
+   Wcześniej co ~30 m marszu apka pytała serwer o trasę od nowa i NA CZAS PYTANIA rysowała prostą kreskę
+   do celu. Na słabym zasięgu odpowiedź nie przychodziła (albo po kilkunastu sekundach), więc dobra linia
+   po ulicach znikała i zostawała prosta kreska przez całą mapę.
+   Teraz raz pobrana trasa zostaje w pamięci (activeRoute) i w trakcie marszu apka sama, BEZ internetu,
+   "zjada" przebytą część linii i przelicza pozostały dystans. O nową trasę pyta tylko, gdy zboczysz z linii
+   (OFF_ROUTE_METERS) — i nawet wtedy stara linia zostaje na ekranie (z dorysowanym kawałkiem do Ciebie),
+   dopóki nie przyjdzie nowa. Oba serwery tras pytamy naraz — wygrywa szybszy. */
+const OFF_ROUTE_METERS = 40;
+const ROUTE_RETRY_MS = 15000; // po nieudanym pytaniu o trasę kolejna próba najwcześniej po 15 s
+let activeRoute = null;       // { target, coords, distance, duration, progress }
+let routeRetryAt = 0;
+
+// najbliższe miejsce na linii (szukamy tylko PRZED Tobą, od miejsca, do którego już doszedłeś)
+function snapToPath(coords, pt, fromIdx) {
+  const kx = 111320 * Math.cos(pt[0] * Math.PI / 180), ky = 110540; // stopnie -> metry (na małym obszarze wystarczy)
+  let best = { i: fromIdx, point: coords[fromIdx], d: Infinity };
+  for (let i = fromIdx; i < coords.length - 1; i++) {
+    const ax = (coords[i][1] - pt[1]) * kx, ay = (coords[i][0] - pt[0]) * ky;
+    const bx = (coords[i + 1][1] - pt[1]) * kx, by = (coords[i + 1][0] - pt[0]) * ky;
+    const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+    const k = len2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+    const px = ax + k * dx, py = ay + k * dy, d = Math.hypot(px, py);
+    if (d < best.d) best = { i, d, point: [pt[0] + py / ky, pt[1] + px / kx] };
+  }
+  return best;
+}
+function pathLength(coords) {
+  let m = 0;
+  for (let i = 1; i < coords.length; i++) m += distMeters(coords[i - 1], coords[i]);
+  return m;
+}
+// pozostała część zapamiętanej trasy: od Ciebie do celu
+function remainingRoute(route, userLatLng) {
+  const s = snapToPath(route.coords, userLatLng, route.progress);
+  const rest = [s.point].concat(route.coords.slice(s.i + 1));
+  const distance = s.d + pathLength(rest);
+  return { offBy: s.d, idx: s.i, coords: [userLatLng].concat(rest), distance };
+}
+function showRouteInfo(distance, duration, targetName) {
+  if (navTopDistance) navTopDistance.textContent = formatNavDistance(distance);
+  if (navTopSub) navTopSub.textContent = formatNavDuration(duration) + ' · ' + targetName;
+}
+
 async function requestWalkingRoute(userLatLng, force) {
-  // force = nowy cel nawigacji: liczymy od razu, nawet jeśli poprzednie liczenie jeszcze trwa
-  // (wcześniej zmiana celu w trakcie liczenia zostawiała na mapie linię do STAREGO celu)
-  if (!force && routingInFlight) return;
-  if (!force && lastRoutedLatLng && distMeters(userLatLng, lastRoutedLatLng) < 30) return;
-  const seq = ++routeRequestSeq;
   const target = navTargetLatLng;
   const targetName = navTargetName;
-  routingInFlight = true;
-  lastRoutedLatLng = userLatLng;
+  if (!target) return;
   // na wybranej trasie, gdy jesteś przy złotej linii, prowadzimy dokładnie po niej (a nie na skróty
   // przez ulice) — wtedy niebieska linia nawigacji pokrywa się z linią trasy zamiast ją przecinać
   const along = routeChosen ? routeSegmentTo(userLatLng, target) : null;
   if (along) {
-    drawGuideLine(along.coords);
-    if (navTopDistance) navTopDistance.textContent = formatNavDistance(along.distance);
-    if (navTopSub) navTopSub.textContent = formatNavDuration(along.distance / 1.25) + ' · ' + targetName; // ~4,5 km/h
+    routeRequestSeq++; // ewentualna odpowiedź serwera w drodze nie nadpisze tej linii
     routingInFlight = false;
+    drawGuideLine(along.coords);
+    showRouteInfo(along.distance, along.distance / 1.25, targetName); // ~4,5 km/h
     return;
   }
-  // najpierw rysujemy prostą linię jako natychmiastowy fallback, podmienimy ją jak przyjdzie trasa
-  drawGuideLine([userLatLng, target]);
-  if (navTopDistance) navTopDistance.textContent = t('navCalculating');
 
-  // dwa niezależne serwery routingu pieszego (ten sam silnik OSRM, różne adresy) —
-  // jeśli pierwszy akurat zawiedzie (limit zapytań / przestój), próbujemy drugiego
+  // mamy już trasę do tego celu — przycinamy ją do miejsca, w którym jesteś (działa bez internetu)
+  const known = activeRoute && distMeters(activeRoute.target, target) < 1 ? activeRoute : null;
+  if (!known) activeRoute = null;
+  if (known) {
+    const r = remainingRoute(known, userLatLng);
+    drawGuideLine(r.coords);
+    const left = known.distance ? known.duration * r.distance / known.distance : r.distance / 1.25;
+    showRouteInfo(r.distance, left, targetName);
+    if (r.offBy <= OFF_ROUTE_METERS) {
+      known.progress = r.idx;
+      if (!force) return; // jesteś na linii — serwer niepotrzebny
+    }
+  } else if (!routingInFlight || force) {
+    // pierwszy raz dla tego celu: zanim przyjdzie trasa, tymczasowo prosta linia
+    drawGuideLine([userLatLng, target]);
+    if (navTopDistance) navTopDistance.textContent = t('navCalculating');
+  }
+
+  // pytanie serwera — tylko gdy trzeba (nowy cel, zboczenie z linii) i nie częściej niż co 30 m / 15 s po błędzie
+  if (!force && routingInFlight) return;
+  if (!force && lastRoutedLatLng && distMeters(userLatLng, lastRoutedLatLng) < 30) return;
+  if (!force && Date.now() < routeRetryAt) return;
+  const seq = ++routeRequestSeq;
+  routingInFlight = true;
+  lastRoutedLatLng = userLatLng;
+
+  // dwa niezależne serwery routingu pieszego (ten sam silnik OSRM, różne adresy) — pytamy oba naraz,
+  // bierzemy pierwszą odpowiedź (na słabym zasięgu nie czekamy, aż pierwszy się podda)
   const endpoints = [
     'https://routing.openstreetmap.de/routed-foot',
     'https://router.project-osrm.org'
   ];
-  let success = false;
-  for (const base of endpoints) {
-    try {
-      const result = await fetchWalkingRouteFrom(base, userLatLng, target);
-      if (seq !== routeRequestSeq) return; // w międzyczasie ruszyło nowsze liczenie — ono zajmie się resztą
-      // serwer kończy trasę na najbliższej ulicy/chodniku, a nie na samym punkcie (np. środek Rynku) —
-      // dorysowujemy brakujący kawałek, żeby linia zaczynała się przy Tobie i kończyła dokładnie na pinezce celu
-      const coords = result.coords.slice();
-      if (!coords.length || distMeters(coords[0], userLatLng) > 1) coords.unshift(userLatLng);
-      if (distMeters(coords[coords.length - 1], target) > 1) coords.push(target);
-      drawGuideLine(coords);
-      if (navTopDistance) navTopDistance.textContent = formatNavDistance(result.distance);
-      if (navTopSub) navTopSub.textContent = formatNavDuration(result.duration) + ' · ' + targetName;
-      success = true;
-      break;
-    } catch (e) {
-      if (seq !== routeRequestSeq) return;
-      console.error('Routing przez', base, 'nie powiodło się:', e);
-    }
+  let result = null;
+  try {
+    result = await Promise.any(endpoints.map(base => fetchWalkingRouteFrom(base, userLatLng, target)));
+  } catch (e) {
+    console.error('Routing nie powiódł się:', e);
   }
-  if (!success) {
-    // oba serwery zawiodły — zamiast technicznego "błąd (...)" turysta widzi odległość w linii prostej,
-    // a na mapie zostaje prosta linia do celu (narysowana wyżej); spróbujemy znów po kolejnych 30 m marszu
+  if (seq !== routeRequestSeq) return; // w międzyczasie ruszyło nowsze liczenie — ono zajmie się resztą
+  routingInFlight = false;
+
+  if (result) {
+    routeRetryAt = 0;
+    // serwer kończy trasę na najbliższej ulicy/chodniku, a nie na samym punkcie (np. środek Rynku) —
+    // dorysowujemy brakujący kawałek, żeby linia zaczynała się przy Tobie i kończyła dokładnie na pinezce celu
+    const coords = result.coords.slice();
+    if (!coords.length || distMeters(coords[0], userLatLng) > 1) coords.unshift(userLatLng);
+    if (distMeters(coords[coords.length - 1], target) > 1) coords.push(target);
+    activeRoute = { target, coords, distance: result.distance, duration: result.duration, progress: 0 };
+    // GPS mógł Cię w międzyczasie przesunąć — pokazujemy od aktualnego miejsca
+    const now = gpsMarker ? [gpsMarker.getLatLng().lat, gpsMarker.getLatLng().lng] : userLatLng;
+    const r = navActive && gpsMarker ? remainingRoute(activeRoute, now) : null;
+    if (r && r.offBy <= OFF_ROUTE_METERS) {
+      drawGuideLine(r.coords);
+      showRouteInfo(r.distance, result.duration * r.distance / (result.distance || 1), targetName);
+    } else {
+      drawGuideLine(coords);
+      showRouteInfo(result.distance, result.duration, targetName);
+    }
+    return;
+  }
+
+  // brak odpowiedzi (słaby zasięg) — spróbujemy znów za chwilę, przy kolejnym odczycie GPS
+  routeRetryAt = Date.now() + ROUTE_RETRY_MS;
+  lastRoutedLatLng = null;
+  if (!activeRoute) {
+    // jeszcze nigdy nie mieliśmy trasy do tego celu — zostaje prosta linia i odległość w linii prostej
     if (navTopDistance) navTopDistance.textContent = formatNavDistance(distMeters(userLatLng, target));
     if (navTopSub) navTopSub.textContent = t('navStraightLine') + ' · ' + targetName;
   }
-  routingInFlight = false;
+  // a jeśli mieliśmy — zostaje stara linia po ulicach (narysowana wyżej), bez kreski przez całą mapę
 }
 
 // Lokalizacja startuje dopiero, gdy user faktycznie DOTRZE do apki (menu tras widoczne),
@@ -3464,6 +3537,7 @@ function startNavigation(targetPoint, opts) {
   showNavTargetMarker();
   if (navTopSub) navTopSub.textContent = navTargetName; // od razu pokazujemy nazwę celu, zanim policzy się dystans/czas
   lastRoutedLatLng = null; // wymuś świeże przeliczenie trasy
+  routeRetryAt = 0;
   if (fromLatLng) {
     pause3DFollow(); // kamerą zajmuje się wywołujący (pokazuje cały odcinek X→Y)
     requestWalkingRoute(fromLatLng, true);
