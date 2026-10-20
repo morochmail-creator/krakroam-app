@@ -160,7 +160,6 @@
     <div class="wrap">
       <ul>
         <li><a href="#start" data-i18n="mHome"></a></li>
-        <li><a href="#probki" data-i18n="mFeat"></a></li>
         <li><a href="#o-nas" class="hl" data-i18n="nav"></a></li>
         <li><a href="#galeria" data-i18n="mGal"></a></li>
         <li><a href="#partnerzy" data-i18n="mPart"></a></li>
@@ -177,26 +176,9 @@
       <img class="logo" src="/icon-192.png" width="84" height="84" alt="KrakRoam">
       <h1><span data-i18n="h1a"></span> <em data-i18n="h1b"></em></h1>
       <p data-i18n="what"></p>
-      <div class="samples" id="probki">
-        <div class="sample" data-src="/audio/pl/3_1_Legenda_o_trebaczu.mp3">
-          <div><div class="where" data-i18n="p1w"></div><h3 data-i18n="p1t"></h3></div>
-          <div class="player">
-            <button type="button" class="play" aria-label="Play"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
-            <div class="bar"><div class="track"><div class="fill"></div></div><div class="time"><span class="cur">0:00</span><span class="dur">–:––</span></div></div>
-          </div>
-        </div>
-        <div class="sample" data-src="/audio/pl/10_1_Piwnice_tortury_i_kat.mp3">
-          <div><div class="where" data-i18n="p2w"></div><h3 data-i18n="p2t"></h3></div>
-          <div class="player">
-            <button type="button" class="play" aria-label="Play"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
-            <div class="bar"><div class="track"><div class="fill"></div></div><div class="time"><span class="cur">0:00</span><span class="dur">–:––</span></div></div>
-          </div>
-        </div>
-      </div>
-      <p class="samples-note" data-i18n="note"></p>
-      <a class="cta app-link" href="https://app.krakroam.pl">
+      <a class="cta kup-link" href="/kup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>
-        Audioguide <span class="ver">1.0</span>
+        <span data-i18n="check"></span>
       </a>
       <small data-i18n="worksIn"></small>
     </div>
@@ -283,7 +265,8 @@
         chooseLang: 'Wybierz język przewodnika', worksIn: 'Działa w przeglądarce telefonu',
         k1: "Posłuchaj za darmo",
         h2a: "Tak brzmi KrakRoam",
-        what: "Audioprzewodnik po Krakowie w Twoim telefonie. Posłuchaj, jak brzmi:",
+        what: "Mapa z GPS, gotowe trasy i ponad 60 krótkich nagrań o zabytkach, legendach i mrocznych historiach miasta. Bez instalowania aplikacji, bez grupy, we własnym tempie.",
+        check: "Sprawdź audioprzewodnik",
         p1w: "Kościół Mariacki",
         p1t: "Legenda o Trębaczu",
         p2w: "Wieża Ratuszowa",
@@ -309,7 +292,8 @@
         chooseLang: 'Обери мову гіда', worksIn: 'Працює у браузері телефону',
         k1: "Послухай безкоштовно",
         h2a: "Ось як звучить KrakRoam",
-        what: "Аудіогід Краковом у твоєму телефоні. Послухай, як він звучить:",
+        what: "Мапа з GPS, готові маршрути та понад 60 коротких записів про пам’ятки, легенди й темні історії міста. Без встановлення застосунку, без групи, у власному темпі.",
+        check: "Переглянь аудіогід",
         p1w: "Маріацький костел",
         p1t: "Легенда про сурмача",
         p2w: "Ратушна вежа",
@@ -335,7 +319,8 @@
         chooseLang: 'Choose your guide language', worksIn: "Works in your phone's browser",
         k1: "Listen for free",
         h2a: "This is what KrakRoam sounds like",
-        what: "A Kraków audio guide on your phone. Hear what it sounds like:",
+        what: "A GPS map, ready-made routes and 60+ short recordings about landmarks, legends and the city's darker stories. Nothing to install, no group, at your own pace.",
+        check: "Check out the audio guide",
         p1w: "St. Mary's Basilica",
         p1t: "The Legend of the Trumpeter",
         p2w: "Town Hall Tower",
@@ -361,7 +346,8 @@
         chooseLang: 'Wähle die Sprache des Guides', worksIn: 'Funktioniert im Browser deines Handys',
         k1: "Kostenlos reinhören",
         h2a: "So klingt KrakRoam",
-        what: "Ein Audioguide für Krakau auf deinem Handy. Hör mal rein:",
+        what: "Karte mit GPS, fertige Routen und über 60 kurze Aufnahmen über Sehenswürdigkeiten, Legenden und dunkle Geschichten der Stadt. Ohne Installation, ohne Gruppe, in deinem Tempo.",
+        check: "Audioguide ansehen",
         p1w: "Marienkirche",
         p1t: "Die Legende vom Trompeter",
         p2w: "Rathausturm",
@@ -387,7 +373,8 @@
         chooseLang: 'Elige el idioma de la guía', worksIn: 'Funciona en el navegador de tu móvil',
         k1: "Escucha gratis",
         h2a: "Así suena KrakRoam",
-        what: "Una audioguía de Cracovia en tu móvil. Escucha cómo suena:",
+        what: "Mapa con GPS, rutas listas y más de 60 grabaciones cortas sobre monumentos, leyendas e historias oscuras de la ciudad. Sin instalar nada, sin grupo, a tu ritmo.",
+        check: "Descubre la audioguía",
         p1w: "Basílica de Santa María",
         p1t: "La leyenda del trompetista",
         p2w: "Torre del Ayuntamiento",
@@ -425,6 +412,7 @@
       hdr.innerHTML = FLAGS[l] + l.toUpperCase();
       // aplikacja czyta ?lang= i od razu startuje w tym języku
       document.querySelectorAll('.app-link').forEach(function (a) { a.href = 'https://app.krakroam.pl/?lang=' + l; });
+      document.querySelectorAll('.kup-link').forEach(function (a) { a.href = '/kup?lang=' + l; });
       try { localStorage.setItem('krakroam_site_lang', l); } catch (e) {}
     }
     // próbki audio: jeden odtwarzacz naraz
