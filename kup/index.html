@@ -52,8 +52,11 @@
   .sample.playing .i-pause { display: block; }
   .sample b { display: block; font-size: 14px; }
   .sample small { display: block; color: var(--dim); font-size: 12px; }
-  .sample .bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.15); margin-top: 5px; overflow: hidden; }
-  .sample .fill { height: 100%; width: 0; background: var(--gold); }
+  .sample .bar { display: block; position: relative; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.18); margin-top: 9px; touch-action: none; cursor: pointer; }
+  .sample .bar::after { content: ""; position: absolute; left: -6px; right: -6px; top: -12px; bottom: -12px; }
+  .sample .time { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .sample .fill { display: block; position: relative; height: 100%; width: 0; border-radius: 2px; background: var(--gold); }
+  .sample .fill::after { content: ""; position: absolute; right: -7px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 3px rgba(242,176,30,0.25); }
   .sample .txt { flex: 1; min-width: 0; }
 
   .opts { display: grid; gap: 8px; margin-top: 4px; }
@@ -172,8 +175,8 @@
   <div>
     <div class="carousel">
       <div class="slides" id="slides">
-        <div class="slide"><div class="phone"><img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192" fetchpriority="high" decoding="async"></div><button type="button" class="sample" data-src="/audio/pl/3_1_Legenda_o_trebaczu.mp3">      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>      <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill"></span></span></span>    </button></div>
-        <div class="slide"><div class="phone"><img data-src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" decoding="async"></div><button type="button" class="sample" data-src="/audio/pl/10_1_Piwnice_tortury_i_kat.mp3">      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>      <span class="txt"><b data-i18n="sample2T"></b><small data-i18n="sample2S"></small><span class="bar"><span class="fill"></span></span></span>    </button></div>
+        <div class="slide"><div class="phone"><img src="/www/img/apka-rynek.webp" alt="" width="560" height="1192" fetchpriority="high" decoding="async"></div><div class="sample" data-src="/audio/pl/3_1_Legenda_o_trebaczu.mp3" role="group">      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>      <span class="txt"><b data-i18n="sampleT"></b><small data-i18n="sampleS"></small><span class="bar"><span class="fill"></span></span><span class="time"><span class="cur">0:00</span><span class="dur"></span></span></span>    </div></div>
+        <div class="slide"><div class="phone"><img data-src="/www/img/apka-punkt.webp" alt="" width="560" height="1192" decoding="async"></div><div class="sample" data-src="/audio/pl/10_1_Piwnice_tortury_i_kat.mp3" role="group">      <span class="pp"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>      <span class="txt"><b data-i18n="sample2T"></b><small data-i18n="sample2S"></small><span class="bar"><span class="fill"></span></span><span class="time"><span class="cur">0:00</span><span class="dur"></span></span></span>    </div></div>
         <div class="slide"><div class="phone"><img data-src="/www/img/apka-nawigacja.webp" alt="" width="560" height="1192" decoding="async"></div></div>
         <div class="slide"><div class="phone"><img data-src="/www/img/apka-lista.webp" alt="" width="560" height="1192" decoding="async"></div></div>
       </div>
@@ -593,16 +596,40 @@
     });
 
     var players = [];
+    function fmt(t) { t = Math.floor(t || 0); return Math.floor(t / 60) + ':' + ('0' + t % 60).slice(-2); }
     document.querySelectorAll('.sample').forEach(function (btn) {
-      var au = new Audio(btn.dataset.src); au.preload = 'none'; players.push(au);
-      var fill = btn.querySelector('.fill');
-      btn.addEventListener('click', function () {
+      var au = new Audio(); au.preload = 'metadata'; au.src = btn.dataset.src; players.push(au);
+      var fill = btn.querySelector('.fill'), bar = btn.querySelector('.bar'), cur = btn.querySelector('.cur'), dur = btn.querySelector('.dur'), dragging = false;
+      btn.addEventListener('click', function (e) {
+        if (e.target.closest('.bar')) return;
         if (au.paused) { players.forEach(function (o) { if (o !== au) o.pause(); }); au.play(); } else au.pause();
       });
       au.addEventListener('play', function () { btn.classList.add('playing'); stopAuto(); });
       au.addEventListener('pause', function () { btn.classList.remove('playing'); });
-      au.addEventListener('timeupdate', function () { fill.style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0'; });
+      au.addEventListener('loadedmetadata', function () { dur.textContent = fmt(au.duration); });
+      au.addEventListener('timeupdate', function () {
+        if (dragging) return;
+        cur.textContent = fmt(au.currentTime);
+        fill.style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0';
+      });
       au.addEventListener('ended', function () { au.currentTime = 0; });
+      // suwak: stuknięcie albo przeciągnięcie palcem przewija nagranie
+      function seek(e, commit) {
+        if (!au.duration) return;
+        var r = bar.getBoundingClientRect(), f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        fill.style.width = (f * 100) + '%'; cur.textContent = fmt(f * au.duration);
+        if (commit) au.currentTime = f * au.duration;
+      }
+      bar.addEventListener('pointerdown', function (e) {
+        e.stopPropagation(); stopAuto();
+        if (!au.duration) { au.load(); return; }
+        dragging = true; try { bar.setPointerCapture(e.pointerId); } catch (x) {}
+        seek(e, false);
+      });
+      bar.addEventListener('pointermove', function (e) { if (dragging) seek(e, false); });
+      bar.addEventListener('pointerup', function (e) { if (!dragging) return; dragging = false; seek(e, true); });
+      bar.addEventListener('pointercancel', function () { dragging = false; });
+      bar.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
     });
 
     // pasek zakupu na dole + wysuwany panel
