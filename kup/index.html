@@ -622,8 +622,9 @@
     function bgScroll() {
       if (!bgLoaded) { bgLoaded = true; bgs.forEach(function (d) { if (d.dataset.bg) d.style.backgroundImage = "url('" + d.dataset.bg + "')"; }); }
       var max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-      var i = Math.min(bgs.length - 1, Math.floor(scrollY / max * bgs.length));
-      if (i !== bgOn) { bgs[bgOn].classList.remove('on'); bgs[i].classList.add('on'); bgOn = i; }
+      // przy odbiciu strony na iPhonie scrollY bywa ujemne, dlatego przycinamy do 0
+      var i = Math.max(0, Math.min(bgs.length - 1, Math.floor(Math.max(0, scrollY) / max * bgs.length)));
+      if (i !== bgOn) { bgOn = i; bgs.forEach(function (d, k) { d.classList.toggle('on', k === i); }); }
     }
     window.addEventListener('scroll', bgScroll, { passive: true });
     var buybar = document.getElementById('buybar');
