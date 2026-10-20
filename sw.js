@@ -55,6 +55,11 @@ self.addEventListener('fetch', event => {
       return;
     }
     if (url.pathname.startsWith('/audio/') && url.pathname.endsWith('.mp3')) {
+      // Odtwarzacz, a nagrania NIE MA jeszcze w telefonie: nie wtrącamy się — przeglądarka sama ściąga
+      // nagranie z sieci i sama ponawia, gdy zasięg chwilowo zniknie. Wcześniej szło to przez "schowek",
+      // a wtedy każde zerwanie połączenia kończyło się zatrzymaniem nagrania w połowie.
+      // (Do schowka nagranie trafia osobno — strona dociąga je w tle, patrz prefetchNextTrack w index.html.)
+      if (req.destination === 'audio' && !(cachedAudio && cachedAudio.has(url.pathname))) return;
       event.respondWith(audioResponse(event, req));
       return;
     }
@@ -126,6 +131,12 @@ async function trimCache(name, max) {
 /* --- nagrania ---
    Jest w telefonie → gramy z telefonu (także przewijanie).
    Nie ma → gramy z sieci, a jeśli przyszedł cały plik, zapisujemy go przy okazji (bez pobierania drugi raz). */
+// spis nagrań zapisanych w telefonie — sprawdzany od razu (bez czekania) przy każdym żądaniu odtwarzacza
+let cachedAudio = null;
+caches.open(AUDIO).then(c => c.keys())
+  .then(keys => { cachedAudio = new Set(keys.map(r => new URL(r.url).pathname)); })
+  .catch(() => { cachedAudio = new Set(); });
+
 async function audioResponse(event, req) {
   const cache = await caches.open(AUDIO);
   const key = new URL(req.url).pathname;
@@ -141,7 +152,7 @@ async function audioResponse(event, req) {
     const copy = res.clone();
     event.waitUntil(copy.blob().then(blob => cache.put(key, new Response(blob, {
       headers: { 'Content-Type': 'audio/mpeg', 'Content-Length': String(blob.size), 'x-saved-at': String(Date.now()) }
-    }))).catch(() => {}));
+    }))).then(() => { if (cachedAudio) cachedAudio.add(key); }).catch(() => {}));
   }
   return res;
 }

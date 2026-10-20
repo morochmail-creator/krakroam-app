@@ -1715,6 +1715,7 @@ const TRANSLATIONS = {
     gpsReminder: "Lokalizacja wyłączona — nie widzę, gdzie jesteś.", gpsReminderBtn: "Włącz",
     permRow: "Lokalizacja i kompas — jak włączyć", permTitle: "Jak włączyć lokalizację i kompas", permSub: "Przeglądarka nie ma dostępu do lokalizacji lub kompasu. Bez tego apka nie pokaże, gdzie jesteś i w którą stronę patrzysz.", permRetry: "Spróbuj ponownie", permClose: "Zamknij", permLoc: "📍 Lokalizacja", permCompass: "🧭 Kompas (kierunek patrzenia)", iosLoc: ["W <b>Ustawieniach</b> telefonu: <b>Prywatność i ochrona → Usługi lokalizacji</b> — włącz.", "Niżej na tej liście: <b>Witryny Safari</b> → <b>Podczas używania aplikacji</b> i włącz <b>Dokładna lokalizacja</b>.", "Wróć do Safari, stuknij <b>aA</b> (lub ikonę obok adresu) → <b>Ustawienia witryny</b> → <b>Lokalizacja: Pozwalaj</b>."], iosCompass: ["Stuknij <b>Spróbuj ponownie</b> i w okienku wybierz <b>Pozwól</b> (dostęp do ruchu i orientacji).", "Jeśli wcześniej wybrałeś „Nie pozwalaj”: zamknij kartę z apką, otwórz ją jeszcze raz i stuknij przycisk lokalizacji."], andLoc: ["Przesuń palcem od góry ekranu w dół i stuknij ikonę <b>Lokalizacja</b>, żeby była włączona.", "W Chrome stuknij małą ikonę <b>po lewej stronie adresu strony</b> (u góry, przy „app.krakroam.pl”).", "Stuknij <b>Uprawnienia</b> i przestaw <b>Lokalizacja</b> na włączoną."], andCompass: ["W Chrome stuknij małą ikonę <b>po lewej stronie adresu strony</b> → <b>Uprawnienia</b> → włącz <b>Czujniki ruchu</b>.", "Wróć do apki i stuknij <b>Spróbuj ponownie</b>.", "Dalej nie działa? Zrób telefonem w powietrzu kilka „ósemek” (kalibracja kompasu). Niektóre tańsze telefony nie mają kompasu."], 
     permLocShort: "Lokalizacja", permCompassShort: "Kompas", permWorks: "działa", permNotWorks: "nie działa",
+    audioWeakResuming: "Słaby zasięg — wznawiam nagranie…", audioWeakStopped: "Słaby zasięg — nagranie przerwane. Stuknij ▶, żeby wznowić.",
     gpsDenied: "Nie widzę Twojej lokalizacji. Włącz GPS i zezwól przeglądarce na dostęp do lokalizacji.",
     introTitleRoute: "Odsłuchaj w drodze na start",
     introTitleFreeRoam: "Odsłuchaj w drodze do historycznego centrum",
@@ -1806,6 +1807,7 @@ const TRANSLATIONS = {
     gpsReminder: "Геолокацію вимкнено — не бачу, де ти.", gpsReminderBtn: "Увімкнути",
     permRow: "Геолокація і компас — як увімкнути", permTitle: "Як увімкнути геолокацію і компас", permSub: "Браузер не має доступу до геолокації або компаса. Без цього застосунок не покаже, де ти і куди дивишся.", permRetry: "Спробувати знову", permClose: "Закрити", permLoc: "📍 Геолокація", permCompass: "🧭 Компас (напрямок погляду)", iosLoc: ["У <b>Параметрах</b> телефону: <b>Приватність і безпека → Служби локації</b> — увімкни.", "Нижче в списку: <b>Сайти Safari</b> → <b>Коли використовується</b> і увімкни <b>Точне розташування</b>.", "Повернися в Safari, торкнися <b>aA</b> (або значка біля адреси) → <b>Параметри вебсайту</b> → <b>Локація: Дозволити</b>."], iosCompass: ["Торкнися <b>Спробувати знову</b> і у вікні вибери <b>Дозволити</b> (доступ до руху й орієнтації).", "Якщо раніше вибрав «Не дозволяти»: закрий вкладку, відкрий застосунок знову й торкнися кнопки геолокації."], andLoc: ["Проведи пальцем від верху екрана вниз і торкнися значка <b>Локація</b>, щоб увімкнути.", "У Chrome торкнися маленького значка <b>ліворуч від адреси сторінки</b> (угорі, біля «app.krakroam.pl»).", "Торкнися <b>Дозволи</b> і увімкни <b>Локацію</b>."], andCompass: ["У Chrome торкнися значка <b>ліворуч від адреси сторінки</b> → <b>Дозволи</b> → увімкни <b>Датчики руху</b>.", "Повернися в застосунок і торкнися <b>Спробувати знову</b>.", "Досі не працює? Зроби телефоном у повітрі кілька «вісімок». Деякі дешевші телефони не мають компаса."], 
     permLocShort: "Геолокація", permCompassShort: "Компас", permWorks: "працює", permNotWorks: "не працює",
+    audioWeakResuming: "Слабкий сигнал — відновлюю запис…", audioWeakStopped: "Слабкий сигнал — запис перервано. Торкнися ▶, щоб продовжити.",
     gpsDenied: "Не бачу твого місцезнаходження. Увімкни GPS і дозволь браузеру доступ до геолокації.",
     introTitleRoute: "Послухай в дорозі до старту",
     introTitleFreeRoam: "Послухай в дорозі до історичного центру",
@@ -1897,6 +1899,7 @@ const TRANSLATIONS = {
     gpsReminder: "Location is off — I can't see where you are.", gpsReminderBtn: "Turn on",
     permRow: "Location & compass — how to turn on", permTitle: "How to turn on location and compass", permSub: "Your browser has no access to location or the compass. Without it the app can't show where you are or which way you're facing.", permRetry: "Try again", permClose: "Close", permLoc: "📍 Location", permCompass: "🧭 Compass (facing direction)", iosLoc: ["In the phone's <b>Settings</b>: <b>Privacy & Security → Location Services</b> — turn on.", "Further down that list: <b>Safari Websites</b> → <b>While Using the App</b> and turn on <b>Precise Location</b>.", "Back in Safari, tap <b>aA</b> (or the icon next to the address) → <b>Website Settings</b> → <b>Location: Allow</b>."], iosCompass: ["Tap <b>Try again</b> and choose <b>Allow</b> (motion & orientation access).", "If you chose “Don't Allow” before: close the tab, open the app again and tap the location button."], andLoc: ["Swipe down from the top of the screen and tap <b>Location</b> so it's on.", "In Chrome, tap the small icon <b>to the left of the page address</b> (at the top, by “app.krakroam.pl”).", "Tap <b>Permissions</b> and switch <b>Location</b> on."], andCompass: ["In Chrome, tap the small icon <b>left of the page address</b> → <b>Permissions</b> → switch on <b>Motion sensors</b>.", "Go back to the app and tap <b>Try again</b>.", "Still not working? Move the phone in a few figure-eights in the air. Some cheaper phones have no compass."], 
     permLocShort: "Location", permCompassShort: "Compass", permWorks: "working", permNotWorks: "not working",
+    audioWeakResuming: "Weak signal — resuming the recording…", audioWeakStopped: "Weak signal — recording stopped. Tap ▶ to resume.",
     gpsDenied: "We can't see your location. Turn on GPS and allow your browser to use your location.",
     introTitleRoute: "Listen on your way to the start",
     introTitleFreeRoam: "Listen on your way to the historic centre",
@@ -1988,6 +1991,7 @@ const TRANSLATIONS = {
     gpsReminder: "Standort ist aus — ich sehe nicht, wo du bist.", gpsReminderBtn: "Einschalten",
     permRow: "Standort & Kompass — so einschalten", permTitle: "So schaltest du Standort und Kompass ein", permSub: "Der Browser hat keinen Zugriff auf Standort oder Kompass. Ohne ihn kann die App nicht zeigen, wo du bist und wohin du schaust.", permRetry: "Erneut versuchen", permClose: "Schließen", permLoc: "📍 Standort", permCompass: "🧭 Kompass (Blickrichtung)", iosLoc: ["In den <b>Einstellungen</b> des Handys: <b>Datenschutz & Sicherheit → Ortungsdienste</b> — einschalten.", "Weiter unten in der Liste: <b>Safari-Websites</b> → <b>Beim Verwenden der App</b> und <b>Genauer Standort</b> einschalten.", "Zurück in Safari <b>aA</b> (oder das Symbol neben der Adresse) tippen → <b>Website-Einstellungen</b> → <b>Standort: Erlauben</b>."], iosCompass: ["Tippe auf <b>Erneut versuchen</b> und wähle <b>Erlauben</b> (Zugriff auf Bewegung & Ausrichtung).", "Falls du vorher „Nicht erlauben“ gewählt hast: Tab schließen, App neu öffnen und den Standort-Knopf tippen."], andLoc: ["Vom oberen Bildschirmrand nach unten wischen und <b>Standort</b> antippen, damit er an ist.", "In Chrome das kleine Symbol <b>links neben der Seitenadresse</b> antippen (oben, bei „app.krakroam.pl“).", "<b>Berechtigungen</b> antippen und <b>Standort</b> einschalten."], andCompass: ["In Chrome das kleine Symbol <b>links neben der Seitenadresse</b> antippen → <b>Berechtigungen</b> → <b>Bewegungssensoren</b> einschalten.", "Zurück zur App und <b>Erneut versuchen</b> antippen.", "Geht immer noch nicht? Handy ein paar Mal als Acht durch die Luft bewegen. Manche günstigen Handys haben keinen Kompass."], 
     permLocShort: "Standort", permCompassShort: "Kompass", permWorks: "funktioniert", permNotWorks: "funktioniert nicht",
+    audioWeakResuming: "Schwacher Empfang — Aufnahme wird fortgesetzt…", audioWeakStopped: "Schwacher Empfang — Aufnahme unterbrochen. Tippe ▶, um fortzufahren.",
     gpsDenied: "Wir können deinen Standort nicht sehen. Schalte GPS ein und erlaube dem Browser den Standortzugriff.",
     introTitleRoute: "Hör zu, während du zum Start gehst",
     introTitleFreeRoam: "Hör zu, während du zum historischen Zentrum gehst",
@@ -2079,6 +2083,7 @@ const TRANSLATIONS = {
     gpsReminder: "Ubicación desactivada: no veo dónde estás.", gpsReminderBtn: "Activar",
     permRow: "Ubicación y brújula — cómo activarlas", permTitle: "Cómo activar la ubicación y la brújula", permSub: "El navegador no tiene acceso a la ubicación o a la brújula. Sin ello la app no puede mostrar dónde estás ni hacia dónde miras.", permRetry: "Reintentar", permClose: "Cerrar", permLoc: "📍 Ubicación", permCompass: "🧭 Brújula (dirección)", iosLoc: ["En <b>Ajustes</b> del teléfono: <b>Privacidad y seguridad → Localización</b> — actívala.", "Más abajo en esa lista: <b>Sitios web de Safari</b> → <b>Cuando se use la app</b> y activa <b>Ubicación exacta</b>.", "Vuelve a Safari, toca <b>aA</b> (o el icono junto a la dirección) → <b>Ajustes del sitio web</b> → <b>Ubicación: Permitir</b>."], iosCompass: ["Toca <b>Reintentar</b> y elige <b>Permitir</b> (acceso a movimiento y orientación).", "Si antes elegiste «No permitir»: cierra la pestaña, abre la app de nuevo y toca el botón de ubicación."], andLoc: ["Desliza hacia abajo desde arriba de la pantalla y toca <b>Ubicación</b> para activarla.", "En Chrome, toca el pequeño icono <b>a la izquierda de la dirección</b> (arriba, junto a «app.krakroam.pl»).", "Toca <b>Permisos</b> y activa <b>Ubicación</b>."], andCompass: ["En Chrome, toca el pequeño icono <b>a la izquierda de la dirección</b> → <b>Permisos</b> → activa <b>Sensores de movimiento</b>.", "Vuelve a la app y toca <b>Reintentar</b>.", "¿Sigue sin funcionar? Mueve el teléfono en el aire haciendo varios «ochos». Algunos teléfonos baratos no tienen brújula."], 
     permLocShort: "Ubicación", permCompassShort: "Brújula", permWorks: "funciona", permNotWorks: "no funciona",
+    audioWeakResuming: "Señal débil — reanudando la grabación…", audioWeakStopped: "Señal débil — grabación interrumpida. Toca ▶ para continuar.",
     gpsDenied: "No vemos tu ubicación. Activa el GPS y permite que el navegador use tu ubicación.",
     introTitleRoute: "Escucha de camino al inicio",
     introTitleFreeRoam: "Escucha de camino al centro histórico",
@@ -4880,7 +4885,81 @@ function updatePlayingMarker() {
 audioEl.addEventListener('play', () => setPlayIcon(true));
 audioEl.addEventListener('pause', () => setPlayIcon(false));
 audioEl.addEventListener('durationchange', () => { if (isFinite(audioEl.duration)) showTimes(audioEl.currentTime); });
-audioEl.addEventListener('error', () => { setPlayIcon(false); if (audioEl.getAttribute('src')) noAudioNote.style.display = 'block'; }); // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
+audioEl.addEventListener('error', () => {
+  // przerwane połączenie (słaby zasięg) — nie "brak nagrania", tylko wznawiamy (patrz audioRecover niżej)
+  if (audioRecover.onError()) return;
+  setPlayIcon(false);
+  if (audioEl.getAttribute('src')) noAudioNote.style.display = 'block'; // plik zepsuty/niedostępny — nie zostawiamy ikony "odtwarza"
+});
+
+/* ---------- Nagranie nie staje na słabym zasięgu ----------
+   Na Androidzie (np. na Rynku, w tłumie, słaby internet) nagranie potrafiło stanąć w połowie i już nie ruszyć:
+   gdy w trakcie grania urwało się połączenie, odtwarzacz zgłaszał błąd i stał (pokazywał nawet "brak nagrania").
+   Teraz, jeśli nagranie GRAŁO i stanęło przez internet (błąd sieci albo ładowanie dłużej niż 8 s), apka sama
+   wczytuje je jeszcze raz i gra dalej od tego samego miejsca — kilka prób, coraz rzadziej. */
+const audioRecover = (() => {
+  let wantPlaying = false, lastPos = 0, lastSrc = null, tries = 0, recovering = false, stallTimer = null, retryTimer = null;
+  const MAX_TRIES = 6;
+  const clearStall = () => { clearTimeout(stallTimer); stallTimer = null; };
+  function recover() {
+    clearStall();
+    const src = audioEl.getAttribute('src');
+    if (!wantPlaying || !src || src !== lastSrc) return;
+    if (tries >= MAX_TRIES) {
+      recovering = false; wantPlaying = false;
+      setPlayIcon(false);
+      showInfoToast(t('audioWeakStopped'));
+      return;
+    }
+    if (tries === 0) showInfoToast(t('audioWeakResuming'));
+    tries++;
+    recovering = true;
+    setPlayIcon(true);
+    const at = lastPos;
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(() => {
+      if (!wantPlaying || audioEl.getAttribute('src') !== src) { recovering = false; return; }
+      const resume = () => {
+        audioEl.removeEventListener('loadedmetadata', resume);
+        try { if (at > 0 && at < audioEl.duration) audioEl.currentTime = at; } catch (_) {}
+        const pr = audioEl.play();
+        if (pr && pr.catch) pr.catch(() => {});
+      };
+      audioEl.addEventListener('loadedmetadata', resume);
+      try { audioEl.load(); } catch (_) {}
+      stallTimer = setTimeout(recover, 15000); // nie ruszyło w 15 s — kolejna próba
+    }, Math.min(1000 * Math.pow(2, tries - 1), 15000));
+  }
+  audioEl.addEventListener('playing', () => {
+    wantPlaying = true; lastSrc = audioEl.getAttribute('src'); clearStall();
+    recovering = false;
+  });
+  audioEl.addEventListener('timeupdate', () => {
+    if (audioEl.currentTime > 0) lastPos = audioEl.currentTime;
+    if (!audioEl.paused && audioEl.readyState >= 3) { clearStall(); tries = 0; }
+  });
+  audioEl.addEventListener('pause', () => { if (!recovering) { wantPlaying = false; clearStall(); } });
+  audioEl.addEventListener('ended', () => { wantPlaying = false; recovering = false; tries = 0; clearStall(); });
+  audioEl.addEventListener('loadstart', () => {
+    if (audioEl.getAttribute('src') !== lastSrc) { tries = 0; lastPos = 0; recovering = false; wantPlaying = false; clearStall(); }
+  });
+  // "ładuję…" trwa za długo w trakcie grania — traktujemy jak zerwane połączenie
+  ['waiting', 'stalled'].forEach(ev => audioEl.addEventListener(ev, () => {
+    if (!wantPlaying || audioEl.paused || stallTimer) return;
+    stallTimer = setTimeout(recover, 8000);
+  }));
+  // wrócił internet — od razu kolejna próba
+  window.addEventListener('online', () => { if (recovering) { clearTimeout(retryTimer); tries = Math.max(0, tries - 1); recover(); } });
+  return {
+    onError() {
+      const err = audioEl.error;
+      const network = err && (err.code === 2 || err.code === 3); // 2 = sieć, 3 = urwany/uszkodzony kawałek pliku
+      if (!(wantPlaying || recovering) || !network) return false;
+      recover();
+      return true;
+    }
+  };
+})();
 
 // Doładowanie NASTĘPNEGO nagrania w tle, gdy obecne już się całe wczytało (albo gra od 30 s).
 // "Schowek" apki (sw.js) zapisuje je w telefonie, więc "następne" startuje od razu, nawet przy słabym zasięgu.
@@ -4893,8 +4972,10 @@ function prefetchNextTrack() {
   const list = playableTracks();
   const pos = list.findIndex(x => x.point === loadedPoint && x.i === loadedTrackIndex);
   const next = pos >= 0 ? list[pos + 1] : null;
-  if (!next) return;
-  fetch(next.point.tracks[next.i].audio).then(r => r.blob()).catch(() => {});
+  // obecne nagranie też trafia do schowka (odtwarzacz gra je prosto z sieci — patrz sw.js), potem następne
+  fetch(src).then(r => r.blob()).catch(() => {}).then(() => {
+    if (next) fetch(next.point.tracks[next.i].audio).then(r => r.blob()).catch(() => {});
+  });
 }
 function fullyBuffered() {
   const b = audioEl.buffered, d = audioEl.duration;
