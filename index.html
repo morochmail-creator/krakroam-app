@@ -2625,7 +2625,7 @@ const initialCityBounds = L.latLngBounds(
   POINTS.map(p => [p.lat, p.lng]).concat([[50.0492, 19.9463], [50.0397, 19.9499]])
 );
 // wspólny "rysownik" linii (trasa złota, linia prowadząca niebieska) — patrz redrawLinesWhileZooming niżej
-const lineRenderer = L.svg({ padding: 0.5 });
+const lineRenderer = L.svg({ padding: 0.15 }); // mały zapas: przy obróconej mapie warstwa linii i tak jest większa, a na iPhonie duża warstwa = brak pamięci
 const canRotateMap = typeof L.Map.prototype.setBearing === 'function'; // biblioteka obracania wczytana
 // Obrót dwoma palcami startuje dopiero po wyraźnym skręcie palców — patrz OBRACANIE MAPY niżej.
 // Musi być ustawione PRZED utworzeniem mapy (biblioteka podpina obsługę dotyku przy starcie mapy).
@@ -2695,15 +2695,14 @@ const conn = navigator.connection || navigator.mozConnection || navigator.webkit
 const isSlowConnection = !!(conn && (conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType)));
 
 /* ---------- PŁYNNE PRZESUWANIE MAPY ----------
-   Wcześniej przy przesuwaniu na brzegach ekranu pojawiały się puste (czarne) kwadraty, które dopiero po
-   chwili wypełniały się mapą. Teraz:
-   1) "Zapas" — kafelki ładujemy nie tylko na sam ekran, ale też pas wokół niego (TILE_PRELOAD_PX), więc
-      zanim palcem dociągniesz mapę, ten kawałek zwykle już jest w telefonie.
-   2) "Podkład" — pod zwykłą mapą leży ta sama mapa w mniejszej szczegółowości (2 poziomy zoomu niżej,
-      ~16x mniej kafelków na ten sam obszar, ładuje się błyskawicznie i z dużym zapasem). Gdy ostry kafelek
-      jeszcze się ładuje, widać pod nim lekko rozmytą mapę zamiast pustego pola — ostra wersja płynnie na nią
-      "wjeżdża" (jak w Google Maps). */
-const TILE_PRELOAD_PX = isSlowConnection ? 0 : 384;
+   Kafelki ładujemy nie tylko na sam ekran, ale też wąski pas wokół niego (TILE_PRELOAD_PX), więc zanim
+   palcem dociągniesz mapę, ten kawałek zwykle już jest w telefonie.
+   UWAGA (iPhone): Safari ma mało pamięci na stronę. Wcześniejszy "podkład" z rozciągniętych kafelków
+   + szeroki zapas + obracanie mapy zjadały jej tyle, że przy obracaniu/szybkim zoomie Safari zamykało
+   stronę ("Wielokrotnie wystąpił problem..."). Dlatego: bez podkładu, a na iPhonie mniejszy zapas
+   i mniej trzymanych "starych" kafelków. Mniej kafelków naraz = też płynniejsze przesuwanie. */
+const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const TILE_PRELOAD_PX = isSlowConnection ? 0 : (isIOSDevice ? 128 : 256);
 function withPreload(layer, px) {
   if (!px) return layer;
   const orig = layer._getTiledPixelBounds;
@@ -2716,23 +2715,12 @@ function withPreload(layer, px) {
 function makeTileLayers(url, extra) {
   const main = withPreload(L.tileLayer(url, Object.assign({
     maxZoom: 19,
-    zIndex: 2,
-    keepBuffer: isSlowConnection ? 1 : 4,
+    keepBuffer: isSlowConnection || isIOSDevice ? 1 : 2,
     updateWhenIdle: isSlowConnection ? true : false, // na słabym internecie nie ściągamy kafelków "w locie" podczas przesuwania
     updateWhenZooming: false,
-    updateInterval: 120
+    updateInterval: 200
   }, extra)), TILE_PRELOAD_PX);
-  const under = withPreload(L.tileLayer(url, Object.assign({
-    maxZoom: 19,
-    zIndex: 1,
-    tileSize: 1024,   // kafelek z 2 poziomów niżej rozciągnięty 4x = ten sam obszar co 16 zwykłych
-    zoomOffset: -2,
-    keepBuffer: 3,
-    updateWhenIdle: false,
-    updateWhenZooming: false,
-    className: 'tile-underlay'
-  }, extra)), 1024);
-  return { main, under };
+  return { main };
 }
 
 const osmTiles = makeTileLayers('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { subdomains: 'abc' });
@@ -2740,8 +2728,8 @@ const satTiles = makeTileLayers('https://server.arcgisonline.com/ArcGIS/rest/ser
 const osmLayer = osmTiles.main;
 const satLayer = satTiles.main;
 function showTiles(on, off) {
-  [off.main, off.under].forEach(l => { if (map.hasLayer(l)) map.removeLayer(l); });
-  [on.under, on.main].forEach(l => { if (!map.hasLayer(l)) l.addTo(map); });
+  if (map.hasLayer(off.main)) map.removeLayer(off.main);
+  if (!map.hasLayer(on.main)) on.main.addTo(map);
 }
 
 showTiles(satTiles, osmTiles);
