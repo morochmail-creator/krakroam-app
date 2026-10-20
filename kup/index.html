@@ -122,6 +122,9 @@
   .carousel { position: relative; margin: 0 -16px; }
   .slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding: 4px 0 18px; }
   .slides::-webkit-scrollbar { display: none; }
+  /* telefony gasną przy krawędziach, zanim dojadą pod strzałki */
+  .slides { -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 8px, #000 56px, #000 calc(100% - 56px), transparent calc(100% - 8px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, transparent 8px, #000 56px, #000 calc(100% - 56px), transparent calc(100% - 8px), transparent 100%); }
+  .slide .phone { will-change: transform, opacity; }
   .slide { flex: 0 0 100%; display: flex; justify-content: center; scroll-snap-align: center; scroll-snap-stop: always; }
   .phone { width: 250px; padding: 7px; border-radius: 40px; background: #0b0a08; border: 1.5px solid rgba(255,255,255,0.22); box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.04); }
   .phone img { display: block; width: 100%; height: auto; aspect-ratio: 560 / 1192; border-radius: 33px; }
@@ -485,7 +488,18 @@
       fadeT = setTimeout(function () { heroText(i); hero.classList.remove('fade'); }, 200);
     }
     function go(i) { slides.scrollTo({ left: i * slides.clientWidth, behavior: 'smooth' }); }
-    slides.addEventListener('scroll', function () { mark(Math.round(slides.scrollLeft / slides.clientWidth)); }, { passive: true });
+    var slideEls = slides.querySelectorAll('.slide');
+    function fadeSlides() {
+      // im dalej telefon od środka, tym mniejszy i bardziej przezroczysty
+      var w = slides.clientWidth || 1, x = slides.scrollLeft / w;
+      slideEls.forEach(function (el, i) {
+        var d = Math.min(1, Math.abs(i - x)), ph = el.firstElementChild;
+        ph.style.opacity = String(1 - d * 0.85);
+        ph.style.transform = 'scale(' + (1 - d * 0.12) + ')';
+      });
+    }
+    slides.addEventListener('scroll', function () { mark(Math.round(slides.scrollLeft / slides.clientWidth)); fadeSlides(); }, { passive: true });
+    fadeSlides();
     function stopAuto() { clearInterval(autoT); autoT = null; }
     ['touchstart', 'pointerdown', 'wheel'].forEach(function (ev) { slides.addEventListener(ev, stopAuto, { passive: true }); });
     document.getElementById('prev').addEventListener('click', function () { stopAuto(); go((cur + SL.length - 1) % SL.length); });
