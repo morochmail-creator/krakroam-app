@@ -157,11 +157,16 @@
   .dots button::after { content: ""; width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,0.3); transition: width .2s, background .2s; }
   .dots button.on::after { width: 20px; background: var(--gold); }
 
+  /* mały, cichy link powrotu na stronę główną (mniej widoczny niż „Kup”) */
+  .top-r { display: flex; align-items: center; gap: 6px; }
+  .home { display: inline-flex; align-items: center; gap: 2px; color: var(--dim); text-decoration: none; font: 600 13px/1 'Inter', -apple-system, sans-serif; padding: 8px 8px 8px 4px; border-radius: 999px; }
+  .home svg { width: 16px; height: 16px; }
+  .home:hover { color: #fff; }
   /* duży monitor: cała strona proporcjonalnie większa (telefon bez zmian);
      wysokość panelu dzielona przez powiększenie, żeby nie wystawał poza ekran */
-  @media (min-width: 1280px) and (min-height: 680px) { html { zoom: 1.25; } .sheet { max-height: calc(92vh / 1.25); } }
-  @media (min-width: 1600px) and (min-height: 820px) { html { zoom: 1.4; } .sheet { max-height: calc(92vh / 1.4); } }
-  @media (min-width: 2200px) and (min-height: 1100px) { html { zoom: 1.8; } .sheet { max-height: calc(92vh / 1.8); } }
+  @media (min-width: 1280px) and (min-height: 680px) { html { zoom: 1.1; } .sheet { max-height: calc(92vh / 1.1); } }
+  @media (min-width: 1600px) and (min-height: 820px) { html { zoom: 1.2; } .sheet { max-height: calc(92vh / 1.2); } }
+  @media (min-width: 2200px) and (min-height: 1100px) { html { zoom: 1.5; } .sheet { max-height: calc(92vh / 1.5); } }
 </style>
 </head>
 <body>
@@ -169,7 +174,8 @@
 <div class="page">
   <div class="top">
     <a class="brand" href="/"><img src="/icon-192.png" alt="">KrakRoam</a>
-    <button type="button" class="flag" id="flag" aria-label="Language" aria-expanded="false"></button>
+    <div class="top-r"><a class="home" href="https://krakroam.pl/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span data-i18n="home"></span></a>
+    <button type="button" class="flag" id="flag" aria-label="Language" aria-expanded="false"></button></div>
     <div class="langs" id="langs"></div>
   </div>
 
@@ -288,7 +294,7 @@
     var HTML_LANG = { pl: 'pl', ua: 'uk', en: 'en', de: 'de', es: 'es' };
     var T = {
       pl: {
-        title: 'KrakRoam – kup audioprzewodnik',
+        title: 'KrakRoam – kup audioprzewodnik', home: 'Strona główna',
         h1a: 'Audioprzewodnik po Krakowie', h1b: 'w Twoim telefonie',
         sub: 'Bez aplikacji i bez grupy. Zwiedzasz w swoim tempie.',
         s1a: 'Kilka historii', s1b: 'przy każdym zabytku', s1s: 'Historia, legendy i ciekawostki w krótkich nagraniach.',
@@ -329,7 +335,7 @@
         pickRoute: 'Wybierz trasę', badEmail: 'Wpisz poprawny adres e-mail', soon: 'Płatności ruszą już wkrótce.'
       },
       ua: {
-        title: 'KrakRoam – купити аудіогід',
+        title: 'KrakRoam – купити аудіогід', home: 'Головна',
         h1a: 'Аудіогід Краковом', h1b: 'у твоєму телефоні',
         sub: 'Без застосунку і без групи. Гуляй у своєму темпі.',
         s1a: 'Кілька історій', s1b: 'біля кожної пам’ятки', s1s: 'Історія, легенди й цікавинки в коротких записах.',
@@ -370,7 +376,7 @@
         pickRoute: 'Обери маршрут', badEmail: 'Введи правильну адресу e-mail', soon: 'Оплата запрацює зовсім скоро.'
       },
       en: {
-        title: 'KrakRoam – get the audio guide',
+        title: 'KrakRoam – get the audio guide', home: 'Home',
         h1a: 'Kraków audio guide', h1b: 'on your phone',
         sub: 'No app, no group. Explore at your own pace.',
         s1a: 'Several stories', s1b: 'at every landmark', s1s: 'History, legends and fun facts in short recordings.',
@@ -411,7 +417,7 @@
         pickRoute: 'Choose a route', badEmail: 'Enter a valid email address', soon: 'Payments are coming very soon.'
       },
       de: {
-        title: 'KrakRoam – Audioguide kaufen',
+        title: 'KrakRoam – Audioguide kaufen', home: 'Startseite',
         h1a: 'Audioguide für Krakau', h1b: 'auf deinem Handy',
         sub: 'Ohne App und ohne Gruppe. In deinem Tempo.',
         s1a: 'Mehrere Geschichten', s1b: 'an jedem Ort', s1s: 'Geschichte, Legenden und Kurioses in kurzen Aufnahmen.',
@@ -452,7 +458,7 @@
         pickRoute: 'Wähle eine Route', badEmail: 'Gib eine gültige E-Mail-Adresse ein', soon: 'Zahlungen starten in Kürze.'
       },
       es: {
-        title: 'KrakRoam – compra la audioguía',
+        title: 'KrakRoam – compra la audioguía', home: 'Inicio',
         h1a: 'Audioguía de Cracovia', h1b: 'en tu móvil',
         sub: 'Sin app y sin grupo. Explora a tu ritmo.',
         s1a: 'Varias historias', s1b: 'en cada monumento', s1s: 'Historia, leyendas y curiosidades en grabaciones cortas.',
