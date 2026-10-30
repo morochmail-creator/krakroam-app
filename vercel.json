@@ -6,6 +6,11 @@
       "permanent": false
     },
     {
+      "source": "/kup/",
+      "destination": "/audio",
+      "permanent": false
+    },
+    {
       "source": "/kup/:path*",
       "destination": "/audio",
       "permanent": false
