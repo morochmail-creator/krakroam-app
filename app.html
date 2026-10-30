@@ -3109,27 +3109,75 @@ let navTargetLatLng = null; // null = brak wybranego celu — kropka nawigacji n
 let navTargetName = null;
 
 /* ---------- Płynny ruch kropki GPS ----------
-   Telefon podaje pozycję mniej więcej co sekundę, więc kropka "skakała" od punktu do punktu.
-   Teraz jedzie płynnie od starej do nowej pozycji przez mniej więcej tyle czasu, ile minęło od
-   poprzedniego odczytu (wygląda jak ciągły marsz). Duży skok (np. pierwsze złapanie GPS po wyjściu
-   z budynku, > 150 m) — kropka przeskakuje od razu, żeby nie "jechała" przez pół miasta. */
-let gpsAnim = 0, lastGpsFixAt = 0;
-function moveGpsMarkerSmoothly(to) {
+   Problem: telefon podaje pozycję nierówno (raz dwie naraz, raz nic przez 2-3 s) i z "szumem" — kolejne
+   odczyty skaczą o kilka metrów na boki, nawet gdy idziesz prosto. Poprzednia wersja tylko przesuwała
+   kropkę od odczytu do odczytu, więc szła zrywami: szybki skok, postój, skok.
+   Teraz (jak w nawigacjach):
+   1) Filtr pozycji — każdy odczyt GPS ma podaną dokładność (np. ±8 m). Dokładne odczyty ważą dużo,
+      niedokładne mało, więc pojedynczy "odskok" GPS tylko lekko szturcha kropkę zamiast nią rzucać.
+   2) Prędkość i kierunek marszu — z GPS (albo z kolejnych pozycji); między odczytami kropka sama idzie
+      dalej w tym kierunku (maks. 1,5 s), więc nie staje co sekundę. Gdy stoisz, prędkość = 0 i kropka stoi.
+   3) Kropka płynnie "dojeżdża" do wyliczonej pozycji w każdej klatce ekranu (bez skoków).
+   Duży skok (> 150 m, np. pierwsza pozycja po wyjściu z budynku) — kropka przeskakuje od razu. */
+const gpsTrack = { ref: null, x: 0, y: 0, P: 0, vx: 0, vy: 0, t: 0, dispX: 0, dispY: 0, raf: 0, frameAt: 0 };
+const GPS_Q = 9;          // jak szybko może się zmienić ruch pieszego (większe = kropka szybciej reaguje)
+const GPS_PREDICT_S = 1.5; // jak długo kropka sama "idzie dalej" bez nowego odczytu
+function gpsXY(lat, lng) {
+  const r = gpsTrack.ref;
+  return [(lng - r.lng) * 111320 * Math.cos(r.lat * Math.PI / 180), (lat - r.lat) * 110540];
+}
+function gpsLL(x, y) {
+  const r = gpsTrack.ref;
+  return [r.lat + y / 110540, r.lng + x / (111320 * Math.cos(r.lat * Math.PI / 180))];
+}
+function gpsReset(to, acc) {
+  Object.assign(gpsTrack, { ref: { lat: to[0], lng: to[1] }, x: 0, y: 0, P: acc * acc, vx: 0, vy: 0, t: performance.now(), dispX: 0, dispY: 0 });
+  gpsMarker.setLatLng(to);
+}
+function moveGpsMarkerSmoothly(to, accuracy, speed, course) {
   const now = performance.now();
-  const gap = lastGpsFixAt ? now - lastGpsFixAt : 1000;
-  lastGpsFixAt = now;
-  cancelAnimationFrame(gpsAnim);
-  const from = gpsMarker.getLatLng();
-  const meters = distMeters([from.lat, from.lng], to);
-  if (meters > 150 || meters < 0.3 || document.hidden) { gpsMarker.setLatLng(to); return; }
-  const dur = Math.max(300, Math.min(1500, gap * 0.9));
-  const t0 = now;
-  const step = t => {
-    const k = Math.min(1, (t - t0) / dur);
-    gpsMarker.setLatLng([from.lat + (to[0] - from.lat) * k, from.lng + (to[1] - from.lng) * k]);
-    if (k < 1) gpsAnim = requestAnimationFrame(step);
-  };
-  gpsAnim = requestAnimationFrame(step);
+  const acc = Math.max(3, Math.min(isFinite(accuracy) && accuracy > 0 ? accuracy : 20, 150));
+  const g = gpsTrack;
+  if (!g.ref || document.hidden || distMeters(gpsLL(g.x, g.y), to) > 150) { gpsReset(to, acc); return; }
+  const dt = Math.max(0.05, Math.min(10, (now - g.t) / 1000));
+  // przewidywanie: gdzie powinieneś być, idąc dalej tym samym krokiem
+  const px = g.x + g.vx * Math.min(dt, GPS_PREDICT_S), py = g.y + g.vy * Math.min(dt, GPS_PREDICT_S);
+  const P = g.P + GPS_Q * dt;
+  // poprawka o nowy odczyt — tym mocniejsza, im dokładniejszy odczyt
+  const [mx, my] = gpsXY(to[0], to[1]);
+  const K = P / (P + acc * acc);
+  const nx = px + K * (mx - px), ny = py + K * (my - py);
+  g.P = (1 - K) * P;
+  // prędkość: z GPS, jeśli telefon ją podaje (najdokładniejsza), inaczej z przesunięcia
+  let vx, vy;
+  if (speed !== null && speed !== undefined && isFinite(speed) && speed >= 0 && course !== null && isFinite(course)) {
+    const r = course * Math.PI / 180;
+    vx = speed * Math.sin(r); vy = speed * Math.cos(r);
+  } else if (speed === 0) {
+    vx = 0; vy = 0;
+  } else {
+    vx = g.vx + ((nx - g.x) / dt - g.vx) * 0.4;
+    vy = g.vy + ((ny - g.y) / dt - g.vy) * 0.4;
+  }
+  const v = Math.hypot(vx, vy);
+  if (v < 0.35) { vx = 0; vy = 0; }                 // stoisz — kropka nie "pełznie"
+  else if (v > 3) { vx *= 3 / v; vy *= 3 / v; }     // pieszo nie szybciej niż ~11 km/h
+  Object.assign(g, { x: nx, y: ny, vx, vy, t: now });
+  if (!g.raf) { g.frameAt = now; g.raf = requestAnimationFrame(gpsFrame); }
+}
+function gpsFrame(now) {
+  const g = gpsTrack;
+  g.raf = 0;
+  if (!gpsMarker || !g.ref) return;
+  const sinceFix = Math.min((now - g.t) / 1000, GPS_PREDICT_S);
+  const tx = g.x + g.vx * sinceFix, ty = g.y + g.vy * sinceFix;
+  const k = 1 - Math.exp(-Math.max(0, now - g.frameAt) / 450); // płynne "dojeżdżanie" (~0,45 s)
+  g.frameAt = now;
+  g.dispX += (tx - g.dispX) * k;
+  g.dispY += (ty - g.dispY) * k;
+  gpsMarker.setLatLng(gpsLL(g.dispX, g.dispY));
+  const moving = (g.vx || g.vy) && (now - g.t) / 1000 < GPS_PREDICT_S;
+  if (moving || Math.hypot(tx - g.dispX, ty - g.dispY) > 0.05) g.raf = requestAnimationFrame(gpsFrame);
 }
 
 /* ---------- Kompas: kierunek, w którym patrzy telefon ---------- */
@@ -3146,8 +3194,14 @@ let lastCompassHeading = null; // ostatni (wygładzony) kierunek — potrzebny t
 let headingVec = null;          // uśredniony kierunek jako wektor (unika problemu 359° -> 0°)
 let lastCompassEventAt = 0;
 let beamRaf = 0;
+let headingFedAt = 0;
+// weight = stała siła (np. kierunek marszu z GPS); bez niej — wygładzanie wg czasu (~0,25 s), niezależnie od tego,
+// czy telefon wysyła 10 czy 60 odczytów na sekundę (wcześniej na szybszych telefonach stożek był nerwowy)
 function feedHeading(heading, weight) {
   const r = heading * Math.PI / 180, x = Math.sin(r), y = Math.cos(r);
+  const now = performance.now();
+  if (weight === undefined) weight = 1 - Math.exp(-Math.min(500, now - (headingFedAt || now - 16)) / 250);
+  headingFedAt = now;
   if (!headingVec) headingVec = { x, y };
   else { headingVec.x += (x - headingVec.x) * weight; headingVec.y += (y - headingVec.y) * weight; }
   lastCompassHeading = (Math.atan2(headingVec.x, headingVec.y) * 180 / Math.PI + 360) % 360;
@@ -3191,15 +3245,26 @@ function handleOrientation(e) {
     if (e.webkitCompassAccuracy < 0) return; // iOS: kompas niewiarygodny (np. przy metalu) — pomijamy
     heading = e.webkitCompassHeading; // iOS Safari — już zgodnie z ruchem wskazówek zegara od północy
   } else if (e.absolute && e.alpha !== null && e.alpha !== undefined) {
-    heading = 360 - e.alpha; // Android / inne przeglądarki
+    // Android: samo "360 - alpha" działa tylko przy telefonie leżącym płasko. Przy marszu telefon jest
+    // trzymany pod kątem (często prawie pionowo) i wtedy ten odczyt wariował / obracał się o 180°.
+    // Liczymy więc kierunek "przodu" telefonu: góra ekranu, gdy leży płasko, a kierunek aparatu z tyłu,
+    // gdy stoi pionowo — pośrednio płynnie jedno w drugie, bez przeskoków.
+    const d = Math.PI / 180;
+    const cA = Math.cos(e.alpha * d), sA = Math.sin(e.alpha * d);
+    const cB = Math.cos((e.beta || 0) * d), sB = Math.sin((e.beta || 0) * d);
+    const cG = Math.cos((e.gamma || 0) * d), sG = Math.sin((e.gamma || 0) * d);
+    const vx = -sA * cB - (cA * sG + sA * sB * cG);
+    const vy = cA * cB - (sA * sG - cA * sB * cG);
+    if (Math.hypot(vx, vy) < 0.2) return; // telefon ekranem w dół / w niebo pod dziwnym kątem — odczyt bez sensu
+    heading = Math.atan2(vx, vy) / d;
     // telefon obrócony poziomo — kierunek liczony od "góry ekranu"
     const so = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
-    heading = (heading + so + 360) % 360;
+    heading = (heading + so + 720) % 360;
   } else {
     return;
   }
   lastCompassEventAt = Date.now();
-  if (!viewMode3D) { feedHeading(heading, 0.15); return; }
+  if (!viewMode3D) { feedHeading(heading); return; }
   if (viewMode3D) {
     // w trybie 3D cała mapa obraca się pod Tobą (heading-up) — stożek GPS zostaje zwrócony "do góry" (patrz setViewMode3D)
     updateMapHeadingRotation(heading);
@@ -3588,12 +3653,14 @@ function startLocationTracking(flyOnFirstFix) {
       // leżące obok Ciebie (czyli prawie zawsze te, które turysta chce akurat kliknąć)
       gpsMarker = L.marker(userLatLng, { icon: gpsIcon, interactive: false, keyboard: false, zIndexOffset: -100 }).addTo(map);
       gpsMarker.on('add', () => updateBeamRotation(lastCompassHeading));
+      gpsReset(userLatLng, Math.max(3, Math.min(pos.coords.accuracy || 20, 150)));
     } else {
-      moveGpsMarkerSmoothly(userLatLng);
+      moveGpsMarkerSmoothly(userLatLng, pos.coords.accuracy, pos.coords.speed, pos.coords.heading);
     }
-    // brak (wiarygodnego) kompasu, a Ty idziesz — stożek pokazuje kierunek marszu z GPS
+    // brak kompasu (od dłuższej chwili nic nie wysyła), a Ty idziesz — stożek pokazuje kierunek marszu z GPS.
+    // Wcześniej przejmowało to już po 3 s ciszy kompasu i oba źródła "przeciągały" stożek — stąd skoki.
     const c = pos.coords;
-    if (Date.now() - lastCompassEventAt > 3000 && c.heading !== null && !isNaN(c.heading) && c.speed > 0.8) {
+    if (Date.now() - lastCompassEventAt > 10000 && c.heading !== null && !isNaN(c.heading) && c.speed > 0.8) {
       feedHeading(c.heading, 0.5);
     }
     document.getElementById('gps-hint').classList.add('hidden'); // zgoda uzyskana — tłumaczący tekst już niepotrzebny
@@ -3636,7 +3703,7 @@ function startLocationTracking(flyOnFirstFix) {
     // brak zgody na lokalizację — pokazujemy instrukcję, jak ją włączyć (raz na wejście do apki samoczynnie,
     // a zawsze, gdy user SAM stuknął "pokaż moją lokalizację" / "Włącz")
     if (flyOnFirstFix || !permHelpAutoShown) { permHelpAutoShown = true; showPermHelp('location'); }
-  }, { enableHighAccuracy: true, maximumAge: 5000 });
+  }, { enableHighAccuracy: true, maximumAge: 0 }); // zawsze świeża pozycja (stare z pamięci telefonu dawały skoki)
 }
 
 /* ============================================================
