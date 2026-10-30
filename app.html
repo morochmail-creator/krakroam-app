@@ -283,14 +283,6 @@
   .district-row[data-district="free-roam"] .dr-cover { background-image: linear-gradient(135deg, #5d7a68 0%, #3b5446 100%); }
   .district-row[data-district="free-roam"] .dr-cover { height: 60px; padding: 9px 14px; }
   .district-row.disabled .dr-cover { height: 60px; padding: 9px 14px; background-image: linear-gradient(135deg, #b9b3a4 0%, #8e887a 100%); }
-  .district-row-icon {
-    position: relative; z-index: 1;
-    flex-shrink: 0; width: 42px; height: 42px; border-radius: 13px;
-    background: rgba(255,255,255,0.92);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .district-row-icon svg { width: 21px; height: 21px; stroke: var(--brass-deep); }
-  .district-row.disabled .district-row-icon svg { stroke: var(--ink-dim); }
   .district-row-body { display: flex; align-items: center; gap: 10px; padding: 12px 14px 14px; }
   .district-row-mid { flex: 1; min-width: 0; }
   .dr-title { font-size: 16.5px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
@@ -1214,15 +1206,6 @@
 
       <div class="district-row" data-district="stare-miasto">
         <div class="dr-cover">
-          
-          <div class="district-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4.5 21V8.5l2-5 2 5V21"></path>
-            <path d="M15.5 21v-8a2 2 0 1 1 4 0v8"></path>
-            <path d="M9 21v-5.5a3 3 0 0 1 6 0V21"></path>
-            <path d="M3 21h18"></path>
-          </svg>
-        </div>
         </div>
         <div class="district-row-body">
         <div class="district-row-mid">
@@ -1238,12 +1221,6 @@
       <div class="district-row disabled" data-district="kazimierz">
         <div class="dr-cover">
           <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
-          <div class="district-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2 L20.5 17 L3.5 17 Z"></path>
-            <path d="M12 22 L3.5 7 L20.5 7 Z"></path>
-          </svg>
-        </div>
         </div>
         <div class="district-row-body">
         <div class="district-row-mid">
@@ -1256,13 +1233,6 @@
       <div class="district-row disabled" data-district="podgorze">
         <div class="dr-cover">
           <div class="dr-badge" data-i18n="comingSoon">Wkrótce</div>
-          <div class="district-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 21V12l4 2v-2l4 2v-2l4 2v-3h4v10"></path>
-            <path d="M3 21h18"></path>
-            <path d="M17 8V5"></path>
-          </svg>
-        </div>
         </div>
         <div class="district-row-body">
         <div class="district-row-mid">
@@ -1274,13 +1244,6 @@
 
       <div class="district-row" data-district="free-roam">
         <div class="dr-cover">
-          
-          <div class="district-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path d="M15 9l-2 6-6 2 2-6 6-2z"></path>
-          </svg>
-        </div>
         </div>
         <div class="district-row-body">
         <div class="district-row-mid">
