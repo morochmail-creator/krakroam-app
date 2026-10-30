@@ -1,7 +1,143 @@
 {
+  "redirects": [
+    {
+      "source": "/kup",
+      "destination": "/audio",
+      "permanent": false
+    },
+    {
+      "source": "/kup/:path*",
+      "destination": "/audio",
+      "permanent": false
+    },
+    {
+      "source": "/www",
+      "has": [
+        {
+          "type": "host",
+          "value": "krakroam.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www/",
+      "has": [
+        {
+          "type": "host",
+          "value": "krakroam.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www/index.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "krakroam.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.krakroam.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.krakroam.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www/index.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.krakroam.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "krakroam.pl"
+        }
+      ],
+      "destination": "/www/index.html"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.krakroam.pl"
+        }
+      ],
+      "destination": "/www/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/audio",
+      "destination": "/audio/index.html"
+    }
+  ],
   "headers": [
-    { "source": "/audio/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
-    { "source": "/foto/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
-    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    {
+      "source": "/audio/:lang/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/foto/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
   ]
 }
