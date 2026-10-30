@@ -156,6 +156,12 @@
   .dots button { width: 24px; height: 24px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center; }
   .dots button::after { content: ""; width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,0.3); transition: width .2s, background .2s; }
   .dots button.on::after { width: 20px; background: var(--gold); }
+
+  /* duży monitor: cała strona proporcjonalnie większa (telefon bez zmian);
+     wysokość panelu dzielona przez powiększenie, żeby nie wystawał poza ekran */
+  @media (min-width: 1280px) and (min-height: 680px) { html { zoom: 1.25; } .sheet { max-height: calc(92vh / 1.25); } }
+  @media (min-width: 1600px) and (min-height: 820px) { html { zoom: 1.4; } .sheet { max-height: calc(92vh / 1.4); } }
+  @media (min-width: 2200px) and (min-height: 1100px) { html { zoom: 1.8; } .sheet { max-height: calc(92vh / 1.8); } }
 </style>
 </head>
 <body>
