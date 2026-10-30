@@ -522,24 +522,41 @@
       cur = i; hero.classList.add('fade'); clearTimeout(fadeT);
       fadeT = setTimeout(function () { heroText(i); hero.classList.remove('fade'); }, 200);
     }
-    function go(i) { loadShots(); slides.scrollTo({ left: i * slides.clientWidth, behavior: 'smooth' }); }
+    // pętla bez końca: na początku kopia ostatniego telefonu, na końcu kopia pierwszego;
+    // gdy przewinie się na kopię, po cichu przeskakujemy na prawdziwy telefon
+    var N = SL.length, realEls = slides.querySelectorAll('.slide');
+    function ghost(el) { var c = el.cloneNode(true); c.setAttribute('aria-hidden', 'true'); c.style.pointerEvents = 'none'; return c; }
+    var headClone = ghost(realEls[N - 1]), tailClone = ghost(realEls[0]);
+    slides.insertBefore(headClone, realEls[0]); slides.appendChild(tailClone);
     var slideEls = slides.querySelectorAll('.slide');
+    function w() { return slides.clientWidth || 1; }
+    function pos() { return Math.round(slides.scrollLeft / w()); }
+    function jumpTo(p) { slides.scrollTo({ left: p * w(), behavior: 'instant' }); }
+    function goPos(p) { loadShots(); slides.scrollTo({ left: p * w(), behavior: 'smooth' }); }
+    function go(i) { goPos(i + 1); }
+    function settle() { var p = pos(); if (p <= 0) jumpTo(N); else if (p >= N + 1) jumpTo(1); fadeSlides(); }
     function fadeSlides() {
       // im dalej telefon od środka, tym mniejszy i bardziej przezroczysty
-      var w = slides.clientWidth || 1, x = slides.scrollLeft / w;
+      var x = slides.scrollLeft / w();
       slideEls.forEach(function (el, i) {
         var d = Math.min(1, Math.abs(i - x)), ph = el.firstElementChild;
         ph.style.opacity = String(1 - d * 0.85);
         ph.style.transform = 'scale(' + (1 - d * 0.12) + ')';
       });
     }
-    slides.addEventListener('scroll', function () { mark(Math.round(slides.scrollLeft / slides.clientWidth)); fadeSlides(); }, { passive: true });
+    var settleT = null;
+    slides.addEventListener('scroll', function () {
+      mark(((pos() - 1) % N + N) % N); fadeSlides();
+      clearTimeout(settleT); settleT = setTimeout(settle, 150);
+    }, { passive: true });
+    jumpTo(1);
+    window.addEventListener('resize', function () { jumpTo(((cur % N) + N) % N + 1); fadeSlides(); });
     fadeSlides();
     function stopAuto() { clearInterval(autoT); autoT = null; }
     ['touchstart', 'pointerdown', 'wheel'].forEach(function (ev) { slides.addEventListener(ev, stopAuto, { passive: true }); });
-    document.getElementById('prev').addEventListener('click', function () { stopAuto(); go((cur + SL.length - 1) % SL.length); });
-    document.getElementById('next').addEventListener('click', function () { stopAuto(); go((cur + 1) % SL.length); });
-    autoT = setInterval(function () { go((cur + 1) % SL.length); }, 4500);
+    document.getElementById('prev').addEventListener('click', function () { stopAuto(); goPos(pos() - 1); });
+    document.getElementById('next').addEventListener('click', function () { stopAuto(); goPos(pos() + 1); });
+    autoT = setInterval(function () { goPos(pos() + 1); }, 4500);
     mark(0);
 
     var RD = { old: 'rdOld', kaz: 'rdKaz', ghetto: 'rdGhetto' };
