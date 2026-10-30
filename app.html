@@ -890,8 +890,11 @@
   #sheet-grab::before {
     content: ""; display: block; width: 40px; height: 5px; border-radius: 3px; background: var(--line-strong);
   }
+  #sheet { touch-action: none; } /* panel da się przeciągać palcem z dowolnego miejsca */
   #sheet.open { transform: translateY(0); }
-  #sheet.peek { pointer-events: none; padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
+  #sheet.peek { padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
+  /* apka dodana do ekranu głównego (pełny ekran): zwinięty pasek bez dużej pustki pod spodem — w przeglądarce zostaje po staremu */
+  html.standalone #sheet.peek { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px) * 0.5); }
   #sheet.peek #sheet-peek-bar,
   #sheet.peek #sheet-grab,
   #sheet.peek #sheet-close { pointer-events: auto; }
@@ -1126,7 +1129,8 @@
   }
   #sheet-full-content > * { flex-shrink: 0; }
   #sheet-full-content > #track-list { flex-shrink: 1; }
-  #sheet button, #sheet .track-row { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+  #sheet button, #sheet .track-row { touch-action: none; -webkit-user-select: none; user-select: none; }
+  #sheet #track-list.scrollable .track-row { touch-action: pan-y; } /* lista nagrań z przewijaniem — przewija się sama, nie ciągnie panelu */
   .no-audio-note {
     font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; text-align: center;
   }
@@ -1596,6 +1600,7 @@ function lockApp() {
    działa w trybie standalone (już dodana), to nie telefon (desktop),
    albo user już kiedyś kliknął "nie pokazuj więcej".
 ============================================================ */
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) document.documentElement.classList.add('standalone');
 function isRunningStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
@@ -4425,31 +4430,35 @@ const sheetMove = (function () {
       const hidden = expandStart();
       requestAnimationFrame(() => { expandEnd(true, hidden); setTimeout(() => { busy = false; }, 340); });
     },
-    attach(el, canStart) {
-      let startY = null, startT = 0, mode = null, hidden = 0, collapseRange = 0;
+    attach(el) {
+      let startY = null, startT = 0, mode = null, hidden = 0, collapseRange = 0, onGrab = false, raf = 0, nextPx = 0;
+      // te miejsca mają własne gesty (suwaki, przewijana lista) — z nich panelu nie ciągniemy
+      const OWN_GESTURE = '#peek-seek, #progress-wrap, #volume, .popup, #track-list.scrollable';
+      const moveTo = px => { nextPx = px; if (!raf) raf = requestAnimationFrame(() => { raf = 0; setT(nextPx, false); }); };
       el.addEventListener('pointerdown', e => {
-        if (busy || e.target.closest('#peek-seek') || (e.target.closest('button') && el !== sheetGrabEl)) return;
-        startY = e.clientY; startT = Date.now(); mode = null; sheetDragMoved = false;
+        if (busy || e.target.closest(OWN_GESTURE)) return;
+        startY = e.clientY; startT = Date.now(); mode = null; sheetDragMoved = false; onGrab = !!e.target.closest('#sheet-grab');
       });
       document.addEventListener('pointermove', e => {
         if (startY === null) return;
         const dy = e.clientY - startY;
         if (!mode) {
           if (Math.abs(dy) <= 6) return;
-          sheetDragMoved = true;
           if (sheetPeek && dy < 0) { mode = 'expand'; hidden = expandStart(); }
           else if (!sheetPeek && dy > 0) { mode = 'collapse'; const h = heights(); collapseRange = h.fullH - h.peekH; }
           else { startY = null; return; }
+          sheetDragMoved = true;
         }
-        if (mode === 'expand') setT(Math.max(0, Math.min(hidden, hidden + dy)), false);
-        else setT(Math.max(0, dy), false);
+        if (mode === 'expand') moveTo(Math.max(0, Math.min(hidden, hidden + dy)));
+        else moveTo(Math.max(0, dy));
       });
       function end(e, cancelled) {
         if (startY === null) return;
         const dy = e.clientY - startY, fast = Math.abs(dy) / Math.max(1, Date.now() - startT) > 0.5;
         startY = null;
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
         if (!mode) {
-          if (!cancelled && !sheetDragMoved && el === sheetGrabEl) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); if (sheetPeek) sheetMove.expand(); else sheetMove.collapse(); }
+          if (!cancelled && !sheetDragMoved && onGrab) { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); if (sheetPeek) sheetMove.expand(); else sheetMove.collapse(); }
           return;
         }
         busy = true; setTimeout(() => { busy = false; sheetDragMoved = false; }, 340);
@@ -4459,12 +4468,13 @@ const sheetMove = (function () {
       }
       document.addEventListener('pointerup', e => end(e, false));
       document.addEventListener('pointercancel', e => end(e, true));
+      // po przeciągnięciu palec puszczony nad przyciskiem nie ma go "kliknąć"
+      el.addEventListener('click', e => { if (sheetDragMoved) { e.stopPropagation(); e.preventDefault(); } }, true);
     }
   };
 })();
 const sheetGrabEl = document.getElementById('sheet-grab');
-sheetMove.attach(sheetGrabEl);
-sheetMove.attach(document.getElementById('sheet-peek-bar'));
+sheetMove.attach(sheet);
 
 
 function flyToPointBehindSheet(point) {
