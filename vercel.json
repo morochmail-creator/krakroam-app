@@ -1,7 +1,117 @@
 {
+  "redirects": [
+    {
+      "source": "/kup",
+      "destination": "/audio",
+      "permanent": false
+    },
+    {
+      "source": "/kup/:path*",
+      "destination": "/audio",
+      "permanent": false
+    },
+    {
+      "source": "/www",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?krakroam\\.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www/",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?krakroam\\.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www/index.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?krakroam\\.pl"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/www/",
+      "has": [
+        {
+          "type": "query",
+          "key": "testhost"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "testhost"
+        }
+      ],
+      "destination": "/www/index.html"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?krakroam\\.pl"
+        }
+      ],
+      "destination": "/www/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/app.html"
+    }
+  ],
   "headers": [
-    { "source": "/audio/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
-    { "source": "/foto/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
-    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    {
+      "source": "/audio/:lang/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/foto/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
   ]
 }

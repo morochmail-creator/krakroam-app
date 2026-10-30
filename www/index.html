@@ -412,7 +412,7 @@
       hdr.innerHTML = FLAGS[l] + l.toUpperCase();
       // aplikacja czyta ?lang= i od razu startuje w tym języku
       document.querySelectorAll('.app-link').forEach(function (a) { a.href = 'https://app.krakroam.pl/?lang=' + l; });
-      document.querySelectorAll('.kup-link').forEach(function (a) { a.href = '/kup?lang=' + l; });
+      document.querySelectorAll('.kup-link').forEach(function (a) { a.href = '/audio?lang=' + l; });
       try { localStorage.setItem('krakroam_site_lang', l); } catch (e) {}
     }
     // próbki audio: jeden odtwarzacz naraz
