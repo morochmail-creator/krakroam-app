@@ -4453,6 +4453,21 @@ const sheetMove = (function () {
   function clearT() { sheet.style.transition = ''; sheet.style.transform = ''; }
   const fullEl = document.getElementById('sheet-full-content'), peekEl = document.getElementById('sheet-peek-bar');
   function fadeIn(el) { el.classList.remove('fade-in'); void el.offsetWidth; el.classList.add('fade-in'); setTimeout(() => el.classList.remove('fade-in'), 260); }
+  /* "Bezpiecznik": panel potrafił utknąć w połowie ruchu — np. gdy telefon "zgubił" puszczenie palca
+     (gest systemowy, palec zjechał poza ekran) albo szybkie stuknięcia nałożyły się na animację. Wtedy był
+     rozwinięty do połowy, bez listy nagrań i nic nie dało się wcisnąć. settle() zawsze doprowadza panel
+     do porządku zgodnego z jego stanem (zwinięty / rozwinięty): klasy, przesunięcie, widoczność treści. */
+  let watchdog = null;
+  function settle() {
+    clearTimeout(watchdog); watchdog = null;
+    if (!sheet.classList.contains('open')) return;
+    sheet.classList.toggle('peek', sheetPeek);
+    sheetBackdrop.classList.toggle('peek', sheetPeek);
+    clearT();
+    fullEl.style.transition = ''; fullEl.style.opacity = '';
+    busy = false;
+  }
+  function watch(ms) { clearTimeout(watchdog); watchdog = setTimeout(settle, ms || 700); }
   // rozwijanie: panel w pełnej wysokości, schowany tak, że widać tylko miejsce zwiniętego paska
   function expandStart() {
     const h = heights(), hidden = h.fullH - h.peekH;
@@ -4477,8 +4492,9 @@ const sheetMove = (function () {
       fullEl.style.transition = 'opacity 0.2s ease'; fullEl.style.opacity = '0'; // treść znika w trakcie zjazdu, więc nie ma "przeskoku" na pasek
       setT(h.fullH - h.peekH, true);
       setTimeout(() => {
-        setSheetPeek(true); setT(0, false); void sheet.offsetHeight; clearT();
-        fullEl.style.transition = ''; fullEl.style.opacity = '';
+        fullEl.style.transition = ''; fullEl.style.opacity = ''; // najpierw przywracamy treść — nawet gdyby coś niżej zawiodło
+        try { setSheetPeek(true); } catch (err) { console.error(err); }
+        setT(0, false); void sheet.offsetHeight; clearT();
         fadeIn(peekEl);
       }, 300);
     } else {
@@ -4486,23 +4502,26 @@ const sheetMove = (function () {
       setTimeout(clearT, 320);
     }
   }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) settle(); });
   return {
+    settle,
     collapse() { // z kliknięcia
-      if (busy || sheetPeek) return; busy = true;
+      if (busy || sheetPeek) return; busy = true; watch();
       setT(0, false); void sheet.offsetHeight;
       requestAnimationFrame(() => { collapseEnd(true); setTimeout(() => { busy = false; }, 360); });
     },
     expand() { // z kliknięcia
-      if (busy) return; busy = true;
+      if (busy) return; busy = true; watch();
       const hidden = expandStart();
       requestAnimationFrame(() => { expandEnd(true, hidden); setTimeout(() => { busy = false; }, 340); });
     },
     attach(el) {
-      let startY = null, startT = 0, mode = null, hidden = 0, collapseRange = 0, onGrab = false, raf = 0, nextPx = 0;
+      let startY = null, startT = 0, mode = null, hidden = 0, collapseRange = 0, onGrab = false, raf = 0, nextPx = 0, stuckTimer = null;
       // te miejsca mają własne gesty (suwaki, przewijana lista) — z nich panelu nie ciągniemy
       const OWN_GESTURE = '#peek-seek, #progress-wrap, #volume, .popup, #track-list.scrollable';
       const moveTo = px => { nextPx = px; if (!raf) raf = requestAnimationFrame(() => { raf = 0; setT(nextPx, false); }); };
       el.addEventListener('pointerdown', e => {
+        if (mode && startY !== null) end(e, true); // poprzedni gest nie dostał "puszczenia palca" — kończymy go teraz
         if (busy || e.target.closest(OWN_GESTURE)) return;
         startY = e.clientY; startT = Date.now(); mode = null; sheetDragMoved = false; onGrab = !!e.target.closest('#sheet-grab');
       });
@@ -4515,11 +4534,16 @@ const sheetMove = (function () {
           else if (!sheetPeek && dy > 0) { mode = 'collapse'; const h = heights(); collapseRange = h.fullH - h.peekH; }
           else { startY = null; return; }
           sheetDragMoved = true;
+          clearTimeout(watchdog); watchdog = null; // nowy gest — bezpiecznik z poprzedniego nie może go przerwać
         }
         if (mode === 'expand') moveTo(Math.max(0, Math.min(hidden, hidden + dy)));
         else moveTo(Math.max(0, dy));
+        // palec "zniknął" bez puszczenia (telefon zgubił zdarzenie) — po 1,5 s bez ruchu wracamy do porządku
+        clearTimeout(stuckTimer);
+        stuckTimer = setTimeout(() => { if (startY !== null && mode) end(e, true); }, 1500);
       });
       function end(e, cancelled) {
+        clearTimeout(stuckTimer);
         if (startY === null) return;
         const dy = e.clientY - startY, fast = Math.abs(dy) / Math.max(1, Date.now() - startT) > 0.5;
         startY = null;
@@ -4529,6 +4553,7 @@ const sheetMove = (function () {
           return;
         }
         busy = true; setTimeout(() => { busy = false; sheetDragMoved = false; }, 340);
+        watch();
         if (mode === 'expand') { const go = !cancelled && (-dy > hidden * 0.3 || (fast && dy < 0)); if (go) sfx.play('menuUp'); expandEnd(go, hidden); }
         else { const go = !cancelled && (dy > collapseRange * 0.3 || (fast && dy > 0)); if (go) sfx.play('menuDown'); collapseEnd(go); }
         mode = null;
