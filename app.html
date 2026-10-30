@@ -4562,7 +4562,22 @@ function flyToPointBehindSheet(point) {
   const targetPoint = map.project([point.lat, point.lng], targetZoom)
     .add(bearingRad && shift.rotate ? shift.rotate(-bearingRad) : shift);
   const targetLatLng = map.unproject(targetPoint, targetZoom);
-  map.flyTo(targetLatLng, targetZoom, { duration: 1.1 });
+  glideTo(targetLatLng, targetZoom, 1.1);
+}
+
+// Krótki ruch kamery bez zmiany przybliżenia (np. rozwinięcie panelu nad punktem, który już widać):
+// zwykłe przesunięcie mapy zamiast "lotu". Lot (flyTo) zawsze po drodze lekko oddala i przybliża mapę,
+// a wtedy punkty i linie są przerysowywane w każdej klatce i delikatnie "drgały". Przesunięcie rusza mapą
+// jak jednym obrazkiem — idealnie płynnie. Dalekie skoki albo zmiana przybliżenia — dalej lot.
+function glideTo(latlng, zoom, duration) {
+  const size = map.getSize();
+  const from = map.latLngToContainerPoint(map.getCenter()), to = map.latLngToContainerPoint(latlng);
+  const far = Math.abs(to.x - from.x) > size.x * 1.5 || Math.abs(to.y - from.y) > size.y * 1.5;
+  if (Math.abs(zoom - map.getZoom()) < 0.01 && !far) {
+    map.panTo(latlng, { animate: true, duration: Math.min(duration, 0.7), easeLinearity: 0.2 });
+  } else {
+    map.flyTo(latlng, zoom, { duration });
+  }
 }
 
 function openSheet(point, opts) {
