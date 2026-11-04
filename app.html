@@ -1274,7 +1274,7 @@
       </div>
       <div id="route-intro-eyebrow">Trasa</div>
       <div id="route-intro-title">Stare Miasto</div>
-      <div id="route-intro-meta">12 przystanków · ok. 2 godz. · 2,9 km</div>
+      <div id="route-intro-meta">12 przystanków · ok. 2 godz. · 2,5 km</div>
       <div id="route-intro-photos"><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div></div>
       <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
       <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
@@ -1863,7 +1863,20 @@ const PLACE_NAMES = {
   "Kamienica pod Rakiem":      { en: "The House Under the Crayfish" },
   "Jama Michalika":            { en: "Jama Michalika Café" },
   "Dom Jana Matejki":          { en: "Jan Matejko's House" },
-  "Łańcuchy na rogu ulic":     { en: "Street-Corner Chains" }
+  "Łańcuchy na rogu ulic":     { en: "Street-Corner Chains" },
+  "Hołd Pruski":               { en: "The Prussian Homage" },
+  "Przysięga Kościuszki":      { en: "Kościuszko's Oath" },
+  "Tablica ofiar smogu":       { en: "The Smog Victims Plaque" },
+  "Kamienica Podelwie":        { en: "The House Under the Elm" },
+  "Cegiełki wawelskie":        { en: "The Wawel Bricks" },
+  "Pomnik Tadeusza Kościuszki":{ en: "Tadeusz Kościuszko Monument" },
+  "Józef Dietl":               { en: "Józef Dietl" },
+  "Krakowskie gołębie":        { en: "Kraków's Pigeons" },
+  "Pawilon Wyspiańskiego":     { en: "Wyspiański Pavilion" },
+  "Kolegiata św. Anny":        { en: "St. Anne's Collegiate Church" },
+  "Ulica Kanonicza":           { en: "Kanonicza Street" },
+  "Ulica Grodzka":             { en: "Grodzka Street" },
+  "Dom Wita Stwosza":          { en: "Veit Stoss's House" }
 };
 const TITLE_TR = {
   "Średniowieczne fortyfikacje":  { en: "Medieval Fortifications" },
@@ -1895,7 +1908,16 @@ const TITLE_TR = {
   "Krwawy Burmistrz":             { en: "The Bloody Mayor" },
   "Dziedziniec":                  { en: "The Courtyard" },
   "Mikołaj Kopernik":             { en: "Nicolaus Copernicus" },
-  "Dawne życie akademickie":      { en: "Academic Life of Old" }
+  "Dawne życie akademickie":      { en: "Academic Life of Old" },
+  "Jan Matejko":                  { en: "Jan Matejko" },
+  "Tadeusz Kościuszko":           { en: "Tadeusz Kościuszko" },
+  "Przysięga Tadeusza Kościuszki":{ en: "Tadeusz Kościuszko's Oath" },
+  "Pomnik Kościuszki":            { en: "The Kościuszko Monument" },
+  "Średniowieczne kramy":         { en: "Medieval Market Stalls" },
+  "Zaczarowane gołębie":          { en: "The Enchanted Pigeons" },
+  "Św. Jan z Kęt":                { en: "St. John of Kanty" },
+  "Wnętrze Kolegiaty":            { en: "Inside the Collegiate Church" },
+  "Wnętrze kościoła":             { en: "Inside the Church" }
 };
 
 // polska nazwa → nazwa w aktualnym języku
@@ -2180,6 +2202,18 @@ const POINTS = [
     ]
   },
   {
+    id: "okol",
+    name: "Okół",
+    type: "main",
+    lat: 50.058111,
+    lng: 19.938017,
+    tracks: [
+      { number: "13.0", label: "Okół", audio: "audio/pl/13_0_Okol.mp3" },
+      { number: "13.1", label: "Ulica Grodzka", audio: "audio/pl/13_1_Ulica_Grodzka.mp3" },
+      { number: "13.2", label: "Dom Wita Stwosza", audio: "audio/pl/13_2_Dom_Wita_Stwosza.mp3" }
+    ]
+  },
+  {
     id: "paon-i-cyganeria",
     name: "Paon i Cyganeria",
     type: "extra",
@@ -2261,7 +2295,8 @@ const POINTS = [
     lat: 50.063378,
     lng: 19.943006,
     tracks: [
-      { number: "•", label: "Kościół św. Krzyża", audio: null }
+      { number: "•", label: "Kościół św. Krzyża", audio: "audio/pl/dodatkowe/Kosciol_sw_Krzyza.mp3" },
+      { number: "•", label: "Wnętrze kościoła", audio: "audio/pl/dodatkowe/Wnetrze_kosciola_krzyza.mp3" }
     ]
   },
   {
@@ -2302,7 +2337,8 @@ const POINTS = [
     lat: 50.063918,
     lng: 19.940726,
     tracks: [
-      { number: "•", label: "Dom Jana Matejki", audio: null }
+      { number: "•", label: "Jan Matejko", audio: "audio/pl/dodatkowe/Jan_Matejko.mp3" },
+      { number: "•", label: "Dom Jana Matejki", audio: "audio/pl/dodatkowe/Dom_Jana_Matejki.mp3" }
     ]
   },
   {
@@ -2314,10 +2350,134 @@ const POINTS = [
     tracks: [
       { number: "•", label: "Łańcuchy na rogu ulic", audio: "audio/pl/dodatkowe/Lancuchy_na_rogu_ulic.mp3" }
     ]
+  },
+  {
+    id: "hold-pruski",
+    name: "Hołd Pruski",
+    type: "extra",
+    lat: 50.061153,
+    lng: 19.936895,
+    tracks: [
+      { number: "•", label: "Hołd Pruski", audio: "audio/pl/dodatkowe/Hold_Pruski.mp3" }
+    ]
+  },
+  {
+    id: "przysiega-kosciuszki",
+    name: "Przysięga Kościuszki",
+    type: "extra",
+    lat: 50.061884,
+    lng: 19.936506,
+    tracks: [
+      { number: "•", label: "Tadeusz Kościuszko", audio: "audio/pl/dodatkowe/Tadeusz_Kosciuszko.mp3" },
+      { number: "•", label: "Przysięga Tadeusza Kościuszki", audio: "audio/pl/dodatkowe/Przysiega_Tadeusza_Kosciuszki.mp3" }
+    ]
+  },
+  {
+    id: "tablica-ofiar-smogu",
+    name: "Tablica ofiar smogu",
+    type: "extra",
+    lat: 50.065211,
+    lng: 19.938688,
+    tracks: [
+      { number: "•", label: "Tablica ofiar smogu", audio: "audio/pl/dodatkowe/Tablica_ofiar_smogu.mp3" }
+    ]
+  },
+  {
+    id: "kamienica-podelwie",
+    name: "Kamienica Podelwie",
+    type: "extra",
+    lat: 50.058617,
+    lng: 19.938026,
+    tracks: [
+      { number: "•", label: "Kamienica Podelwie", audio: "audio/pl/dodatkowe/Kamienica_Podelwie.mp3" }
+    ]
+  },
+  {
+    id: "collegium-iuridicum",
+    name: "Collegium Iuridicum",
+    type: "extra",
+    lat: 50.057102,
+    lng: 19.938088,
+    tracks: [
+      { number: "•", label: "Collegium Iuridicum", audio: "audio/pl/dodatkowe/Collegium_Iuridicum.mp3" },
+      { number: "•", label: "Średniowieczne kramy", audio: "audio/pl/dodatkowe/Sredniowieczne_kramy.mp3" }
+    ]
+  },
+  {
+    id: "ulica-kanonicza",
+    name: "Ulica Kanonicza",
+    type: "extra",
+    lat: 50.056715,
+    lng: 19.93753,
+    tracks: [
+      { number: "•", label: "Ulica Kanonicza", audio: "audio/pl/dodatkowe/Ulica_Kanonicza.mp3" }
+    ]
+  },
+  {
+    id: "cegielki-wawelskie",
+    name: "Cegiełki wawelskie",
+    type: "extra",
+    lat: 50.055195,
+    lng: 19.93592,
+    tracks: [
+      { number: "•", label: "Cegiełki wawelskie", audio: "audio/pl/dodatkowe/Cegielki_Wawelskie.mp3" }
+    ]
+  },
+  {
+    id: "pomnik-kosciuszki",
+    name: "Pomnik Tadeusza Kościuszki",
+    type: "extra",
+    lat: 50.05495,
+    lng: 19.935068,
+    tracks: [
+      { number: "•", label: "Pomnik Kościuszki", audio: "audio/pl/dodatkowe/Pomnik_Kosciuszki.mp3" }
+    ]
+  },
+  {
+    id: "jozef-dietl",
+    name: "Józef Dietl",
+    type: "extra",
+    lat: 50.059074,
+    lng: 19.93684,
+    tracks: [
+      { number: "•", label: "Józef Dietl", audio: "audio/pl/dodatkowe/Jozef_Dietl.mp3" }
+    ]
+  },
+  {
+    id: "krakowskie-golebie",
+    name: "Krakowskie gołębie",
+    type: "extra",
+    lat: 50.060855,
+    lng: 19.934254,
+    tracks: [
+      { number: "•", label: "Zaczarowane gołębie", audio: "audio/pl/dodatkowe/Zaczarowane_golebie.mp3" }
+    ]
+  },
+  {
+    id: "pawilon-wyspianskiego",
+    name: "Pawilon Wyspiańskiego",
+    type: "extra",
+    lat: 50.058866,
+    lng: 19.937798,
+    tracks: [
+      { number: "•", label: "Pawilon Wyspiańskiego", audio: null }
+    ]
+  },
+  {
+    id: "kolegiata-sw-anny",
+    name: "Kolegiata św. Anny",
+    type: "extra",
+    lat: 50.062214,
+    lng: 19.933347,
+    tracks: [
+      { number: "•", label: "Kolegiata św. Anny", audio: "audio/pl/dodatkowe/Kolegiata_sw_Anny.mp3" },
+      { number: "•", label: "Św. Jan z Kęt", audio: "audio/pl/dodatkowe/Sw_Jan_z_Ket.mp3" },
+      { number: "•", label: "Wnętrze Kolegiaty", audio: "audio/pl/dodatkowe/Wnetrze_Kolegiaty.mp3" }
+    ]
   }
 ];
 
-const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061431, 19.939104],  [50.061428, 19.939576],  [50.061475, 19.939709],  [50.061315, 19.940225],  [50.061653, 19.940473],  [50.061714, 19.940459],  [50.063997, 19.942162],  [50.063988, 19.942311],  [50.064083, 19.942248],  [50.064508, 19.942562],  [50.064551, 19.942454],  [50.064821, 19.94265],  [50.064858, 19.942521],  [50.065128, 19.941464],  [50.064802, 19.941341],  [50.064878, 19.940702],  [50.064827, 19.940361],  [50.064776, 19.93978],  [50.062339, 19.937961],  [50.06267, 19.936928],  [50.061724, 19.936086],  [50.061539, 19.936071],  [50.061398, 19.935726],  [50.061358, 19.935485],  [50.061774, 19.934314],  [50.061504, 19.934029],  [50.06103, 19.933709],  [50.060631, 19.934842],  [50.060403, 19.934624],  [50.06004, 19.934393],  [50.05915, 19.93461],  [50.059169, 19.934849],  [50.059191, 19.934953],  [50.059157, 19.935154],  [50.059169, 19.935254],  [50.059171, 19.935464],  [50.059354, 19.935433],  [50.059398, 19.936049],  [50.059398, 19.936063],  [50.059388, 19.936257],  [50.059362, 19.936413],  [50.059252, 19.93667],  [50.05913, 19.936953],  [50.05908, 19.937324],  [50.059069, 19.937676],  [50.058985, 19.93788],  [50.058168, 19.937994],  [50.057382, 19.938143],  [50.057052, 19.938311],  [50.056881, 19.938209],  [50.056883, 19.937887],  [50.056809, 19.937552],  [50.056378, 19.937461],  [50.056121, 19.937363],  [50.055826, 19.937083],  [50.055476, 19.936842],  [50.055481, 19.936702],  [50.055377, 19.936643],  [50.055027, 19.934987],  [50.054938, 19.934867],  [50.054835, 19.934825],  [50.054624, 19.934866]];
+const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061536, 19.938783],  [50.06143, 19.939094],  [50.061413, 19.939507],  [50.061428, 19.939576],  [50.061477, 19.939702],  [50.061419, 19.939918],  [50.061315, 19.940225],  [50.061638, 19.940464],  [50.061702, 19.940441],  [50.06246, 19.941005],  [50.063479, 19.941756],  [50.063925, 19.942128],  [50.063988, 19.942311],  [50.064074, 19.942251],  [50.064569, 19.942608],  [50.064614, 19.942486],  [50.064824, 19.942644],  [50.064858, 19.942521],  [50.064942, 19.94213],  [50.065128, 19.941464],  [50.064824, 19.941345],  [50.064962, 19.940577],  [50.064893, 19.940442],  [50.064832, 19.940414],  [50.064864, 19.940617],  [50.064838, 19.94101],  [50.064793, 19.94119],  [50.064742, 19.941254],  [50.064521, 19.941119],  [50.064081, 19.940795],  [50.063636, 19.940443],  [50.063011, 19.939966],  [50.062877, 19.939862],  [50.063093, 19.939133],  [50.063059, 19.938994],  [50.063086, 19.938789],  [50.063141, 19.938603],  [50.062378, 19.938052],  [50.062323, 19.938016],  [50.062483, 19.937501],  [50.062626, 19.937019],  [50.062635, 19.936925],  [50.061998, 19.936311],  [50.061782, 19.936124],  [50.061656, 19.93607],  [50.061539, 19.936071],  [50.061424, 19.935898],  [50.061357, 19.935472],  [50.061745, 19.934329],  [50.061742, 19.934261],  [50.06158, 19.934114],  [50.061504, 19.934029],  [50.061253, 19.933862],  [50.061033, 19.933746],  [50.060747, 19.934563],  [50.060643, 19.934818],  [50.060449, 19.934649],  [50.06023, 19.934469],  [50.060061, 19.934362],  [50.059689, 19.93444],  [50.059168, 19.934606],  [50.059166, 19.934786],  [50.059198, 19.934936],  [50.059168, 19.935096],  [50.059163, 19.935249],  [50.059171, 19.935464],  [50.059352, 19.935431],  [50.059399, 19.93608],  [50.059391, 19.936292],  [50.059359, 19.936426],  [50.059276, 19.936648],  [50.059202, 19.936671],  [50.059099, 19.936835],  [50.059035, 19.937009],  [50.058814, 19.937143],  [50.058889, 19.937608],  [50.058927, 19.93765],  [50.058897, 19.937745],  [50.058895, 19.937871],  [50.058425, 19.937969],  [50.058111, 19.938017],  [50.057759, 19.938064],  [50.057487, 19.938142]];
 
 /* ============================================================
    MAPA
@@ -3880,12 +4040,12 @@ function selectDistrict(freeRoam, options) {
 const ROUTE_INTRO_CONTENT = {
   'stare-miasto': {
     pl: {
-      meta: '12 przystanków · ok. 2 godz. · 2,9 km',
+      meta: '12 przystanków · ok. 2 godz. · 2,5 km',
       desc: 'Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.',
       highlights: ['Rynek Główny i Sukiennice', 'Bazylika Mariacka i hejnał', 'Barbakan i Brama Floriańska', 'Wieża Ratuszowa i Collegium Maius']
     },
     en: {
-      meta: '12 stops · approx. 2 hrs · 2.9 km',
+      meta: '12 stops · approx. 2 hrs · 2.5 km',
       desc: "A walk through the heart of medieval Kraków — from the Main Market Square, past St. Mary's Basilica, the Planty Park and the medieval walls, all the way to Collegium Maius and the Franciscan Church. Go at your own pace: the guide speaks up by itself when you reach the next place.",
       highlights: ['Main Market Square and the Cloth Hall', "St. Mary's Basilica and the bugle call", "The Barbican and St. Florian's Gate", 'Town Hall Tower and Collegium Maius']
     },
