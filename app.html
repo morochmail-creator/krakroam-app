@@ -2257,7 +2257,9 @@ const POINTS = [
   {
     id: "kosciol-sw-wojciecha",
     name: "Kościół św. Wojciecha",
-    type: "extra",
+    type: "main",
+    offRoute: true, // główny, ale poza linią trasy: żółta kropka, bez numeru, nie liczy się do postępu trasy i do "następnego punktu"
+    
     lat: 50.060903,
     lng: 19.937711,
     tracks: [
@@ -2466,7 +2468,9 @@ const POINTS = [
   {
     id: "kolegiata-sw-anny",
     name: "Kolegiata św. Anny",
-    type: "extra",
+    type: "main",
+    offRoute: true, // główny, ale poza linią trasy: żółta kropka, bez numeru, nie liczy się do postępu trasy i do "następnego punktu"
+    
     lat: 50.062214,
     lng: 19.933347,
     tracks: [
@@ -3849,8 +3853,8 @@ function findNearestMainPoint() {
 
 // następny punkt główny na trasie po danym (kolejność = kolejność numerów nagrań 1, 2, 3...)
 function nextMainPoint(point) {
-  if (!routeChosen || !point || point.type !== 'main') return null;
-  const mains = POINTS.filter(p => p.type === 'main');
+  if (!routeChosen || !point || point.type !== 'main' || point.offRoute) return null;
+  const mains = POINTS.filter(p => p.type === 'main' && !p.offRoute);
   return mains[mains.indexOf(point) + 1] || null;
 }
 // przycisk widać tylko przy punkcie: pojawia się do 50 m, znika dopiero powyżej 65 m (żeby nie migał
@@ -4060,7 +4064,7 @@ function openRouteIntro(districtKey) {
   const titleKey = (DISTRICT_CENTERS[districtKey] || {}).labelKey;
   document.getElementById('route-intro-eyebrow').textContent = t('routeIntroEyebrow');
   document.getElementById('route-intro-title').textContent = titleKey ? t(titleKey) : '';
-  document.getElementById('route-intro-meta').textContent = data.meta.replace(/^\d+/, POINTS.filter(p => p.type === 'main').length); // liczba przystanków = liczba punktów głównych
+  document.getElementById('route-intro-meta').textContent = data.meta.replace(/^\d+/, POINTS.filter(p => p.type === 'main' && !p.offRoute).length); // liczba przystanków = liczba punktów głównych
   document.getElementById('route-intro-desc').textContent = data.desc;
   const list = document.getElementById('route-intro-highlights');
   list.innerHTML = '';
@@ -4648,7 +4652,7 @@ function updateProgressUI(pct) {
   peekProgressFill.style.width = pct + '%';
 }
 /* ---------- Postęp trasy: punkt jest zaliczony, gdy wysłuchana jest połowa jego nagrań (nagranie = 90%) ---------- */
-const MAIN_POINT_IDS = POINTS.filter(p => p.type === 'main').map(p => p.id);
+const MAIN_POINT_IDS = POINTS.filter(p => p.type === 'main' && !p.offRoute).map(p => p.id);
 const doneMainCount = () => doneIds.filter(id => MAIN_POINT_IDS.includes(id)).length;
 // na trasie liczą się tylko punkty główne, w trybie bez trasy — wszystkie (główne + dodatkowe)
 const progressDone = () => routeChosen ? doneMainCount() : doneIds.length;
@@ -4704,7 +4708,7 @@ function renderRouteList() {
     pts.forEach(p => {
       // na trasie punkty główne mają numer wg kolejności; bez trasy (dowolna kolejność) — złota kropka;
       // dodatkowe zawsze mała jasna kropka, jak na mapie
-      const num = routeChosen && type === 'main' && p.tracks[0] ? String(p.tracks[0].number).split('.')[0] : '';
+      const num = routeChosen && type === 'main' && !p.offRoute && p.tracks[0] ? String(p.tracks[0].number).split('.')[0] : '';
       const mark = num || (type === 'main' ? '<i class="rl-dot main"></i>' : '<i class="rl-dot"></i>');
       addRow(p, type + (type === 'main' && !num ? ' free' : ''), mark, doneIds.includes(p.id));
     });
