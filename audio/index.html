@@ -285,13 +285,10 @@
 
     var FLAGS = {
       pl: '<svg viewBox="0 0 30 20"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#dc143c"/></svg>',
-      ua: '<svg viewBox="0 0 30 20"><rect width="30" height="10" fill="#0057b7"/><rect y="10" width="30" height="10" fill="#ffd700"/></svg>',
       en: '<svg viewBox="0 0 60 40"><clipPath id="gbc"><rect width="60" height="40"/></clipPath><g clip-path="url(#gbc)"><rect width="60" height="40" fill="#012169"/><path d="M0,0 60,40M60,0 0,40" stroke="#fff" stroke-width="8"/><path d="M0,0 60,40M60,0 0,40" stroke="#c8102e" stroke-width="3"/><path d="M30,0V40M0,20H60" stroke="#fff" stroke-width="12"/><path d="M30,0V40M0,20H60" stroke="#c8102e" stroke-width="7"/></g></svg>',
-      de: '<svg viewBox="0 0 30 20"><rect width="30" height="7" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/></svg>',
-      es: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#aa151b"/><rect y="5" width="30" height="10" fill="#f1bf00"/></svg>'
     };
-    var NAMES = { pl: 'Polski', ua: 'Українська', en: 'English', de: 'Deutsch', es: 'Español' };
-    var HTML_LANG = { pl: 'pl', ua: 'uk', en: 'en', de: 'de', es: 'es' };
+    var NAMES = { pl: 'Polski', en: 'English' };
+    var HTML_LANG = { pl: 'pl', en: 'en' };
     var T = {
       pl: {
         title: 'KrakRoam – kup audioprzewodnik', home: 'Strona główna',
@@ -334,47 +331,6 @@
         fine2: 'BLIK · karta · Apple Pay · Google Pay',
         pickRoute: 'Wybierz trasę', badEmail: 'Wpisz poprawny adres e-mail', soon: 'Płatności ruszą już wkrótce.'
       },
-      ua: {
-        title: 'KrakRoam – купити аудіогід', home: 'Головна',
-        h1a: 'Аудіогід Краковом', h1b: 'у твоєму телефоні',
-        sub: 'Без застосунку і без групи. Гуляй у своєму темпі.',
-        s1a: 'Кілька історій', s1b: 'біля кожної пам’ятки', s1s: 'Історія, легенди й цікавинки в коротких записах.',
-        s2a: 'Веде тебе', s2b: 'від точки до точки', s2s: 'Синя лінія показує шлях до наступного місця.',
-        s3a: 'Усі місця', s3b: 'в одному списку', s3s: 'Видно, що вже пройдено, і можна шукати за назвою.',
-        f1: 'Мапа з GPS', f2: '60+ записів', f3: 'Маршрути з лінією',
-        sampleT: 'Легенда про сурмача', sampleS: 'Зразок · 1:23 · польською',
-        oneT: '1 маршрут', oneS: 'Доступ на 7 днів · обери маршрут', rOld: 'Старе місто', rGhetto: 'Подгуже – Гетто',
-        allT: 'Усе місто', allS: 'Усі маршрути · доступ на 7 днів', best: 'Найкращий вибір',
-        email2Ph: 'Повтори e-mail', warn: 'Перевір, чи адреса правильна. На неї ми надішлемо пароль доступу до застосунку.',
-        allD: 'Усі 3 маршрути: Старе місто, Казімеж і Гетто. Понад 60 записів, мапа з GPS і лінія від точки до точки.',
-        rdOld: 'Одне з перших місць у Списку світової спадщини ЮНЕСКО, внесене в 1978 році. Середньовічна Ринкова площа, сигнал з Маріацької вежі та легенди, що живуть тут століттями.',
-        rdKaz: 'Місто двох культур, де століттями поруч жили євреї та християни. Старі синагоги, атмосферні провулки й вечори на площі Новий.',
-        rdGhetto: 'Район Подгуже на іншому березі Вісли і гетто воєнних часів. Зворушливі історії людей, площа Героїв Гетто і фабрика Шиндлера.',
-        mismatch: 'Адреси e-mail відрізняються',
-        kS: 'Послухай зразок',
-        kF: 'Що ти отримуєш',
-        kR: 'Маршрути',
-        sample2T: 'Ратушна вежа: тортури і кат',
-        sample2S: 'Зразок · 1:29 · польською',
-        c1t: 'Мапа з GPS',
-        c1p: 'Бачиш, де ти і що цікавого поруч.',
-        c2t: '60+ записів',
-        c2p: 'Короткі історії, легенди та цікавинки про пам’ятки.',
-        c3t: 'Free roaming',
-        c3p: 'Гуляй, де хочеш. Перерва на каву? Зупини й повернись, коли захочеш.',
-        c4t: 'Офлайн-режим',
-        c4p: 'Завантаж маршрут на телефон і гуляй без інтернету.',
-        days7: 'доступ на 7 днів',
-        buyNow: 'Купити доступ', fromPrice: '· від 20 zł',
-        offerT: 'Готовий до прогулянки?',
-        offerP: 'Усе місто за 35 zł або один маршрут за 20 zł. Доступ на 7 днів, посилання і пароль одразу на пошту.',
-        rec60: '60+ записів',
-        buy: 'Купити',
-        chooseT: 'Обери доступ',
-        emailPh: 'Твій e-mail', pay: 'Оплатити', fine1: 'Посилання і пароль одразу прийдуть на пошту.',
-        fine2: 'BLIK · картка · Apple Pay · Google Pay',
-        pickRoute: 'Обери маршрут', badEmail: 'Введи правильну адресу e-mail', soon: 'Оплата запрацює зовсім скоро.'
-      },
       en: {
         title: 'KrakRoam – get the audio guide', home: 'Home',
         h1a: 'Kraków audio guide', h1b: 'on your phone',
@@ -416,90 +372,8 @@
         fine2: 'BLIK · card · Apple Pay · Google Pay',
         pickRoute: 'Choose a route', badEmail: 'Enter a valid email address', soon: 'Payments are coming very soon.'
       },
-      de: {
-        title: 'KrakRoam – Audioguide kaufen', home: 'Startseite',
-        h1a: 'Audioguide für Krakau', h1b: 'auf deinem Handy',
-        sub: 'Ohne App und ohne Gruppe. In deinem Tempo.',
-        s1a: 'Mehrere Geschichten', s1b: 'an jedem Ort', s1s: 'Geschichte, Legenden und Kurioses in kurzen Aufnahmen.',
-        s2a: 'Führt dich', s2b: 'von Punkt zu Punkt', s2s: 'Eine blaue Linie zeigt den Weg zum nächsten Ort.',
-        s3a: 'Alle Orte', s3b: 'in einer Liste', s3s: 'Du siehst, was du schon besucht hast, und suchst nach Namen.',
-        f1: 'Karte mit GPS', f2: '60+ Aufnahmen', f3: 'Routen mit Linie',
-        sampleT: 'Die Legende vom Trompeter', sampleS: 'Hörprobe · 1:23 · auf Polnisch',
-        oneT: '1 Route', oneS: 'Zugang für 7 Tage · Route wählen', rOld: 'Altstadt', rGhetto: 'Podgórze – Ghetto',
-        allT: 'Ganze Stadt', allS: 'Alle Routen · Zugang für 7 Tage', best: 'Beste Wahl',
-        email2Ph: 'E-Mail wiederholen', warn: 'Prüfe, ob die Adresse stimmt. Dorthin schicken wir dein Passwort für die App.',
-        allD: 'Alle 3 Routen: Altstadt, Kazimierz und das Ghetto. Über 60 Aufnahmen, Karte mit GPS und eine Linie von Punkt zu Punkt.',
-        rdOld: 'Einer der ersten Orte auf der UNESCO-Welterbeliste, eingetragen 1978. Ein mittelalterlicher Hauptmarkt, das Turmsignal der Marienkirche und Legenden, die hier seit Jahrhunderten leben.',
-        rdKaz: 'Eine Stadt zweier Kulturen, in der Juden und Christen jahrhundertelang Seite an Seite lebten. Alte Synagogen, stimmungsvolle Gassen und Abende am Plac Nowy.',
-        rdGhetto: 'Der Stadtteil Podgórze am anderen Weichselufer und das Ghetto der Kriegszeit. Bewegende Geschichten, der Platz der Ghettohelden und Schindlers Fabrik.',
-        mismatch: 'Die E-Mail-Adressen stimmen nicht überein',
-        kS: 'Hörprobe',
-        kF: 'Was du bekommst',
-        kR: 'Routen',
-        sample2T: 'Rathausturm: Folter und Henker',
-        sample2S: 'Hörprobe · 1:29 · auf Polnisch',
-        c1t: 'Karte mit GPS',
-        c1p: 'Du siehst, wo du bist und was es in der Nähe gibt.',
-        c2t: '60+ Aufnahmen',
-        c2p: 'Kurze Geschichten, Legenden und Fakten zu den Sehenswürdigkeiten.',
-        c3t: 'Free Roaming',
-        c3p: 'Geh, wohin du willst. Kaffeepause? Pausieren und weitermachen, wann du willst.',
-        c4t: 'Offline-Modus',
-        c4p: 'Lade die Route aufs Handy und erkunde ohne Internet.',
-        days7: 'Zugang für 7 Tage',
-        buyNow: 'Zugang kaufen', fromPrice: '· ab 20 zł',
-        offerT: 'Bereit für einen Spaziergang?',
-        offerP: 'Die ganze Stadt für 35 zł oder eine Route für 20 zł. Zugang für 7 Tage, Link und Passwort sofort per E-Mail.',
-        rec60: '60+ Aufnahmen',
-        buy: 'Kaufen',
-        chooseT: 'Zugang wählen',
-        emailPh: 'Deine E-Mail', pay: 'Bezahlen', fine1: 'Link und Passwort kommen sofort per E-Mail.',
-        fine2: 'BLIK · Karte · Apple Pay · Google Pay',
-        pickRoute: 'Wähle eine Route', badEmail: 'Gib eine gültige E-Mail-Adresse ein', soon: 'Zahlungen starten in Kürze.'
-      },
-      es: {
-        title: 'KrakRoam – compra la audioguía', home: 'Inicio',
-        h1a: 'Audioguía de Cracovia', h1b: 'en tu móvil',
-        sub: 'Sin app y sin grupo. Explora a tu ritmo.',
-        s1a: 'Varias historias', s1b: 'en cada monumento', s1s: 'Historia, leyendas y curiosidades en grabaciones cortas.',
-        s2a: 'Te guía', s2b: 'de punto a punto', s2s: 'Una línea azul marca el camino al siguiente lugar.',
-        s3a: 'Todos los lugares', s3b: 'en una lista', s3s: 'Ves lo que ya visitaste y buscas por nombre.',
-        f1: 'Mapa con GPS', f2: '60+ grabaciones', f3: 'Rutas guiadas',
-        sampleT: 'La leyenda del trompetista', sampleS: 'Muestra · 1:23 · en polaco',
-        oneT: '1 ruta', oneS: 'Acceso de 7 días · elige una ruta', rOld: 'Casco antiguo', rGhetto: 'Podgórze – Gueto',
-        allT: 'Toda la ciudad', allS: 'Todas las rutas · acceso de 7 días', best: 'Mejor opción',
-        email2Ph: 'Repite tu e-mail', warn: 'Comprueba que la dirección es correcta. Ahí te enviaremos la contraseña de acceso a la app.',
-        allD: 'Las 3 rutas: Casco antiguo, Kazimierz y el Gueto. Más de 60 grabaciones, mapa con GPS y una línea que te guía de punto a punto.',
-        rdOld: 'Uno de los primeros lugares de la Lista del Patrimonio Mundial de la UNESCO, inscrito en 1978. Una plaza medieval, el toque de trompeta de la torre de Santa María y leyendas que viven aquí desde hace siglos.',
-        rdKaz: 'Una ciudad de dos culturas, donde judíos y cristianos vivieron juntos durante siglos. Viejas sinagogas, callejuelas con encanto y noches en la Plac Nowy.',
-        rdGhetto: 'El barrio de Podgórze, al otro lado del Vístula, y el gueto de la guerra. Historias humanas conmovedoras, la Plaza de los Héroes del Gueto y la Fábrica de Schindler.',
-        mismatch: 'Las direcciones de e-mail no coinciden',
-        kS: 'Escucha una muestra',
-        kF: 'Qué obtienes',
-        kR: 'Rutas',
-        sample2T: 'Torre del Ayuntamiento: tortura y verdugo',
-        sample2S: 'Muestra · 1:29 · en polaco',
-        c1t: 'Mapa con GPS',
-        c1p: 'Ves dónde estás y qué hay interesante cerca.',
-        c2t: '60+ grabaciones',
-        c2p: 'Historias cortas, leyendas y curiosidades de los monumentos.',
-        c3t: 'Free roaming',
-        c3p: 'Ve a donde quieras. ¿Pausa para un café? Detén y sigue cuando quieras.',
-        c4t: 'Modo sin conexión',
-        c4p: 'Descarga la ruta en tu móvil y explora sin internet.',
-        days7: 'acceso de 7 días',
-        buyNow: 'Comprar acceso', fromPrice: '· desde 20 zł',
-        offerT: '¿Listo para un paseo?',
-        offerP: 'Toda la ciudad por 35 zł o una ruta por 20 zł. Acceso de 7 días, enlace y contraseña al instante en tu correo.',
-        rec60: '60+ grabaciones',
-        buy: 'Comprar',
-        chooseT: 'Elige tu acceso',
-        emailPh: 'Tu e-mail', pay: 'Pagar', fine1: 'El enlace y la contraseña llegan al instante por correo.',
-        fine2: 'BLIK · tarjeta · Apple Pay · Google Pay',
-        pickRoute: 'Elige una ruta', badEmail: 'Escribe un e-mail válido', soon: 'Los pagos llegarán muy pronto.'
-      }
     };
-    var ORDER = ['pl', 'ua', 'en', 'de', 'es'], PRICE = { one: 20, all: 35 };
+    var ORDER = ['pl', 'en'], PRICE = { one: 20, all: 35 };
     var lang = 'en', opt = 'all', route = null;
     var flag = document.getElementById('flag'), langs = document.getElementById('langs'), pay = document.getElementById('pay');
 
@@ -689,7 +563,6 @@
     var nav = 'en', prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
     for (var i = 0; i < prefs.length; i++) {
       var c = String(prefs[i]).slice(0, 2).toLowerCase();
-      if (c === 'uk') c = 'ua';
       if (T[c]) { nav = c; break; }
     }
     set(T[q] ? q : (T[saved] ? saved : nav));
