@@ -72,7 +72,9 @@
   .opt-name small { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; }
   .price { font-size: 22px; font-weight: 800; white-space: nowrap; }
   .price span { font-size: 13px; font-weight: 700; }
-  .price .old, .bb-btn .old { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.55); text-decoration: line-through; margin-right: 4px; }
+  /* stara cena: duża, czerwona, grubo przekreślona — żeby było widać okazję */
+  .price .old { font-size: 19px; font-weight: 800; color: #ff4d42; text-decoration: line-through; text-decoration-color: rgba(255,255,255,0.8); text-decoration-thickness: 2px; margin-right: 6px; }
+  .bb-btn .old { font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.9); text-decoration: line-through; text-decoration-color: #c4170d; text-decoration-thickness: 2px; margin-right: 5px; }
   .badge { position: absolute; top: -10px; right: 14px; background: var(--gold); color: var(--dark); font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
   .routes { display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
   .opt.on .routes { display: grid; }
