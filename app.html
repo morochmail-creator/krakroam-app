@@ -699,10 +699,14 @@
   }
   .settings-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 16px 14px; border-radius: 14px; cursor: pointer;
+    padding: 15px 16px; border-radius: 14px; cursor: pointer;
     color: var(--ink); font-size: 16px; font-weight: 600;
+    background: var(--paper-2); border: 1.5px solid var(--line); margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(27,26,23,0.08); -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s ease, background 0.15s ease;
   }
-  .settings-row:active { background: var(--paper-2); }
+  .settings-row:active { transform: scale(0.98); background: var(--brass-tint); border-color: var(--brass); }
+  #settings-logout-row { color: #b3372d; justify-content: center; margin-top: 18px; }
   #settings-lang-flag { font-size: 16px; }
   .layer-option {
     flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center;
@@ -4204,7 +4208,15 @@ document.querySelectorAll('.lang-row').forEach(row => {
       return;
     }
 
-    // user już wcześniej wpisał hasło — to tylko zmiana języka w trakcie korzystania, wracamy do menu tras
+    // user już wcześniej wpisał hasło — to tylko zmiana języka w trakcie korzystania, wracamy do menu tras.
+    // Wcześniej przy grającym nagraniu pasek audio zostawał w starym języku i się psuł, więc zatrzymujemy audio i czyścimy panel.
+    audioEl.pause(); audioEl.removeAttribute('src'); audioEl.load();
+    loadedPoint = null; currentPoint = null; loadedTrackIndex = 0; currentTrackIndex = 0;
+    closeSheet(); sheetPeek = false; sheet.classList.remove('peek'); sheetBackdrop.classList.remove('peek');
+    sheet.style.transform = ''; sheet.style.transition = '';
+    stopNavigation();
+    updatePlayingMarker();
+    if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; } catch (_) {} }
     const dm = document.getElementById('district-menu');
     dm.classList.remove('hidden');
     menuInner.style.transform = 'translateY(0)';
