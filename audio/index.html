@@ -72,6 +72,7 @@
   .opt-name small { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; }
   .price { font-size: 22px; font-weight: 800; white-space: nowrap; }
   .price span { font-size: 13px; font-weight: 700; }
+  .price .old, .bb-btn .old { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.55); text-decoration: line-through; margin-right: 4px; }
   .badge { position: absolute; top: -10px; right: 14px; background: var(--gold); color: var(--dark); font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
   .routes { display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
   .opt.on .routes { display: grid; }
@@ -244,7 +245,7 @@
       <div class="opt-head">
         <span class="radio"></span>
         <span class="opt-name"><b data-i18n="allT"></b><small data-i18n="allS"></small></span>
-        <span class="price">49 <span>zł</span></span>
+        <span class="price"><s class="old">49 zł</s> 39 <span>zł</span></span>
       </div>
       <p class="desc" data-i18n="allD"></p>
     </div>
@@ -300,7 +301,7 @@
         f1: 'Mapa z GPS', f2: '60+ nagrań', f3: 'Trasy z linią',
         sampleT: 'Legenda o Trębaczu', sampleS: 'Próbka · 1:23',
         oneT: '1 trasa', oneS: 'Dostęp na 7 dni · wybierz trasę', rOld: 'Stare Miasto', rGhetto: 'Podgórze – Getto',
-        allT: 'Całe miasto', allS: 'Wszystkie trasy · dostęp na 7 dni', best: 'Najlepszy wybór',
+        allT: 'Całe miasto', allS: 'Wszystkie trasy · dostęp na 7 dni', best: 'Okazja',
         email2Ph: 'Powtórz e-mail', warn: 'Sprawdź, czy adres jest poprawny. Na niego wyślemy hasło dostępu do aplikacji.',
         allD: 'Wszystkie 3 trasy: Stare Miasto, Kazimierz i Getto. Ponad 60 nagrań, mapa z GPS i linia prowadząca od punktu do punktu.',
         rdOld: 'Jedno z pierwszych miejsc na Liście światowego dziedzictwa UNESCO, wpisane w 1978 roku. Średniowieczny Rynek, hejnał z wieży Mariackiej i legendy, które żyją tu od wieków.',
@@ -323,7 +324,7 @@
         days7: 'dostęp na 7 dni',
         buyNow: 'Kup dostęp', fromPrice: '· od 29 zł',
         offerT: 'Gotowy na spacer?',
-        offerP: 'Całe miasto za 49 zł albo jedna trasa za 29 zł. Dostęp na 7 dni, link i hasło od razu na maila.',
+        offerP: 'Całe miasto za 39 zł (zamiast 49 zł) albo jedna trasa za 29 zł. Dostęp na 7 dni, link i hasło od razu na maila.',
         rec60: '60+ nagrań',
         buy: 'Kup',
         chooseT: 'Wybierz dostęp',
@@ -341,7 +342,7 @@
         f1: 'GPS map', f2: '60+ recordings', f3: 'Guided routes',
         sampleT: 'The Legend of the Trumpeter', sampleS: 'Sample · 1:23 · in Polish',
         oneT: '1 route', oneS: '7-day access · choose a route', rOld: 'Old Town', rGhetto: 'Podgórze – Ghetto',
-        allT: 'Whole city', allS: 'All routes · 7-day access', best: 'Best value',
+        allT: 'Whole city', allS: 'All routes · 7-day access', best: 'Special offer',
         email2Ph: 'Repeat your email', warn: 'Make sure your address is correct. We\'ll send your app access password there.',
         allD: 'All 3 routes: Old Town, Kazimierz and the Ghetto. 60+ recordings, a GPS map and a guiding line from stop to stop.',
         rdOld: 'One of the first places on the UNESCO World Heritage List, inscribed in 1978. A medieval Main Square, the bugle call from St. Mary\'s tower and legends that have lived here for centuries.',
@@ -364,7 +365,7 @@
         days7: '7-day access',
         buyNow: 'Get access', fromPrice: '· from 29 zł',
         offerT: 'Ready for a walk?',
-        offerP: 'The whole city for 49 zł or one route for 29 zł. 7-day access, link and password straight to your email.',
+        offerP: 'The whole city for 39 zł (instead of 49 zł) or one route for 29 zł. 7-day access, link and password straight to your email.',
         rec60: '60+ recordings',
         buy: 'Buy',
         chooseT: 'Choose your access',
@@ -373,7 +374,7 @@
         pickRoute: 'Choose a route', badEmail: 'Enter a valid email address', soon: 'Payments are coming very soon.'
       },
     };
-    var ORDER = ['pl', 'en'], PRICE = { one: 29, all: 49 };
+    var ORDER = ['pl', 'en'], PRICE = { one: 29, all: 39 }, OLD_PRICE = { all: 49 };
     var lang = 'en', opt = 'all', route = null;
     var flag = document.getElementById('flag'), langs = document.getElementById('langs'), pay = document.getElementById('pay');
 
@@ -453,7 +454,7 @@
       document.getElementById('bb-sub').textContent = opt === 'all'
         ? d.rOld + ', Kazimierz, ' + d.rGhetto + ' · ' + d.rec60 + ' · ' + d.days7
         : (route === 'old' ? rn + ' · ' + d.rec60 + ' · ' + d.days7 : route ? rn + ' · ' + d.days7 : d.pickRoute + ' · ' + d.days7);
-      document.getElementById('bb-price').textContent = '· ' + PRICE[opt] + ' zł';
+      document.getElementById('bb-price').innerHTML = '· ' + (OLD_PRICE[opt] ? '<s class="old">' + OLD_PRICE[opt] + '</s>' : '') + PRICE[opt] + ' zł';
       document.getElementById('bb-name').textContent = opt === 'all' ? T[lang].allT : T[lang].oneT + (route ? ': ' + (route === 'kaz' ? 'Kazimierz' : T[lang][route === 'old' ? 'rOld' : 'rGhetto']) : '');
     }
     function set(l) {
