@@ -968,8 +968,7 @@
   #photo-viewer.open { opacity: 1; pointer-events: auto; }
   /* zdjęcie na całą szerokość ekranu (poziome też są duże); dwa palce / podwójne stuknięcie = powiększenie */
   #photo-viewer { flex-direction: column; gap: 10px; padding-left: 0; padding-right: 0; touch-action: none; overflow: hidden; }
-  #pv-frame { position: relative; max-width: 100%; transform: scale(0.92); transition: transform 0.2s ease; }
-  #photo-viewer.open #pv-frame { transform: scale(1); }
+  #pv-frame { position: relative; max-width: 100%; }
   #photo-viewer.zoomed #pv-frame { z-index: 1; }
   #photo-viewer img { display: block; width: 100vw; max-width: 100vw; height: auto; max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px - env(safe-area-inset-top, 0px)); object-fit: contain; transform-origin: 0 0; will-change: transform; }
   #photo-viewer img { background: center / cover no-repeat; }
@@ -4430,85 +4429,88 @@ document.getElementById('photo-viewer-close').addEventListener('click', e => { e
 // powiększanie: dwa palce (szczypanie), podwójne stuknięcie (x2.5 / z powrotem), przesuwanie jednym palcem gdy powiększone.
 // Pojedyncze stuknięcie w niepowiększone zdjęcie albo w tło = zamknij.
 const pvZoom = (() => {
-  const img = photoViewerImg;
-  let sc = 1, tx = 0, ty = 0, start = null, moved = false, lastTap = 0, lastTapX = 0, lastTapY = 0;
+  const img = photoViewerImg, frame = document.getElementById('pv-frame');
   const MAX = 5;
+  let sc = 1, tx = 0, ty = 0;      // aktualne powiększenie i przesunięcie zdjęcia (w px)
+  let g = null;                    // trwający gest palcami
+  let moved = false, lastTap = 0, lastTapX = 0, lastTapY = 0, tapTimer = null;
+  // położenie zdjęcia bez powiększenia — ramka nie jest skalowana, więc jej prostokąt to "baza"
+  const base = () => frame.getBoundingClientRect();
   function apply(anim) {
     img.style.transition = anim ? 'transform 0.22s ease' : 'none';
-    img.style.transform = sc === 1 ? '' : 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')';
+    img.style.transform = sc === 1 && !tx && !ty ? '' : 'translate3d(' + tx + 'px,' + ty + 'px,0) scale(' + sc + ')';
     photoViewer.classList.toggle('zoomed', sc > 1.01);
   }
   function clamp() {
-    const w = img.offsetWidth, h = img.offsetHeight;
-    const r = img.getBoundingClientRect(), base = { x: r.left - tx, y: r.top - ty };
+    const r = base(), w = img.offsetWidth * sc, h = img.offsetHeight * sc;
     const vw = window.innerWidth, vh = window.innerHeight;
-    const sw = w * sc, sh = h * sc;
-    // gdy powiększone zdjęcie jest większe od ekranu — nie da się go zsunąć za krawędź; mniejsze — zostaje na środku
-    if (sw <= vw) tx = (w - sw) / 2; else tx = Math.min(-base.x, Math.max(vw - base.x - sw, tx));
-    if (sh <= vh) ty = (h - sh) / 2; else ty = Math.min(-base.y, Math.max(vh - base.y - sh, ty));
+    tx = w <= vw ? (img.offsetWidth - w) / 2 : Math.min(-r.left, Math.max(vw - r.left - w, tx));
+    ty = h <= vh ? (img.offsetHeight - h) / 2 : Math.min(-r.top, Math.max(vh - r.top - h, ty));
   }
-  function zoomAt(cx, cy, newSc) {
-    const r = img.getBoundingClientRect();
-    const ox = r.left - tx, oy = r.top - ty;            // położenie zdjęcia bez powiększenia
-    const px = (cx - ox - tx) / sc, py = (cy - oy - ty) / sc; // punkt zdjęcia pod palcem
+  // ustaw powiększenie newSc tak, żeby punkt zdjęcia (px, py) był pod palcami w (cx, cy)
+  function place(px, py, newSc, cx, cy) {
+    const r = base();
     sc = Math.max(1, Math.min(MAX, newSc));
-    tx = cx - ox - px * sc; ty = cy - oy - py * sc;
+    tx = cx - r.left - px * sc; ty = cy - r.top - py * sc;
   }
-  const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  const mid = t => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
+  function begin(touches) {
+    const r = base();
+    if (touches.length >= 2) {
+      const m = mid(touches);
+      g = { two: true, d: dist(touches), sc, px: (m.x - r.left - tx) / sc, py: (m.y - r.top - ty) / sc };
+    } else if (touches.length === 1) {
+      g = { two: false, x: touches[0].clientX, y: touches[0].clientY, tx, ty };
+    } else g = null;
+  }
   photoViewer.addEventListener('touchstart', e => {
-    if (e.target.closest('#pv-desc, #photo-viewer-close')) return;
-    moved = false;
-    if (e.touches.length === 2) {
-      start = { d: dist(e.touches[0], e.touches[1]), sc, tx, ty,
-        cx: (e.touches[0].clientX + e.touches[1].clientX) / 2, cy: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
-      moved = true;
-    } else if (e.touches.length === 1) {
-      start = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx, ty, sc };
-    }
+    if (e.target.closest('#pv-desc, #photo-viewer-close')) { g = null; return; }
+    if (e.touches.length >= 2) moved = true; else if (e.touches.length === 1) moved = false;
+    begin(e.touches);
   }, { passive: true });
   photoViewer.addEventListener('touchmove', e => {
-    if (!start || e.target.closest('#pv-desc')) return;
-    if (e.touches.length === 2 && start.d) {
-      const d = dist(e.touches[0], e.touches[1]);
-      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2, cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      sc = start.sc; tx = start.tx; ty = start.ty;
-      zoomAt(start.cx, start.cy, start.sc * d / start.d);
-      tx += cx - start.cx; ty += cy - start.cy;
-      moved = true; apply(false);
-    } else if (e.touches.length === 1 && start.x !== undefined) {
-      const dx = e.touches[0].clientX - start.x, dy = e.touches[0].clientY - start.y;
+    if (!g) return;
+    if (e.cancelable) e.preventDefault(); // bez tego przeglądarka powiększa całą stronę zamiast zdjęcia
+    if (g.two && e.touches.length >= 2) {
+      const m = mid(e.touches);
+      place(g.px, g.py, g.sc * dist(e.touches) / g.d, m.x, m.y);
+      apply(false);
+    } else if (!g.two && e.touches.length === 1) {
+      const dx = e.touches[0].clientX - g.x, dy = e.touches[0].clientY - g.y;
       if (Math.abs(dx) + Math.abs(dy) > 8) moved = true;
-      if (sc > 1) { tx = start.tx + dx; ty = start.ty + dy; clamp(); apply(false); }
+      if (sc > 1.01) { tx = g.tx + dx; ty = g.ty + dy; clamp(); apply(false); }
     }
-    if (e.cancelable) e.preventDefault();
   }, { passive: false });
-  photoViewer.addEventListener('touchend', e => {
-    if (e.touches.length === 1) { // z dwóch palców został jeden — dalej przesuwamy od tego miejsca
-      start = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx, ty, sc }; return;
-    }
-    if (e.touches.length) return;
-    if (sc < 1.05) { sc = 1; tx = 0; ty = 0; apply(true); } else { clamp(); apply(true); }
-    start = null;
-  });
-  // stuknięcia (też myszką na komputerze): podwójne = powiększ / pomniejsz, pojedyncze w niepowiększone = zamknij
-  let tapTimer = null;
+  const end = e => {
+    if (!g) return;
+    if (e.touches.length) { begin(e.touches); return; } // zostały palce — gest leci dalej od nowa
+    g = null;
+    if (sc < 1.05) { sc = 1; tx = 0; ty = 0; } else clamp();
+    apply(true);
+  };
+  photoViewer.addEventListener('touchend', end);
+  photoViewer.addEventListener('touchcancel', end);
+  // iPhone: blokujemy jego własne powiększanie całej strony gestem dwóch palców
+  ['gesturestart', 'gesturechange'].forEach(ev => photoViewer.addEventListener(ev, e => e.preventDefault()));
+  // stuknięcia: podwójne w zdjęcie = powiększ / pomniejsz, pojedyncze w niepowiększone zdjęcie lub tło = zamknij
   photoViewer.addEventListener('click', e => {
     if (e.target.closest('#pv-desc, #photo-viewer-close')) return;
     if (moved) { moved = false; return; }
-    const now = Date.now();
-    const onImg = e.target === img;
+    const now = Date.now(), onImg = e.target === img;
     if (onImg && now - lastTap < 320 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 40) {
       clearTimeout(tapTimer); lastTap = 0;
-      if (sc > 1.01) { sc = 1; tx = 0; ty = 0; } else { zoomAt(e.clientX, e.clientY, 2.5); clamp(); }
+      if (sc > 1.01) { sc = 1; tx = 0; ty = 0; }
+      else { const r = base(); place(e.clientX - r.left, e.clientY - r.top, 2.5, e.clientX, e.clientY); clamp(); }
       apply(true);
       return;
     }
     lastTap = now; lastTapX = e.clientX; lastTapY = e.clientY;
-    if (sc > 1.01) return; // powiększone: pojedyncze stuknięcie nic nie robi
     clearTimeout(tapTimer);
+    if (sc > 1.01) return;
     tapTimer = setTimeout(closePhotoViewer, onImg ? 330 : 0);
   });
-  return { reset() { sc = 1; tx = 0; ty = 0; start = null; apply(false); } };
+  return { reset() { sc = 1; tx = 0; ty = 0; g = null; clearTimeout(tapTimer); apply(false); } };
 })();
 
 // Ustawienia → Źródła zdjęć: lista linków (żeby nie wisiały na zdjęciach)
