@@ -960,29 +960,34 @@
   #sheet-photo-btn svg { width: 22px; height: 22px; stroke: var(--brass-deep); opacity: 0.8; }
   #sheet-photo-btn.has-photo svg { display: none; }
   #photo-viewer {
-    position: fixed; inset: 0; z-index: 140; background: rgba(10, 10, 9, 0.92);
+    position: fixed; inset: 0; z-index: 140; background: rgba(10, 10, 9, 0.97);
     display: flex; align-items: center; justify-content: center; padding: 16px;
     padding-top: calc(16px + env(safe-area-inset-top, 0px));
     opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
   }
   #photo-viewer.open { opacity: 1; pointer-events: auto; }
-  #photo-viewer { flex-direction: column; gap: 12px; }
+  /* zdjęcie na całą szerokość ekranu (poziome też są duże); dwa palce / podwójne stuknięcie = powiększenie */
+  #photo-viewer { flex-direction: column; gap: 10px; padding-left: 0; padding-right: 0; touch-action: none; overflow: hidden; }
   #pv-frame { position: relative; max-width: 100%; transform: scale(0.92); transition: transform 0.2s ease; }
   #photo-viewer.open #pv-frame { transform: scale(1); }
-  #photo-viewer img { display: block; max-width: 100%; max-height: calc(100vh - 110px); max-height: calc(100dvh - 110px - env(safe-area-inset-top, 0px)); border-radius: 12px; object-fit: contain; }
-  #photo-viewer.has-desc img { max-height: calc(58vh - 40px); max-height: calc(58dvh - 40px); }
+  #photo-viewer.zoomed #pv-frame { z-index: 1; }
+  #photo-viewer img { display: block; width: 100vw; max-width: 100vw; height: auto; max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px - env(safe-area-inset-top, 0px)); object-fit: contain; transform-origin: 0 0; will-change: transform; }
+  #photo-viewer.has-desc img { max-height: calc(72vh - 40px); max-height: calc(72dvh - 40px); }
+  #photo-viewer.zoomed #pv-cap, #photo-viewer.zoomed #pv-desc { opacity: 0; }
   #photo-viewer img.hidden, #photo-viewer-empty.hidden, #pv-frame.hidden { display: none; }
   /* podpis na zdjęciu: na dole, na ciemnym przejściu, żeby był czytelny i nie zasłaniał środka */
   #pv-cap {
-    position: absolute; left: 0; right: 0; bottom: 0; padding: 34px 14px 11px; border-radius: 0 0 12px 12px;
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 34px 14px 10px; transition: opacity 0.15s;
     background: linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.4) 55%, rgba(0,0,0,0));
-    color: #fff; font-size: 13.5px; line-height: 1.35; font-weight: 600; font-style: italic;
+    color: #fff; font-size: 13.5px; line-height: 1.35; font-weight: 500;
     text-shadow: 0 1px 2px rgba(0,0,0,0.6); pointer-events: none;
   }
+  #pv-cap .pv-title { display: block; font-weight: 700; font-style: italic; font-size: 14.5px; }
+  #pv-cap .pv-by { display: block; opacity: 0.9; font-size: 12.5px; margin-top: 1px; }
   #pv-cap.hidden, #pv-desc.hidden { display: none; }
   #pv-desc {
-    width: 100%; max-width: 520px; max-height: 32vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
-    color: rgba(255,255,255,0.88); font-size: 13.5px; line-height: 1.5; padding: 2px 4px;
+    width: 100%; max-width: 520px; max-height: 17vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+    color: rgba(255,255,255,0.85); font-size: 12.5px; line-height: 1.45; padding: 0 16px; transition: opacity 0.15s;
   }
   .credit-item { padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; line-height: 1.4; color: var(--ink); }
   .credit-item:last-child { border-bottom: none; }
@@ -990,7 +995,7 @@
   #photo-viewer-empty { color: #fff; text-align: center; font-size: 15px; font-weight: 600; opacity: 0.85; }
   #photo-viewer-empty svg { display: block; width: 56px; height: 56px; margin: 0 auto 12px; stroke: #fff; opacity: 0.6; }
   #photo-viewer-close {
-    position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px;
+    position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px; z-index: 3;
     width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
     background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center;
   }
@@ -4298,8 +4303,8 @@ const PHOTO_INFO = {
   "8_0_Sredniowieczne_Mury": { src: "https://commons.wikimedia.org/wiki/File:Mury_miejskie_03tr.JPG" },
   "8_1_Brama_Florianska": { src: "https://commons.wikimedia.org/wiki/File:20200516_Brama_Floria%C5%84ska_w_Krakowie_0911_9966.jpg" },
   "8_2_Barbakan": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_-_Barbakan_Krakowski.jpg" },
-  "8_3_Marcin_Oracewicz": { src: "https://commons.wikimedia.org/wiki/File:Krakow_2024_258_Krzysztofory_Palace_-_Marcin_Oracewicz_Portrait.jpg", cap: { pl: "Marcin Oracewicz – portret, Piotr Stachiewicz, 1895", en: "Marcin Oracewicz – portrait by Piotr Stachiewicz, 1895" } },
-  "8_4_Cechy_krakowskie": { src: "https://commons.wikimedia.org/wiki/File:W%C5%82adys%C5%82aw_%C5%81uszczkiewicz_-_Presenting_the_Fowler_to_the_Shooting_Brotherhood_-_MNK_II-a-66_-_National_Museum_Krak%C3%B3w.jpg", cap: { pl: "Bractwo Kurkowe na obrazie Władysława Łuszczkiewicza, XIX wiek", en: "The Fowler Brotherhood, painting by Władysław Łuszczkiewicz, 19th c." } },
+  "8_3_Marcin_Oracewicz": { src: "https://commons.wikimedia.org/wiki/File:Krakow_2024_258_Krzysztofory_Palace_-_Marcin_Oracewicz_Portrait.jpg", cap: { pl: "Portret Marcina Oracewicza\nPiotr Stachiewicz, 1895", en: "Portrait of Marcin Oracewicz\nPiotr Stachiewicz, 1895" } },
+  "8_4_Cechy_krakowskie": { src: "https://commons.wikimedia.org/wiki/File:W%C5%82adys%C5%82aw_%C5%81uszczkiewicz_-_Presenting_the_Fowler_to_the_Shooting_Brotherhood_-_MNK_II-a-66_-_National_Museum_Krak%C3%B3w.jpg", cap: { pl: "Bractwo Kurkowe\nWładysław Łuszczkiewicz, XIX wiek", en: "The Fowler Brotherhood\nWładysław Łuszczkiewicz, 19th c." } },
   "9_0_Muzeum_Czartoryskich": { src: "https://commons.wikimedia.org/wiki/File:Czartoryski%27s_alley,_Pijarska_street,_Old_Town,_Krak%C3%B3w,_Poland.jpg" },
   "9_1_Zaulek_ksiazat_Czartoryskich": { src: "https://commons.wikimedia.org/wiki/File:Gate_of_Czartoryski_Museum,_Krak%C3%B3w,_2022,_01.jpg" },
   "10_0_Wieza_Ratuszowa": { src: "https://commons.wikimedia.org/wiki/File:Krakau_-_Rathausturm.jpg" },
@@ -4307,30 +4312,31 @@ const PHOTO_INFO = {
   "10_3_Eros_Bendato": { src: "https://commons.wikimedia.org/wiki/File:Eros_Bendato_Sculpture_in_Krak%C3%B3w._Poland.jpg" },
   "11_0_Collegium_Maius": { src: "https://commons.wikimedia.org/wiki/File:Collegium_Maius_Jagiello%C5%84ska_Street,_Krak%C3%B3w,_Poland,_2022.jpg" },
   "11_1_Dziedziniec": { src: "https://commons.wikimedia.org/wiki/File:Collegium_Maius_2017.jpg" },
-  "11_2_Mikolaj_Kopernik": { cap: { pl: "Astronom Kopernik, czyli rozmowa z Bogiem – Jan Matejko, 1871", en: "Astronomer Copernicus, or Conversations with God – Jan Matejko, 1871" } },
-  "11_3_Dawne_zycie_akademickie": { cap: { pl: "Wyjście żaków z Krakowa w 1549 – Jan Matejko, 1892", en: "Students Leaving Kraków in 1549 – Jan Matejko, 1892" }, desc: { pl: "Przedstawione przez Jana Matejkę wydarzenie było wynikiem konfliktu z 14 maja 1549 roku w Krakowie, między studentami Akademii Krakowskiej a czeladzią księdza kanonika Andrzeja Czarnkowskiego. Służba napadła na bursę studencką oraz poraniła studentów. Sprawa za wstawiennictwem króla Zygmunta Augusta znalazła miejsce w sądzie, jednak proces nie był prowadzony rzetelnie. Część oburzonych żaków postanowiła opuścić Kraków i przenieść się na inne uniwersytety. Artysta namalował moment kiedy studenci tłumnie opuszczają Kraków. W tle zabudowania Krakowa oraz widoczny Barbakan, a także drewniane zabudowania Wiśnicza. Obraz z dużą grupą tłoczących się postaci jest utrzymany w brązach i żółcieniach z akcentami koloru czerwonego oraz ciemnej zieleni. (Marta Kłak-Ambrożkiewicz)", en: "The event painted by Jan Matejko grew out of a clash in Kraków on 14 May 1549 between students of the Kraków Academy and the servants of canon Andrzej Czarnkowski. The servants attacked a student hostel and wounded several students. Thanks to King Sigismund Augustus the case went to court, but the trial was not conducted fairly. Some of the outraged students decided to leave Kraków and move to other universities. The artist painted the moment when the students leave the city in a crowd. In the background are the buildings of Kraków with the Barbican, and the wooden houses of Wiśnicz. The painting, full of crowded figures, is kept in browns and yellows with touches of red and dark green. (Marta Kłak-Ambrożkiewicz)" } },
+  "11_2_Mikolaj_Kopernik": { cap: { pl: "Astronom Kopernik, czyli rozmowa z Bogiem\nJan Matejko, 1871", en: "Astronomer Copernicus, or Conversations with God\nJan Matejko, 1871" } },
+  "11_3_Dawne_zycie_akademickie": { cap: { pl: "Wyjście żaków z Krakowa w 1549\nJan Matejko, 1892", en: "Students Leaving Kraków in 1549\nJan Matejko, 1892" }, desc: { pl: "Przedstawione przez Jana Matejkę wydarzenie było wynikiem konfliktu z 14 maja 1549 roku w Krakowie, między studentami Akademii Krakowskiej a czeladzią księdza kanonika Andrzeja Czarnkowskiego. Służba napadła na bursę studencką oraz poraniła studentów. Sprawa za wstawiennictwem króla Zygmunta Augusta znalazła miejsce w sądzie, jednak proces nie był prowadzony rzetelnie. Część oburzonych żaków postanowiła opuścić Kraków i przenieść się na inne uniwersytety. Artysta namalował moment kiedy studenci tłumnie opuszczają Kraków. W tle zabudowania Krakowa oraz widoczny Barbakan, a także drewniane zabudowania Wiśnicza. Obraz z dużą grupą tłoczących się postaci jest utrzymany w brązach i żółcieniach z akcentami koloru czerwonego oraz ciemnej zieleni. (Marta Kłak-Ambrożkiewicz)", en: "The event painted by Jan Matejko grew out of a clash in Kraków on 14 May 1549 between students of the Kraków Academy and the servants of canon Andrzej Czarnkowski. The servants attacked a student hostel and wounded several students. Thanks to King Sigismund Augustus the case went to court, but the trial was not conducted fairly. Some of the outraged students decided to leave Kraków and move to other universities. The artist painted the moment when the students leave the city in a crowd. In the background are the buildings of Kraków with the Barbican, and the wooden houses of Wiśnicz. The painting, full of crowded figures, is kept in browns and yellows with touches of red and dark green. (Marta Kłak-Ambrożkiewicz)" } },
   "Paon_i_Cyganeria": { src: "https://commons.wikimedia.org/wiki/File:2025,_Krak%C3%B3w,_Kamienica_Kenner%C3%B3w,_Szpitalna_38_(10).jpg" },
   "Jama_Michalika": { src: "https://commons.wikimedia.org/wiki/File:Kawiarnia_Jama_Michalika_01_AB.jpg" },
   "Pierwszy_polski_kabaret": { src: "https://commons.wikimedia.org/wiki/File:Reduta_Zielonego_Balonika_(1910).jpg", cap: { pl: "Reduta Zielonego Balonika, 1910", en: "The Green Balloon cabaret, 1910" } },
-  "Jan_Matejko": { cap: { pl: "Jan Matejko – Autoportret, 1892", en: "Jan Matejko – Self-portrait, 1892" } },
+  "Jan_Matejko": { cap: { pl: "Autoportret\nJan Matejko, 1892", en: "Self-portrait\nJan Matejko, 1892" } },
   "Ulica_Florianska": { src: "https://commons.wikimedia.org/wiki/File:20200516_Ulica_Floria%C5%84ska_i_Ko%C5%9Bci%C3%B3%C5%82_Mariacki_w_Krakowie_0914_9971.jpg" },
   "Historia_kosciola": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_kosciol_pijarow_4.jpg" },
   "Wnetrze": { src: "https://commons.wikimedia.org/wiki/File:KO%C5%9ACI%C3%93%C5%81_I_KLASZTOR_OO._PIJAR%C3%93W_W_KRAKOWIE,_fot._M._Klag_(MIK,_2004)_(5367374306).jpg" },
   "Tablica_ofiar_smogu": { src: "https://commons.wikimedia.org/wiki/File:Commemorative_plaque_for_the_victims_of_smog,_27_S%C5%82awkowska_street,_Krak%C3%B3w,_Old_Town,_Poland.jpg" },
   "Palac_Krzysztofory": { src: "https://commons.wikimedia.org/wiki/File:Krakow_Palac_Pod_Krzysztofory.jpg" },
-  "Legenda_o_Twardowskim": { src: "https://commons.wikimedia.org/wiki/File:Pan_Twardowski_(Rydel)_rys.3.jpg", cap: { pl: "Pan Twardowski (Rydel) – Włodzimierz Tetmajer, 1923", en: "Pan Twardowski (Rydel) – Włodzimierz Tetmajer, 1923" } },
+  "Legenda_o_Twardowskim": { src: "https://commons.wikimedia.org/wiki/File:Pan_Twardowski_(Rydel)_rys.3.jpg", cap: { pl: "Pan Twardowski (Rydel)\nWłodzimierz Tetmajer, 1923", en: "Pan Twardowski (Rydel)\nWłodzimierz Tetmajer, 1923" } },
   "Kolegiata_sw_Anny": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_Ko%C5%9Bci%C3%B3%C5%82_%C5%9Bw._Anny_03.jpg" },
   "Wnetrze_Kolegiaty": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_Ko%C5%9Bci%C3%B3%C5%82_%C5%9Bw._Anny_46.jpg" },
-  "Hold_Pruski": { cap: { pl: "Jan Matejko – Hołd pruski, 1879–1882", en: "Jan Matejko – The Prussian Homage, 1879–1882" } },
-  "Przysiega_Tadeusza_Kosciuszki": { cap: { pl: "Michał Stachowicz – Przysięga Tadeusza Kościuszki na Rynku Głównym w Krakowie, ok. 1821", en: "Michał Stachowicz – Kościuszko’s Oath on the Main Market Square in Kraków, c. 1821" } },
+  "Hold_Pruski": { cap: { pl: "Hołd pruski\nJan Matejko, 1879–1882", en: "The Prussian Homage\nJan Matejko, 1879–1882" } },
+  "Przysiega_Tadeusza_Kosciuszki": { cap: { pl: "Przysięga Tadeusza Kościuszki na Rynku Głównym w Krakowie\nMichał Stachowicz, ok. 1821", en: "Kościuszko’s Oath on the Main Market Square in Kraków\nMichał Stachowicz, c. 1821" } },
 };
+const TRACK_PHOTO_VER = '2'; // przy podmianie zdjęć podbij numer, żeby telefony pobrały nowe
 function photoKey(src) { return src ? src.split('/').pop().split('?')[0].replace(/\.(webp|jpe?g|png)$/i, '') : ''; }
 function photoText(field) { return field ? (field[currentLang] || field.pl) : ''; }
 // zdjęcie do nagrania: pole "photo" w tracku albo foto/<nazwa pliku mp3>.webp
 function trackPhotoSrc(track) {
   if (!track) return null;
   if (track.photo) return track.photo;
-  if (track.audio) return 'foto/' + track.audio.split('/').pop().replace(/\.mp3$/i, '.webp');
+  if (track.audio) return 'foto/' + track.audio.split('/').pop().replace(/\.mp3$/i, '.webp') + '?v=' + TRACK_PHOTO_VER;
   return null;
 }
 let currentPhotoSrc = null;
@@ -4365,8 +4371,15 @@ function openPhotoViewer(src) {
   photoViewerImg.classList.toggle('hidden', !src);
   if (src) photoViewerImg.src = src;
   document.getElementById('photo-viewer-empty').classList.toggle('hidden', !!src);
-  cap.textContent = src ? photoText(info.cap) : '';
-  cap.classList.toggle('hidden', !cap.textContent);
+  const capText = src ? photoText(info.cap) : '';
+  cap.innerHTML = '';
+  capText.split('\n').forEach((line, i) => {
+    const el = document.createElement('span');
+    el.className = capText.includes('\n') ? (i === 0 ? 'pv-title' : 'pv-by') : 'pv-by';
+    el.textContent = line; cap.appendChild(el);
+  });
+  cap.classList.toggle('hidden', !capText);
+  pvZoom.reset();
   desc.textContent = src ? photoText(info.desc) : '';
   desc.classList.toggle('hidden', !desc.textContent);
   desc.scrollTop = 0;
@@ -4374,7 +4387,91 @@ function openPhotoViewer(src) {
   photoViewer.classList.add('open');
 }
 document.getElementById('pv-desc').addEventListener('click', e => e.stopPropagation()); // przewijanie opisu nie zamyka zdjęcia
-photoViewer.addEventListener('click', () => { sfx.play('menuDown'); photoViewer.classList.remove('open'); });
+function closePhotoViewer() { sfx.play('menuDown'); photoViewer.classList.remove('open'); pvZoom.reset(); }
+document.getElementById('photo-viewer-close').addEventListener('click', e => { e.stopPropagation(); closePhotoViewer(); });
+// powiększanie: dwa palce (szczypanie), podwójne stuknięcie (x2.5 / z powrotem), przesuwanie jednym palcem gdy powiększone.
+// Pojedyncze stuknięcie w niepowiększone zdjęcie albo w tło = zamknij.
+const pvZoom = (() => {
+  const img = photoViewerImg;
+  let sc = 1, tx = 0, ty = 0, start = null, moved = false, lastTap = 0, lastTapX = 0, lastTapY = 0;
+  const MAX = 5;
+  function apply(anim) {
+    img.style.transition = anim ? 'transform 0.22s ease' : 'none';
+    img.style.transform = sc === 1 ? '' : 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')';
+    photoViewer.classList.toggle('zoomed', sc > 1.01);
+  }
+  function clamp() {
+    const w = img.offsetWidth, h = img.offsetHeight;
+    const r = img.getBoundingClientRect(), base = { x: r.left - tx, y: r.top - ty };
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const sw = w * sc, sh = h * sc;
+    // gdy powiększone zdjęcie jest większe od ekranu — nie da się go zsunąć za krawędź; mniejsze — zostaje na środku
+    if (sw <= vw) tx = (w - sw) / 2; else tx = Math.min(-base.x, Math.max(vw - base.x - sw, tx));
+    if (sh <= vh) ty = (h - sh) / 2; else ty = Math.min(-base.y, Math.max(vh - base.y - sh, ty));
+  }
+  function zoomAt(cx, cy, newSc) {
+    const r = img.getBoundingClientRect();
+    const ox = r.left - tx, oy = r.top - ty;            // położenie zdjęcia bez powiększenia
+    const px = (cx - ox - tx) / sc, py = (cy - oy - ty) / sc; // punkt zdjęcia pod palcem
+    sc = Math.max(1, Math.min(MAX, newSc));
+    tx = cx - ox - px * sc; ty = cy - oy - py * sc;
+  }
+  const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  photoViewer.addEventListener('touchstart', e => {
+    if (e.target.closest('#pv-desc, #photo-viewer-close')) return;
+    moved = false;
+    if (e.touches.length === 2) {
+      start = { d: dist(e.touches[0], e.touches[1]), sc, tx, ty,
+        cx: (e.touches[0].clientX + e.touches[1].clientX) / 2, cy: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+      moved = true;
+    } else if (e.touches.length === 1) {
+      start = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx, ty, sc };
+    }
+  }, { passive: true });
+  photoViewer.addEventListener('touchmove', e => {
+    if (!start || e.target.closest('#pv-desc')) return;
+    if (e.touches.length === 2 && start.d) {
+      const d = dist(e.touches[0], e.touches[1]);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2, cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      sc = start.sc; tx = start.tx; ty = start.ty;
+      zoomAt(start.cx, start.cy, start.sc * d / start.d);
+      tx += cx - start.cx; ty += cy - start.cy;
+      moved = true; apply(false);
+    } else if (e.touches.length === 1 && start.x !== undefined) {
+      const dx = e.touches[0].clientX - start.x, dy = e.touches[0].clientY - start.y;
+      if (Math.abs(dx) + Math.abs(dy) > 8) moved = true;
+      if (sc > 1) { tx = start.tx + dx; ty = start.ty + dy; clamp(); apply(false); }
+    }
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+  photoViewer.addEventListener('touchend', e => {
+    if (e.touches.length === 1) { // z dwóch palców został jeden — dalej przesuwamy od tego miejsca
+      start = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx, ty, sc }; return;
+    }
+    if (e.touches.length) return;
+    if (sc < 1.05) { sc = 1; tx = 0; ty = 0; apply(true); } else { clamp(); apply(true); }
+    start = null;
+  });
+  // stuknięcia (też myszką na komputerze): podwójne = powiększ / pomniejsz, pojedyncze w niepowiększone = zamknij
+  let tapTimer = null;
+  photoViewer.addEventListener('click', e => {
+    if (e.target.closest('#pv-desc, #photo-viewer-close')) return;
+    if (moved) { moved = false; return; }
+    const now = Date.now();
+    const onImg = e.target === img;
+    if (onImg && now - lastTap < 320 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 40) {
+      clearTimeout(tapTimer); lastTap = 0;
+      if (sc > 1.01) { sc = 1; tx = 0; ty = 0; } else { zoomAt(e.clientX, e.clientY, 2.5); clamp(); }
+      apply(true);
+      return;
+    }
+    lastTap = now; lastTapX = e.clientX; lastTapY = e.clientY;
+    if (sc > 1.01) return; // powiększone: pojedyncze stuknięcie nic nie robi
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(closePhotoViewer, onImg ? 330 : 0);
+  });
+  return { reset() { sc = 1; tx = 0; ty = 0; start = null; apply(false); } };
+})();
 
 // Ustawienia → Źródła zdjęć: lista linków (żeby nie wisiały na zdjęciach)
 document.getElementById('settings-credits-row').addEventListener('click', () => {
