@@ -972,6 +972,8 @@
   #photo-viewer.open #pv-frame { transform: scale(1); }
   #photo-viewer.zoomed #pv-frame { z-index: 1; }
   #photo-viewer img { display: block; width: 100vw; max-width: 100vw; height: auto; max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px - env(safe-area-inset-top, 0px)); object-fit: contain; transform-origin: 0 0; will-change: transform; }
+  #photo-viewer img { background: center / cover no-repeat; }
+  #photo-viewer img.loading { filter: blur(6px); }
   #photo-viewer.has-desc img { max-height: calc(72vh - 40px); max-height: calc(72dvh - 40px); }
   #photo-viewer.zoomed #pv-cap, #photo-viewer.zoomed #pv-desc { opacity: 0; }
   #photo-viewer img.hidden, #photo-viewer-empty.hidden, #pv-frame.hidden { display: none; }
@@ -4339,6 +4341,16 @@ function trackPhotoSrc(track) {
   if (track.audio) return 'foto/' + track.audio.split('/').pop().replace(/\.mp3$/i, '.webp') + '?v=' + TRACK_PHOTO_VER;
   return null;
 }
+// zdjęcia, które są w foto/ (nazwa: [szerokość, wysokość]) — apka od razu wie, że zdjęcie jest,
+// bez czekania na pobranie; miniaturka w przycisku = foto/mini/<nazwa>.webp (ok. 4 KB)
+const PHOTO_FILES = {"10_0_Wieza_Ratuszowa":[564,1000],"10_2_Krwawy_Burmistrz":[960,647],"10_3_Eros_Bendato":[960,825],"11_0_Collegium_Maius":[750,1000],"11_1_Dziedziniec":[960,540],"11_2_Mikolaj_Kopernik":[960,766],"11_3_Dawne_zycie_akademickie":[960,478],"1_0_Rynek_Glowny":[1280,872],"1_1_Sredniowieczny_Rynek":[960,519],"1_2_Wspolczesny_Rynek":[960,488],"2_0_Historia_sukiennic":[1280,737],"2_1_Renesansowe_Sukiennice":[960,640],"2_2_Sukiennice_dzisiaj":[960,720],"2_3_Podziemia_rynku":[960,638],"3_0_Historia_Kosciola_Mariackiego":[1280,858],"3_1_Legenda_o_trebaczu":[960,733],"3_2_Wnetrze_Kosciola":[960,638],"3_3_Oltarz_Wita_Stwosza":[750,1000],"4_0_Plac_Mariacki":[960,720],"4_2_Zak":[960,640],"5_0_Historia_Malego_Rynku":[960,720],"5_1_Pierwsza_polska_gazeta":[750,1000],"5_2_Maly_Rynek_dzisiaj":[960,768],"6_0_Historia_Placu":[960,639],"6_1_Teatr_Slowackiego":[960,640],"6_2_Wielkie_Premiery":[517,800],"6_3_Ludwik_Solski":[960,692],"7_0_Historia_Plant":[960,720],"7_1_Galeria_Pomnikow":[728,1000],"7_2_Planty_Dzisiaj":[750,1000],"8_0_Sredniowieczne_Mury":[960,613],"8_1_Brama_Florianska":[622,1000],"8_2_Barbakan":[960,640],"8_3_Marcin_Oracewicz":[797,1000],"8_4_Cechy_krakowskie":[960,624],"9_0_Muzeum_Czartoryskich":[960,638],"9_1_Zaulek_ksiazat_Czartoryskich":[750,1000],"Dom_Jana_Matejki":[586,1000],"Historia_kosciola":[750,1000],"Hold_Pruski":[1280,916],"Jama_Michalika":[960,535],"Jan_Matejko":[670,1000],"Kolegiata_sw_Anny":[960,720],"Legenda_o_Twardowskim":[960,697],"Palac_Krzysztofory":[960,640],"Paon_i_Cyganeria":[960,640],"Pierwszy_polski_kabaret":[960,676],"Przysiega_Tadeusza_Kosciuszki":[960,834],"Sw_Jan_z_Ket":[737,1000],"Tablica_ofiar_smogu":[770,1000],"Ulica_Florianska":[665,1000],"Wnetrze":[750,1000],"Wnetrze_Kolegiaty":[750,1000]};
+function photoMiniSrc(src) { const k = photoKey(src); return PHOTO_FILES[k] ? 'foto/mini/' + k + '.webp?v=' + TRACK_PHOTO_VER : null; }
+const photoPrefetched = new Set();
+function prefetchPhoto(src) {
+  if (!src || photoPrefetched.has(src) || !PHOTO_FILES[photoKey(src)]) return;
+  photoPrefetched.add(src);
+  const im = new Image(); im.decoding = 'async'; im.src = src;
+}
 let currentPhotoSrc = null;
 function updateTrackPhoto() {
   const btn = document.getElementById('sheet-photo-btn');
@@ -4348,6 +4360,17 @@ function updateTrackPhoto() {
   btn.classList.remove('has-photo');
   btn.style.backgroundImage = '';
   if (!src) return;
+  const mini = photoMiniSrc(src);
+  if (mini) {
+    currentPhotoSrc = src;
+    btn.style.backgroundImage = 'url("' + mini + '")';
+    btn.classList.add('has-photo');
+    // duże zdjęcie tego nagrania pobieramy od razu w tle, a po chwili też zdjęcia pozostałych nagrań tego punktu
+    prefetchPhoto(src);
+    const pt = currentPoint;
+    setTimeout(() => { if (pt === currentPoint) (pt.tracks || []).forEach(tr => prefetchPhoto(trackPhotoSrc(tr))); }, 1500);
+    return;
+  }
   const probe = new Image();
   probe.onload = () => {
     if (trackPhotoSrc(currentPoint && currentPoint.tracks[currentTrackIndex]) !== src) return; // w międzyczasie zmieniono nagranie
@@ -4369,7 +4392,16 @@ function openPhotoViewer(src) {
   const cap = document.getElementById('pv-cap'), desc = document.getElementById('pv-desc');
   document.getElementById('pv-frame').classList.toggle('hidden', !src);
   photoViewerImg.classList.toggle('hidden', !src);
-  if (src) photoViewerImg.src = src;
+  if (src) {
+    const k = photoKey(src), dim = PHOTO_FILES[k], mini = photoMiniSrc(src);
+    // zanim duże zdjęcie dojdzie: ramka w jego kształcie z rozmytą miniaturką, zamiast pustego ekranu
+    photoViewerImg.style.aspectRatio = dim ? dim[0] + ' / ' + dim[1] : '';
+    photoViewerImg.style.backgroundImage = mini ? 'url("' + mini + '")' : '';
+    photoViewerImg.classList.add('loading');
+    photoViewerImg.onload = () => { photoViewerImg.classList.remove('loading'); photoViewerImg.style.backgroundImage = ''; };
+    photoViewerImg.src = src;
+    if (photoViewerImg.complete && photoViewerImg.naturalWidth) { photoViewerImg.classList.remove('loading'); photoViewerImg.style.backgroundImage = ''; }
+  }
   document.getElementById('photo-viewer-empty').classList.toggle('hidden', !!src);
   const capText = src ? photoText(info.cap) : '';
   cap.innerHTML = '';
@@ -4384,6 +4416,12 @@ function openPhotoViewer(src) {
   desc.classList.toggle('hidden', !desc.textContent);
   desc.scrollTop = 0;
   photoViewer.classList.toggle('has-desc', !!desc.textContent);
+  // szerokość ramki liczona z kształtu zdjęcia, żeby rozmyta miniaturka miała dokładnie jego rozmiar
+  const dim = src && PHOTO_FILES[photoKey(src)];
+  if (dim) {
+    const maxH = desc.textContent ? window.innerHeight * 0.72 - 40 : window.innerHeight - 120;
+    photoViewerImg.style.width = Math.min(window.innerWidth, maxH * dim[0] / dim[1]) + 'px';
+  } else photoViewerImg.style.width = '';
   photoViewer.classList.add('open');
 }
 document.getElementById('pv-desc').addEventListener('click', e => e.stopPropagation()); // przewijanie opisu nie zamyka zdjęcia
