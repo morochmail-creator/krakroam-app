@@ -966,9 +966,27 @@
     opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
   }
   #photo-viewer.open { opacity: 1; pointer-events: auto; }
-  #photo-viewer img { max-width: 100%; max-height: 100%; border-radius: 12px; object-fit: contain; transform: scale(0.92); transition: transform 0.2s ease; }
-  #photo-viewer.open img { transform: scale(1); }
-  #photo-viewer img.hidden, #photo-viewer-empty.hidden { display: none; }
+  #photo-viewer { flex-direction: column; gap: 12px; }
+  #pv-frame { position: relative; max-width: 100%; transform: scale(0.92); transition: transform 0.2s ease; }
+  #photo-viewer.open #pv-frame { transform: scale(1); }
+  #photo-viewer img { display: block; max-width: 100%; max-height: calc(100vh - 110px); max-height: calc(100dvh - 110px - env(safe-area-inset-top, 0px)); border-radius: 12px; object-fit: contain; }
+  #photo-viewer.has-desc img { max-height: calc(58vh - 40px); max-height: calc(58dvh - 40px); }
+  #photo-viewer img.hidden, #photo-viewer-empty.hidden, #pv-frame.hidden { display: none; }
+  /* podpis na zdjęciu: na dole, na ciemnym przejściu, żeby był czytelny i nie zasłaniał środka */
+  #pv-cap {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 34px 14px 11px; border-radius: 0 0 12px 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.4) 55%, rgba(0,0,0,0));
+    color: #fff; font-size: 13.5px; line-height: 1.35; font-weight: 600; font-style: italic;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6); pointer-events: none;
+  }
+  #pv-cap.hidden, #pv-desc.hidden { display: none; }
+  #pv-desc {
+    width: 100%; max-width: 520px; max-height: 32vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    color: rgba(255,255,255,0.88); font-size: 13.5px; line-height: 1.5; padding: 2px 4px;
+  }
+  .credit-item { padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; line-height: 1.4; color: var(--ink); }
+  .credit-item:last-child { border-bottom: none; }
+  .credit-item a { color: var(--route); font-size: 12.5px; word-break: break-all; }
   #photo-viewer-empty { color: #fff; text-align: center; font-size: 15px; font-weight: 600; opacity: 0.85; }
   #photo-viewer-empty svg { display: block; width: 56px; height: 56px; margin: 0 auto 12px; stroke: #fff; opacity: 0.6; }
   #photo-viewer-close {
@@ -1432,6 +1450,10 @@
         <span>📍</span>
         <span id="settings-perm-text">Lokalizacja i kompas — jak włączyć</span>
       </div>
+      <div class="settings-row" id="settings-credits-row">
+        <span>🖼️</span>
+        <span id="settings-credits-text">Źródła zdjęć</span>
+      </div>
       <div class="settings-row" id="settings-progress-row">Wyzeruj odsłuchane punkty</div>
       <div class="settings-row" id="settings-logout-row">Wyloguj</div>
     </div>
@@ -1440,7 +1462,8 @@
   <div id="sheet-backdrop"></div>
 
   <div id="photo-viewer" aria-hidden="true">
-    <img id="photo-viewer-img" alt="" class="hidden">
+    <div id="pv-frame" class="hidden"><img id="photo-viewer-img" alt="" class="hidden"><div id="pv-cap" class="hidden"></div></div>
+    <div id="pv-desc" class="hidden"></div>
     <div id="photo-viewer-empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg><span id="photo-viewer-empty-text">Zdjęcie wkrótce</span></div>
     <button id="photo-viewer-close" aria-label="Zamknij">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
@@ -1728,7 +1751,7 @@ const TRANSLATIONS = {
     playLabel: "Odtwórz", playPauseLabel: "Odtwórz/Pauza", stopLabel: "Stop",
     prevTrackLabel: "Poprzednie nagranie", nextTrackLabel: "Następne nagranie",
     back10Label: "Cofnij o 10 sekund", volumeLabel: "Głośność", speedLabel: "Prędkość odtwarzania",
-    photoLabel: "Zdjęcie", expandNavLabel: "Rozwiń nawigację"
+    photoLabel: "Zdjęcie", creditsRow: "Źródła zdjęć", creditsTitle: "Źródła zdjęć", creditsSub: "Zdjęcia pochodzą z Wikimedia Commons. Pod każdym linkiem znajdziesz autora i licencję.", expandNavLabel: "Rozwiń nawigację"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -1820,7 +1843,7 @@ const TRANSLATIONS = {
     playLabel: "Play", playPauseLabel: "Play/Pause", stopLabel: "Stop",
     prevTrackLabel: "Previous recording", nextTrackLabel: "Next recording",
     back10Label: "Back 10 seconds", volumeLabel: "Volume", speedLabel: "Playback speed",
-    photoLabel: "Photo", expandNavLabel: "Expand navigation"
+    photoLabel: "Photo", creditsRow: "Photo credits", creditsTitle: "Photo credits", creditsSub: "Photos come from Wikimedia Commons. Each link shows the author and licence.", expandNavLabel: "Expand navigation"
   },
 };
 
@@ -1958,6 +1981,7 @@ function applyTranslations() {
   document.getElementById('settings-progress-row').textContent = t('progressReset');
   document.getElementById('settings-perm-text').textContent = t('permRow');
   document.getElementById('perm-title').textContent = t('permTitle');
+  document.getElementById('settings-credits-text').textContent = t('creditsRow');
   document.getElementById('perm-retry').textContent = t('permRetry');
   document.getElementById('perm-close-btn').textContent = t('permClose');
   document.getElementById('perm-x').setAttribute('aria-label', t('closeLabel'));
@@ -2024,8 +2048,8 @@ function applyTranslations() {
    Każdy punkt ma listę "tracks" — dowolną liczbę nagrań
    (np. 1 główny opis + 1.1, 1.2 dodatkowe ciekawostki).
    — uzupełnij "audio" realnymi plikami mp3, gdy będą gotowe.
-   ZDJĘCIA: wrzuć plik .jpg do folderu foto/ o tej samej nazwie co mp3
-   (np. audio/pl/2_0_Historia_Sukiennic.mp3 → foto/2_0_Historia_Sukiennic.jpg)
+   ZDJĘCIA: wrzuć plik .webp do folderu foto/ o tej samej nazwie co mp3
+   (np. audio/pl/2_0_Historia_Sukiennic.mp3 → foto/2_0_Historia_Sukiennic.webp); podpis/link: PHOTO_INFO
    — pokaże się samo. Można też wpisać w track pole photo: "foto/cos.jpg".
    TODO (wielojęzyczność treści): gdy dojdą nagrania w innych
    językach, "audio" i "label" w każdym tracku powinny stać się
@@ -3662,6 +3686,8 @@ function showPermHelp(focus) {
     '<div class="perm-status">' + (locOk ? '✅ ' : '❌ ') + t('permLocShort') + ' — ' + t(locOk ? 'permWorks' : 'permNotWorks') + '</div>' +
     '<div class="perm-status">' + (compOk ? '✅ ' : '❌ ') + t('permCompassShort') + ' — ' + t(compOk ? 'permWorks' : 'permNotWorks') + '</div>';
   document.getElementById('perm-body').innerHTML = focus === 'compass' ? comp + loc : loc + comp;
+  document.getElementById('perm-title').textContent = t('permTitle');
+  document.getElementById('perm-retry').style.display = '';
   gpsReminderEl.classList.add('hidden');
   permScreenEl.classList.remove('hidden');
 }
@@ -4093,9 +4119,7 @@ function loadRouteIntroPhotos(key) {
       slot.classList.add('has-photo');
       slot.onclick = () => {
         sfx.play('menuUp');
-        photoViewerImg.src = src; photoViewerImg.classList.remove('hidden');
-        document.getElementById('photo-viewer-empty').classList.add('hidden');
-        photoViewer.classList.add('open');
+        openPhotoViewer(src);
       };
     };
     probe.src = src;
@@ -4247,11 +4271,66 @@ function setSheetPeek(state, freshOpen) {
     flyToPointBehindSheet(currentPoint);
   }
 }
-// zdjęcie do nagrania: pole "photo" w tracku albo foto/<nazwa pliku mp3>.jpg
+// zdjęcia do nagrań: foto/<nazwa pliku mp3>.webp (zmniejszone, max 800 px, ok. 80 KB)
+// PHOTO_INFO: podpis na zdjęciu (cap), dłuższy opis pod zdjęciem (desc), link do źródła (src — widać go tylko w Ustawieniach → Źródła zdjęć)
+const PHOTO_INFO = {
+  "1_0_Rynek_Glowny": { src: "https://commons.wikimedia.org/wiki/File:Sukiennice_and_Main_Market_Square_Krakow_Poland.JPG" },
+  "1_1_Sredniowieczny_Rynek": { src: "https://commons.wikimedia.org/wiki/File:Cracovia_-_btv1b532357828_(1_of_2).jpg" },
+  "1_2_Wspolczesny_Rynek": { src: "https://commons.wikimedia.org/wiki/File:Main_Market_Square,_view_from_S,_Old_Town,_Krak%C3%B3w,_Poland.jpg" },
+  "2_1_Renesansowe_Sukiennice": { src: "https://commons.wikimedia.org/wiki/File:Maszkaron_szczytu_zachodniej_strony_Sukiennic._Widok_z_wie%C5%BCy_ratuszowej_Krak%C3%B3w_RN1.jpg" },
+  "2_2_Sukiennice_dzisiaj": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3wClothHallInside_(43839526111).jpg" },
+  "2_3_Podziemia_rynku": { src: "https://commons.wikimedia.org/wiki/File:Rynek_Underground_(9156842553).jpg" },
+  "3_0_Historia_Kosciola_Mariackiego": { src: "https://commons.wikimedia.org/wiki/File:Church_of_Our_Lady_Assumed_into_Heaven,_view_from_SW,_5_Mariacki_square,_Old_Town,_Krak%C3%B3w,_Poland.jpg" },
+  "3_1_Legenda_o_trebaczu": { src: "https://commons.wikimedia.org/wiki/File:Hejnalista_z_wie%C5%BCy_mariackiej_w_Krakowie_(1913).jpg" },
+  "3_2_Wnetrze_Kosciola": { src: "https://commons.wikimedia.org/wiki/File:Organ_and_choir_-_St._Mary's_Basilica_(9157016345).jpg" },
+  "3_3_Oltarz_Wita_Stwosza": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_Ko%C5%9Bci%C3%B3%C5%82_Mariacki_079.jpg" },
+  "4_0_Plac_Mariacki": { src: "https://commons.wikimedia.org/wiki/File:PlacMariacki-WidokNaWsch%C3%B3d-POL,_Krak%C3%B3w.jpg" },
+  "4_2_Zak": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_-_Plac_Mariacki.jpg" },
+  "5_0_Historia_Malego_Rynku": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_(Cracow)_-_Ma%C5%82y_Rynek_-_Little_Market_Square_-_panoramio_(2).jpg" },
+  "5_1_Pierwsza_polska_gazeta": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w,_Ma%C5%82y_Rynek_6.JPG" },
+  "5_2_Maly_Rynek_dzisiaj": { src: "https://commons.wikimedia.org/wiki/File:Little_Market_Square_in_Krak%C3%B3w,_2024_(06).jpg" },
+  "6_0_Historia_Placu": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w,_Teatr_Miejski_im._S%C5%82owackiego;_fot._04.jpg" },
+  "6_1_Teatr_Slowackiego": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_-_Juliusz_S%C5%82owacki_Theatre_by_night_01.jpg" },
+  "6_3_Ludwik_Solski": { src: "https://commons.wikimedia.org/wiki/File:Ludwik_Solski_-_Legion_-_Film_nr_55-56_-_1948-12-23.JPG", cap: { pl: "Ludwik Solski w roli Adama Mickiewicza", en: "Ludwik Solski as Adam Mickiewicz" } },
+  "7_0_Historia_Plant": { src: "https://commons.wikimedia.org/wiki/File:Planty_2015_02.JPG" },
+  "7_1_Galeria_Pomnikow": { src: "https://commons.wikimedia.org/wiki/File:Queen_Jadwiga_and_Grand_Duke_Jogaila_(500_years_of_the_union_of_Poland_and_Lithuania)_monument,_Planty_Park,_Basztowa_Street,_Old_Town,_Krak%C3%B3w,_Poland.jpg" },
+  "7_2_Planty_Dzisiaj": { src: "https://commons.wikimedia.org/wiki/File:Planty_in_Krak%C3%B3w,_Poland,_2019,_02.jpg" },
+  "8_0_Sredniowieczne_Mury": { src: "https://commons.wikimedia.org/wiki/File:Mury_miejskie_03tr.JPG" },
+  "8_1_Brama_Florianska": { src: "https://commons.wikimedia.org/wiki/File:20200516_Brama_Floria%C5%84ska_w_Krakowie_0911_9966.jpg" },
+  "8_2_Barbakan": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_-_Barbakan_Krakowski.jpg" },
+  "8_3_Marcin_Oracewicz": { src: "https://commons.wikimedia.org/wiki/File:Krakow_2024_258_Krzysztofory_Palace_-_Marcin_Oracewicz_Portrait.jpg", cap: { pl: "Marcin Oracewicz – portret, Piotr Stachiewicz, 1895", en: "Marcin Oracewicz – portrait by Piotr Stachiewicz, 1895" } },
+  "8_4_Cechy_krakowskie": { src: "https://commons.wikimedia.org/wiki/File:W%C5%82adys%C5%82aw_%C5%81uszczkiewicz_-_Presenting_the_Fowler_to_the_Shooting_Brotherhood_-_MNK_II-a-66_-_National_Museum_Krak%C3%B3w.jpg", cap: { pl: "Bractwo Kurkowe na obrazie Władysława Łuszczkiewicza, XIX wiek", en: "The Fowler Brotherhood, painting by Władysław Łuszczkiewicz, 19th c." } },
+  "9_0_Muzeum_Czartoryskich": { src: "https://commons.wikimedia.org/wiki/File:Czartoryski%27s_alley,_Pijarska_street,_Old_Town,_Krak%C3%B3w,_Poland.jpg" },
+  "9_1_Zaulek_ksiazat_Czartoryskich": { src: "https://commons.wikimedia.org/wiki/File:Gate_of_Czartoryski_Museum,_Krak%C3%B3w,_2022,_01.jpg" },
+  "10_0_Wieza_Ratuszowa": { src: "https://commons.wikimedia.org/wiki/File:Krakau_-_Rathausturm.jpg" },
+  "10_2_Krwawy_Burmistrz": { src: "https://commons.wikimedia.org/wiki/File:Czeczotka_tenement_hose,_1_Wi%C5%9Blna_street,_Old_Town_,_Krak%C3%B3w,_Poland.JPG" },
+  "10_3_Eros_Bendato": { src: "https://commons.wikimedia.org/wiki/File:Eros_Bendato_Sculpture_in_Krak%C3%B3w._Poland.jpg" },
+  "11_0_Collegium_Maius": { src: "https://commons.wikimedia.org/wiki/File:Collegium_Maius_Jagiello%C5%84ska_Street,_Krak%C3%B3w,_Poland,_2022.jpg" },
+  "11_1_Dziedziniec": { src: "https://commons.wikimedia.org/wiki/File:Collegium_Maius_2017.jpg" },
+  "11_2_Mikolaj_Kopernik": { cap: { pl: "Astronom Kopernik, czyli rozmowa z Bogiem – Jan Matejko, 1871", en: "Astronomer Copernicus, or Conversations with God – Jan Matejko, 1871" } },
+  "11_3_Dawne_zycie_akademickie": { cap: { pl: "Wyjście żaków z Krakowa w 1549 – Jan Matejko, 1892", en: "Students Leaving Kraków in 1549 – Jan Matejko, 1892" }, desc: { pl: "Przedstawione przez Jana Matejkę wydarzenie było wynikiem konfliktu z 14 maja 1549 roku w Krakowie, między studentami Akademii Krakowskiej a czeladzią księdza kanonika Andrzeja Czarnkowskiego. Służba napadła na bursę studencką oraz poraniła studentów. Sprawa za wstawiennictwem króla Zygmunta Augusta znalazła miejsce w sądzie, jednak proces nie był prowadzony rzetelnie. Część oburzonych żaków postanowiła opuścić Kraków i przenieść się na inne uniwersytety. Artysta namalował moment kiedy studenci tłumnie opuszczają Kraków. W tle zabudowania Krakowa oraz widoczny Barbakan, a także drewniane zabudowania Wiśnicza. Obraz z dużą grupą tłoczących się postaci jest utrzymany w brązach i żółcieniach z akcentami koloru czerwonego oraz ciemnej zieleni. (Marta Kłak-Ambrożkiewicz)", en: "The event painted by Jan Matejko grew out of a clash in Kraków on 14 May 1549 between students of the Kraków Academy and the servants of canon Andrzej Czarnkowski. The servants attacked a student hostel and wounded several students. Thanks to King Sigismund Augustus the case went to court, but the trial was not conducted fairly. Some of the outraged students decided to leave Kraków and move to other universities. The artist painted the moment when the students leave the city in a crowd. In the background are the buildings of Kraków with the Barbican, and the wooden houses of Wiśnicz. The painting, full of crowded figures, is kept in browns and yellows with touches of red and dark green. (Marta Kłak-Ambrożkiewicz)" } },
+  "Paon_i_Cyganeria": { src: "https://commons.wikimedia.org/wiki/File:2025,_Krak%C3%B3w,_Kamienica_Kenner%C3%B3w,_Szpitalna_38_(10).jpg" },
+  "Jama_Michalika": { src: "https://commons.wikimedia.org/wiki/File:Kawiarnia_Jama_Michalika_01_AB.jpg" },
+  "Pierwszy_polski_kabaret": { src: "https://commons.wikimedia.org/wiki/File:Reduta_Zielonego_Balonika_(1910).jpg", cap: { pl: "Reduta Zielonego Balonika, 1910", en: "The Green Balloon cabaret, 1910" } },
+  "Jan_Matejko": { cap: { pl: "Jan Matejko – Autoportret, 1892", en: "Jan Matejko – Self-portrait, 1892" } },
+  "Ulica_Florianska": { src: "https://commons.wikimedia.org/wiki/File:20200516_Ulica_Floria%C5%84ska_i_Ko%C5%9Bci%C3%B3%C5%82_Mariacki_w_Krakowie_0914_9971.jpg" },
+  "Historia_kosciola": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_kosciol_pijarow_4.jpg" },
+  "Wnetrze": { src: "https://commons.wikimedia.org/wiki/File:KO%C5%9ACI%C3%93%C5%81_I_KLASZTOR_OO._PIJAR%C3%93W_W_KRAKOWIE,_fot._M._Klag_(MIK,_2004)_(5367374306).jpg" },
+  "Tablica_ofiar_smogu": { src: "https://commons.wikimedia.org/wiki/File:Commemorative_plaque_for_the_victims_of_smog,_27_S%C5%82awkowska_street,_Krak%C3%B3w,_Old_Town,_Poland.jpg" },
+  "Palac_Krzysztofory": { src: "https://commons.wikimedia.org/wiki/File:Krakow_Palac_Pod_Krzysztofory.jpg" },
+  "Legenda_o_Twardowskim": { src: "https://commons.wikimedia.org/wiki/File:Pan_Twardowski_(Rydel)_rys.3.jpg", cap: { pl: "Pan Twardowski (Rydel) – Włodzimierz Tetmajer, 1923", en: "Pan Twardowski (Rydel) – Włodzimierz Tetmajer, 1923" } },
+  "Kolegiata_sw_Anny": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_Ko%C5%9Bci%C3%B3%C5%82_%C5%9Bw._Anny_03.jpg" },
+  "Wnetrze_Kolegiaty": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_Ko%C5%9Bci%C3%B3%C5%82_%C5%9Bw._Anny_46.jpg" },
+  "Hold_Pruski": { cap: { pl: "Jan Matejko – Hołd pruski, 1879–1882", en: "Jan Matejko – The Prussian Homage, 1879–1882" } },
+  "Przysiega_Tadeusza_Kosciuszki": { cap: { pl: "Michał Stachowicz – Przysięga Tadeusza Kościuszki na Rynku Głównym w Krakowie, ok. 1821", en: "Michał Stachowicz – Kościuszko’s Oath on the Main Market Square in Kraków, c. 1821" } },
+};
+function photoKey(src) { return src ? src.split('/').pop().split('?')[0].replace(/\.(webp|jpe?g|png)$/i, '') : ''; }
+function photoText(field) { return field ? (field[currentLang] || field.pl) : ''; }
+// zdjęcie do nagrania: pole "photo" w tracku albo foto/<nazwa pliku mp3>.webp
 function trackPhotoSrc(track) {
   if (!track) return null;
   if (track.photo) return track.photo;
-  if (track.audio) return 'foto/' + track.audio.split('/').pop().replace(/\.mp3$/i, '.jpg');
+  if (track.audio) return 'foto/' + track.audio.split('/').pop().replace(/\.mp3$/i, '.webp');
   return null;
 }
 let currentPhotoSrc = null;
@@ -4276,12 +4355,49 @@ const photoViewer = document.getElementById('photo-viewer');
 const photoViewerImg = document.getElementById('photo-viewer-img');
 document.getElementById('sheet-photo-btn').addEventListener('click', () => {
   sfx.play('menuUp');
-  if (currentPhotoSrc) { photoViewerImg.src = currentPhotoSrc; photoViewerImg.classList.remove('hidden'); }
-  else photoViewerImg.classList.add('hidden');
-  document.getElementById('photo-viewer-empty').classList.toggle('hidden', !!currentPhotoSrc);
-  photoViewer.classList.add('open');
+  openPhotoViewer(currentPhotoSrc);
 });
+// pełny ekran ze zdjęciem: podpis na dole zdjęcia, ewentualny dłuższy opis pod spodem (można go przewijać)
+function openPhotoViewer(src) {
+  const info = PHOTO_INFO[photoKey(src)] || {};
+  const cap = document.getElementById('pv-cap'), desc = document.getElementById('pv-desc');
+  document.getElementById('pv-frame').classList.toggle('hidden', !src);
+  photoViewerImg.classList.toggle('hidden', !src);
+  if (src) photoViewerImg.src = src;
+  document.getElementById('photo-viewer-empty').classList.toggle('hidden', !!src);
+  cap.textContent = src ? photoText(info.cap) : '';
+  cap.classList.toggle('hidden', !cap.textContent);
+  desc.textContent = src ? photoText(info.desc) : '';
+  desc.classList.toggle('hidden', !desc.textContent);
+  desc.scrollTop = 0;
+  photoViewer.classList.toggle('has-desc', !!desc.textContent);
+  photoViewer.classList.add('open');
+}
+document.getElementById('pv-desc').addEventListener('click', e => e.stopPropagation()); // przewijanie opisu nie zamyka zdjęcia
 photoViewer.addEventListener('click', () => { sfx.play('menuDown'); photoViewer.classList.remove('open'); });
+
+// Ustawienia → Źródła zdjęć: lista linków (żeby nie wisiały na zdjęciach)
+document.getElementById('settings-credits-row').addEventListener('click', () => {
+  settingsScreenEl.classList.add('hidden');
+  const esc = x => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const seen = new Set();
+  let html = '';
+  POINTS.forEach(pt => (pt.tracks || []).forEach(tr => {
+    const key = photoKey(trackPhotoSrc(tr));
+    const info = PHOTO_INFO[key];
+    if (!info || !info.src || seen.has(key)) return;
+    seen.add(key);
+    const name = pointName(pt) === trackLabel(tr) ? trackLabel(tr) : pointName(pt) + ' – ' + trackLabel(tr);
+    html += '<div class="credit-item">' + esc(name) + '<br><a href="' + esc(info.src) + '" target="_blank" rel="noopener">' +
+      esc(decodeURIComponent(info.src.replace('https://commons.wikimedia.org/wiki/File:', ''))) + '</a></div>';
+  }));
+  document.getElementById('perm-title').textContent = t('creditsTitle');
+  document.getElementById('perm-sub').textContent = t('creditsSub');
+  document.getElementById('perm-body').innerHTML = html;
+  document.getElementById('perm-retry').style.display = 'none';
+  permScreenEl.classList.remove('hidden');
+  document.getElementById('perm-inner').scrollTop = 0;
+});
 
 function updatePeekLabel() {
   if (!currentPoint) return;
