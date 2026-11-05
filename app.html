@@ -970,7 +970,7 @@
   #photo-viewer { flex-direction: column; gap: 10px; padding-left: 0; padding-right: 0; touch-action: none; overflow: hidden; }
   #pv-frame { position: relative; max-width: 100%; }
   #photo-viewer.zoomed #pv-frame { z-index: 1; }
-  #photo-viewer img { display: block; width: 100vw; max-width: 100vw; height: auto; object-fit: contain; transform-origin: 0 0; will-change: transform; }
+  #photo-viewer img { display: block; width: 100vw; max-width: 100vw; height: auto; object-fit: contain; transform-origin: 0 0; } /* bez will-change: inaczej przeglądarka rozciąga zdjęcie jak obrazek i po powiększeniu jest rozmyte */
   #photo-viewer img { background: center / cover no-repeat; }
   #photo-viewer img.loading { filter: blur(6px); }
   #photo-viewer.zoomed #pv-below { opacity: 0; pointer-events: none; }
@@ -4370,7 +4370,7 @@ const PHOTO_INFO = {
   "Hold_Pruski": { cap: { pl: "Hołd pruski\nJan Matejko, 1879–1882", en: "The Prussian Homage\nJan Matejko, 1879–1882" } },
   "Przysiega_Tadeusza_Kosciuszki": { cap: { pl: "Przysięga Tadeusza Kościuszki na Rynku Głównym w Krakowie\nMichał Stachowicz, ok. 1821", en: "Kościuszko’s Oath on the Main Market Square in Kraków\nMichał Stachowicz, c. 1821" } },
 };
-const TRACK_PHOTO_VER = '2'; // przy podmianie zdjęć podbij numer, żeby telefony pobrały nowe
+const TRACK_PHOTO_VER = '3'; // przy podmianie zdjęć podbij numer, żeby telefony pobrały nowe
 function photoKey(src) { return src ? src.split('/').pop().split('?')[0].replace(/\.(webp|jpe?g|png)$/i, '') : ''; }
 function photoText(field) { return field ? (field[currentLang] || field.pl) : ''; }
 // zdjęcie do nagrania: pole "photo" w tracku albo foto/<nazwa pliku mp3>.webp
@@ -4522,7 +4522,7 @@ const pvZoom = (() => {
   const base = () => frame.getBoundingClientRect();
   function apply(anim) {
     img.style.transition = anim ? 'transform 0.22s ease' : 'none';
-    img.style.transform = sc === 1 && !tx && !ty ? '' : 'translate3d(' + tx + 'px,' + ty + 'px,0) scale(' + sc + ')';
+    img.style.transform = sc === 1 && !tx && !ty ? '' : 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')';
     photoViewer.classList.toggle('zoomed', sc > 1.01);
   }
   function clamp() {
