@@ -983,6 +983,7 @@
   #pv-below { width: 100%; max-width: 560px; padding: 0 16px; display: flex; flex-direction: column; gap: 8px; transition: opacity 0.15s; }
   #pv-nav { display: flex; align-items: center; gap: 10px; }
   #pv-nav.hidden { display: none; }
+  #pv-nav.single button { display: none; }
   #pv-nav button { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; border: none; background: rgba(255,255,255,0.16); display: flex; align-items: center; justify-content: center; cursor: pointer; }
   #pv-nav button svg { width: 20px; height: 20px; stroke: #fff; }
   #pv-nav button:disabled { opacity: 0.3; }
@@ -4490,12 +4491,16 @@ function showPvPhoto() {
   document.getElementById('photo-viewer-empty').classList.toggle('hidden', !!src);
   // strzałki + "2 / 4 · nazwa nagrania"
   const nav = document.getElementById('pv-nav');
-  nav.classList.toggle('hidden', pvList.length < 2);
-  if (pvList.length > 1) {
+  // pojedyncze zdjęcie (punkt z jednym nagraniem): bez strzałek i licznika, ale z nazwą pod zdjęciem
+  const many = pvList.length > 1;
+  const nameText = item ? (item.label || (currentPoint ? pointName(currentPoint) : '')) : '';
+  nav.classList.toggle('hidden', !many && !nameText);
+  nav.classList.toggle('single', !many);
+  if (many || nameText) {
     const cnt = document.getElementById('pv-count');
     cnt.innerHTML = '';
-    const b = document.createElement('b'); b.textContent = (pvIndex + 1) + ' / ' + pvList.length; cnt.appendChild(b);
-    if (item.label) cnt.appendChild(document.createTextNode(' · ' + item.label));
+    if (many) { const b = document.createElement('b'); b.textContent = (pvIndex + 1) + ' / ' + pvList.length; cnt.appendChild(b); }
+    if (nameText) cnt.appendChild(document.createTextNode((many ? ' · ' : '') + nameText));
     document.getElementById('pv-prev').disabled = pvIndex === 0;
     document.getElementById('pv-next').disabled = pvIndex === pvList.length - 1;
   }
