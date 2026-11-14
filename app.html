@@ -1305,7 +1305,7 @@
       </div>
       <div id="route-intro-eyebrow">Trasa</div>
       <div id="route-intro-title">Stare Miasto</div>
-      <div id="route-intro-meta">12 przystanków · ok. 2 godz. · 2,5 km</div>
+      <div id="route-intro-meta">12 przystanków · ok. 2 godz. · 2,6 km</div>
       <div id="route-intro-photos"><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div></div>
       <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
       <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
@@ -1920,7 +1920,18 @@ const PLACE_NAMES = {
   "Kolegiata św. Anny":        { en: "St. Anne's Collegiate Church" },
   "Ulica Kanonicza":           { en: "Kanonicza Street" },
   "Ulica Grodzka":             { en: "Grodzka Street" },
-  "Dom Wita Stwosza":          { en: "Veit Stoss's House" }
+  "Dom Wita Stwosza":          { en: "Veit Stoss's House" },
+  "Stare tory tramwajowe":     { en: "The Old Tram Tracks" },
+  "Plac Szczepański":          { en: "Szczepański Square" },
+  "Plac Św. Marii Magdaleny":  { en: "St. Mary Magdalene Square" },
+  "Wzgórze Wawel":             { en: "Wawel Hill" },
+  "Katedra Wawelska":          { en: "Wawel Cathedral" },
+  "Renesansowy dziedziniec":   { en: "The Renaissance Courtyard" },
+  "Pozostałości średniowiecznych zabudowań": { en: "Remains of Medieval Buildings" },
+  "Kaplica Zygmuntowska":      { en: "Sigismund's Chapel" },
+  "Brama Wazów":               { en: "The Vasa Gate" },
+  "Legenda o Smoku Wawelskim": { en: "The Legend of the Wawel Dragon" },
+  "Bazylika Dominikanów":      { en: "Dominican Basilica" }
 };
 const TITLE_TR = {
   "Średniowieczne fortyfikacje":  { en: "Medieval Fortifications" },
@@ -2454,8 +2465,8 @@ const POINTS = [
     id: "ulica-kanonicza",
     name: "Ulica Kanonicza",
     type: "extra",
-    lat: 50.056715,
-    lng: 19.93753,
+    lat: 50.056441,
+    lng: 19.937475,
     tracks: [
       { number: "•", label: "Ulica Kanonicza", audio: "audio/pl/dodatkowe/Ulica_Kanonicza.mp3" }
     ]
@@ -2523,10 +2534,121 @@ const POINTS = [
       { number: "•", label: "Św. Jan z Kęt", audio: "audio/pl/dodatkowe/Sw_Jan_z_Ket.mp3" },
       { number: "•", label: "Wnętrze Kolegiaty", audio: "audio/pl/dodatkowe/Wnetrze_Kolegiaty.mp3" }
     ]
+  },
+  {
+    id: "stare-tory-tramwajowe",
+    name: "Stare tory tramwajowe",
+    type: "extra",
+    lat: 50.062538,
+    lng: 19.93498,
+    tracks: [
+      { number: "•", label: "Stare tory tramwajowe", audio: "audio/pl/dodatkowe/Stare_tory_tramwajowe.mp3" }
+    ]
+  },
+  {
+    id: "plac-szczepanski",
+    name: "Plac Szczepański",
+    type: "main",
+    offRoute: true,
+    lat: 50.063805,
+    lng: 19.935449,
+    tracks: [
+      { number: "•", label: "Plac Szczepański", audio: null }
+    ]
+  },
+  {
+    id: "plac-sw-marii-magdaleny",
+    name: "Plac Św. Marii Magdaleny",
+    type: "extra",
+    lat: 50.056851,
+    lng: 19.938078,
+    tracks: [
+      { number: "•", label: "Plac Św. Marii Magdaleny", audio: null }
+    ]
+  },
+  {
+    id: "wzgorze-wawel",
+    name: "Wzgórze Wawel",
+    type: "extra",
+    lat: 50.055376,
+    lng: 19.936512,
+    tracks: [
+      { number: "•", label: "Wzgórze Wawel", audio: null }
+    ]
+  },
+  {
+    id: "katedra-wawelska",
+    name: "Katedra Wawelska",
+    type: "extra",
+    lat: 50.054524,
+    lng: 19.934834,
+    tracks: [
+      { number: "•", label: "Katedra Wawelska", audio: null }
+    ]
+  },
+  {
+    id: "renesansowy-dziedziniec",
+    name: "Renesansowy dziedziniec",
+    type: "extra",
+    lat: 50.054517,
+    lng: 19.936648,
+    tracks: [
+      { number: "•", label: "Renesansowy dziedziniec", audio: null }
+    ]
+  },
+  {
+    id: "pozostalosci-zabudowan",
+    name: "Pozostałości średniowiecznych zabudowań",
+    type: "extra",
+    lat: 50.053911,
+    lng: 19.934958,
+    tracks: [
+      { number: "•", label: "Pozostałości średniowiecznych zabudowań", audio: null }
+    ]
+  },
+  {
+    id: "kaplica-zygmuntowska",
+    name: "Kaplica Zygmuntowska",
+    type: "extra",
+    lat: 50.054546,
+    lng: 19.935553,
+    tracks: [
+      { number: "•", label: "Kaplica Zygmuntowska", audio: null }
+    ]
+  },
+  {
+    id: "brama-wazow",
+    name: "Brama Wazów",
+    type: "extra",
+    lat: 50.05482,
+    lng: 19.934816,
+    tracks: [
+      { number: "•", label: "Brama Wazów", audio: null }
+    ]
+  },
+  {
+    id: "legenda-o-smoku-wawelskim",
+    name: "Legenda o Smoku Wawelskim",
+    type: "extra",
+    lat: 50.053021,
+    lng: 19.933574,
+    tracks: [
+      { number: "•", label: "Legenda o Smoku Wawelskim", audio: null }
+    ]
+  },
+  {
+    id: "bazylika-dominikanow",
+    name: "Bazylika Dominikanów",
+    type: "extra",
+    lat: 50.059312,
+    lng: 19.938927,
+    tracks: [
+      { number: "•", label: "Bazylika Dominikanów", audio: null }
+    ]
   }
 ];
 
-const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061536, 19.938783],  [50.06143, 19.939094],  [50.061413, 19.939507],  [50.061428, 19.939576],  [50.061477, 19.939702],  [50.061419, 19.939918],  [50.061315, 19.940225],  [50.061638, 19.940464],  [50.061702, 19.940441],  [50.06246, 19.941005],  [50.063479, 19.941756],  [50.063925, 19.942128],  [50.063988, 19.942311],  [50.064074, 19.942251],  [50.064569, 19.942608],  [50.064614, 19.942486],  [50.064824, 19.942644],  [50.064858, 19.942521],  [50.064942, 19.94213],  [50.065128, 19.941464],  [50.064824, 19.941345],  [50.064962, 19.940577],  [50.064893, 19.940442],  [50.064832, 19.940414],  [50.064864, 19.940617],  [50.064838, 19.94101],  [50.064793, 19.94119],  [50.064742, 19.941254],  [50.064521, 19.941119],  [50.064081, 19.940795],  [50.063636, 19.940443],  [50.063011, 19.939966],  [50.062877, 19.939862],  [50.063093, 19.939133],  [50.063059, 19.938994],  [50.063086, 19.938789],  [50.063141, 19.938603],  [50.062378, 19.938052],  [50.062323, 19.938016],  [50.062483, 19.937501],  [50.062626, 19.937019],  [50.062635, 19.936925],  [50.061998, 19.936311],  [50.061782, 19.936124],  [50.061656, 19.93607],  [50.061539, 19.936071],  [50.061424, 19.935898],  [50.061357, 19.935472],  [50.061745, 19.934329],  [50.061742, 19.934261],  [50.06158, 19.934114],  [50.061504, 19.934029],  [50.061253, 19.933862],  [50.061033, 19.933746],  [50.060747, 19.934563],  [50.060643, 19.934818],  [50.060449, 19.934649],  [50.06023, 19.934469],  [50.060061, 19.934362],  [50.059689, 19.93444],  [50.059168, 19.934606],  [50.059166, 19.934786],  [50.059198, 19.934936],  [50.059168, 19.935096],  [50.059163, 19.935249],  [50.059171, 19.935464],  [50.059352, 19.935431],  [50.059399, 19.93608],  [50.059391, 19.936292],  [50.059359, 19.936426],  [50.059276, 19.936648],  [50.059202, 19.936671],  [50.059099, 19.936835],  [50.059035, 19.937009],  [50.058814, 19.937143],  [50.058889, 19.937608],  [50.058927, 19.93765],  [50.058897, 19.937745],  [50.058895, 19.937871],  [50.058425, 19.937969],  [50.058111, 19.938017],  [50.057759, 19.938064],  [50.057487, 19.938142]];
+const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061536, 19.938783],  [50.06143, 19.939094],  [50.061413, 19.939507],  [50.061428, 19.939576],  [50.061477, 19.939702],  [50.061419, 19.939918],  [50.061315, 19.940225],  [50.061638, 19.940464],  [50.061702, 19.940441],  [50.06246, 19.941005],  [50.063479, 19.941756],  [50.063925, 19.942128],  [50.063988, 19.942311],  [50.064074, 19.942251],  [50.064569, 19.942608],  [50.064614, 19.942486],  [50.064824, 19.942644],  [50.064858, 19.942521],  [50.064942, 19.94213],  [50.065128, 19.941464],  [50.064824, 19.941345],  [50.064962, 19.940577],  [50.064893, 19.940442],  [50.064832, 19.940414],  [50.064864, 19.940617],  [50.064838, 19.94101],  [50.064793, 19.94119],  [50.064742, 19.941254],  [50.064521, 19.941119],  [50.064081, 19.940795],  [50.063636, 19.940443],  [50.063011, 19.939966],  [50.062877, 19.939862],  [50.063093, 19.939133],  [50.063059, 19.938994],  [50.063086, 19.938789],  [50.063141, 19.938603],  [50.062378, 19.938052],  [50.062323, 19.938016],  [50.062483, 19.937501],  [50.062626, 19.937019],  [50.062635, 19.936925],  [50.061998, 19.936311],  [50.061782, 19.936124],  [50.061656, 19.93607],  [50.061539, 19.936071],  [50.061424, 19.935898],  [50.061357, 19.935472],  [50.061745, 19.934329],  [50.061742, 19.934261],  [50.06158, 19.934114],  [50.061504, 19.934029],  [50.061253, 19.933862],  [50.061033, 19.933746],  [50.060747, 19.934563],  [50.060643, 19.934818],  [50.060449, 19.934649],  [50.06023, 19.934469],  [50.060061, 19.934362],  [50.059689, 19.93444],  [50.059168, 19.934606],  [50.059166, 19.934786],  [50.059198, 19.934936],  [50.059168, 19.935096],  [50.059163, 19.935249],  [50.059171, 19.935464],  [50.059352, 19.935431],  [50.059399, 19.93608],  [50.059391, 19.936292],  [50.059359, 19.936426],  [50.059276, 19.936648],  [50.059202, 19.936671],  [50.059099, 19.936835],  [50.059035, 19.937009],  [50.058814, 19.937143],  [50.058889, 19.937608],  [50.058927, 19.93765],  [50.058897, 19.937745],  [50.058895, 19.937871],  [50.058425, 19.937969],  [50.058111, 19.938017],  [50.057759, 19.938064],  [50.057487, 19.938142],  [50.056975, 19.938185],  [50.056851, 19.938078]];
 
 /* ============================================================
    MAPA
@@ -4091,12 +4213,12 @@ function selectDistrict(freeRoam, options) {
 const ROUTE_INTRO_CONTENT = {
   'stare-miasto': {
     pl: {
-      meta: '12 przystanków · ok. 2 godz. · 2,5 km',
+      meta: '12 przystanków · ok. 2 godz. · 2,6 km',
       desc: 'Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.',
       highlights: ['Rynek Główny i Sukiennice', 'Bazylika Mariacka i hejnał', 'Barbakan i Brama Floriańska', 'Wieża Ratuszowa i Collegium Maius']
     },
     en: {
-      meta: '12 stops · approx. 2 hrs · 2.5 km',
+      meta: '12 stops · approx. 2 hrs · 2.6 km',
       desc: "A walk through the heart of medieval Kraków — from the Main Market Square, past St. Mary's Basilica, the Planty Park and the medieval walls, all the way to Collegium Maius and the Franciscan Church. Go at your own pace: the guide speaks up by itself when you reach the next place.",
       highlights: ['Main Market Square and the Cloth Hall', "St. Mary's Basilica and the bugle call", "The Barbican and St. Florian's Gate", 'Town Hall Tower and Collegium Maius']
     },
