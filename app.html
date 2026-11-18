@@ -1305,7 +1305,7 @@
       </div>
       <div id="route-intro-eyebrow">Trasa</div>
       <div id="route-intro-title">Stare Miasto</div>
-      <div id="route-intro-meta">12 przystanków · ok. 2 godz. · 2,6 km</div>
+      <div id="route-intro-meta">18 przystanków · ok. 2,5 godz. · 3,2 km</div>
       <div id="route-intro-photos"><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div></div>
       <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
       <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
@@ -1884,6 +1884,16 @@ function t(key) {
    Nowy punkt/nagranie = dopisz tu jego nazwę, inaczej zostanie po polsku.
 ============================================================ */
 const PLACE_NAMES = {
+  "Zamek na Wawelu":          { en: "The Royal Castle" },
+  "Dziedziniec Arkadowy":     { en: "The Arcaded Courtyard" },
+  "Wejście na Wawel":         { en: "Entrance to Wawel" },
+  "Smok Wawelski":            { en: "The Wawel Dragon" },
+  "Bolesław Wstydliwy":       { en: "Bolesław the Chaste" },
+  "Baszty zamkowe":           { en: "The Castle Towers" },
+  "Panorama na Kraków":       { en: "Panorama of Kraków" },
+  "Ogrody Królewskie":        { en: "The Royal Gardens" },
+  "Pomnik Psa Dżoka":         { en: "Dżok the Dog Monument" },
+  "Ulica św. Jana":           { en: "St. John's Street" },
   "Rynek Główny":              { en: "Main Market Square" },
   "Sukiennice":                { en: "The Cloth Hall" },
   "Bazylika Mariacka":         { en: "St. Mary's Basilica" },
@@ -1916,7 +1926,6 @@ const PLACE_NAMES = {
   "Pomnik Tadeusza Kościuszki":{ en: "Tadeusz Kościuszko Monument" },
   "Józef Dietl":               { en: "Józef Dietl" },
   "Krakowskie gołębie":        { en: "Kraków's Pigeons" },
-  "Pawilon Wyspiańskiego":     { en: "Wyspiański Pavilion" },
   "Kolegiata św. Anny":        { en: "St. Anne's Collegiate Church" },
   "Ulica Kanonicza":           { en: "Kanonicza Street" },
   "Ulica Grodzka":             { en: "Grodzka Street" },
@@ -1926,14 +1935,35 @@ const PLACE_NAMES = {
   "Plac Św. Marii Magdaleny":  { en: "St. Mary Magdalene Square" },
   "Wzgórze Wawel":             { en: "Wawel Hill" },
   "Katedra Wawelska":          { en: "Wawel Cathedral" },
-  "Renesansowy dziedziniec":   { en: "The Renaissance Courtyard" },
-  "Pozostałości średniowiecznych zabudowań": { en: "Remains of Medieval Buildings" },
   "Kaplica Zygmuntowska":      { en: "Sigismund's Chapel" },
   "Brama Wazów":               { en: "The Vasa Gate" },
-  "Legenda o Smoku Wawelskim": { en: "The Legend of the Wawel Dragon" },
   "Bazylika Dominikanów":      { en: "Dominican Basilica" }
 };
 const TITLE_TR = {
+  "Stary Teatr":                 { en: "The Old Theatre" },
+  "Pałac Sztuki":                { en: "The Palace of Art" },
+  "Wampir z Krakowa":            { en: "The Vampire of Kraków" },
+  "Brama Herbowa":               { en: "The Coat-of-Arms Gate" },
+  "Kościół św. Andrzeja":        { en: "St. Andrew's Church" },
+  "Kościół św. Piotra i Pawła":  { en: "Sts. Peter and Paul Church" },
+  "Plac i Kolumna":              { en: "The Square and the Column" },
+  "Historia Wzgórza":            { en: "History of the Hill" },
+  "Wawel bez królów":            { en: "Wawel Without Kings" },
+  "Legenda o Wandzie":           { en: "The Legend of Wanda" },
+  "Historia katedry":            { en: "History of the Cathedral" },
+  "Kości przy wejściu":          { en: "The Bones at the Entrance" },
+  "Dzwon Zygmunt":               { en: "The Sigismund Bell" },
+  "Krypty":                      { en: "The Crypts" },
+  "Życie na zamku":              { en: "Life at the Castle" },
+  "Stańczyk":                    { en: "Stańczyk the Jester" },
+  "Ucieczka Henryka Walezego":   { en: "The Escape of Henry of Valois" },
+  "Zaginione miasteczko wawelskie": { en: "The Lost Wawel Town" },
+  "Renesansowy zamek":           { en: "The Renaissance Castle" },
+  "Urwany fryz":                 { en: "The Broken Frieze" },
+  "Zygmunt III i alchemia":      { en: "Sigismund III and Alchemy" },
+  "Turnieje rycerskie":          { en: "Knightly Tournaments" },
+  "Arrasy":                      { en: "The Tapestries" },
+  "Muzeum":                      { en: "The Museum" },
   "Średniowieczne fortyfikacje":  { en: "Medieval Fortifications" },
   "Paon i Cyganeria":             { en: "Paon and Cyganeria" },
   "Średniowieczny Rynek":         { en: "The Medieval Market Square" },
@@ -2270,6 +2300,72 @@ const POINTS = [
     ]
   },
   {
+    id: "plac-sw-marii-magdaleny",
+    name: "Plac Św. Marii Magdaleny",
+    type: "main",
+    lat: 50.056851,
+    lng: 19.938078,
+    tracks: [
+      { number: "14.0", label: "Kościół św. Andrzeja", audio: "audio/pl/14_0_Kosciol_sw_Andrzeja.mp3" },
+      { number: "14.1", label: "Kościół św. Piotra i Pawła", audio: "audio/pl/14_1_Kosciol_sw_Piotra_i_Pawla.mp3" },
+      { number: "14.2", label: "Plac i Kolumna", audio: "audio/pl/14_2_Plac_i_Kolumna.mp3" }
+    ]
+  },
+  {
+    id: "wzgorze-wawel",
+    name: "Wzgórze Wawel",
+    type: "main",
+    lat: 50.055376,
+    lng: 19.936512,
+    tracks: [
+      { number: "15.0", label: "Historia Wzgórza", audio: "audio/pl/15_0_Historia_Wzgorza.mp3" },
+      { number: "15.1", label: "Wawel bez królów", audio: "audio/pl/15_1_Wawel_bez_krolow.mp3" },
+      { number: "15.2", label: "Legenda o Wandzie", audio: "audio/pl/15_2_Legenda_o_Wandzie.mp3" }
+    ]
+  },
+  {
+    id: "katedra-wawelska",
+    name: "Katedra Wawelska",
+    type: "main",
+    lat: 50.054558,
+    lng: 19.934814,
+    tracks: [
+      { number: "16.0", label: "Historia katedry", audio: "audio/pl/16_0_Historia_katedry.mp3" },
+      { number: "16.1", label: "Kości przy wejściu", audio: "audio/pl/16_1_Kosci_przy_wejsciu.mp3" },
+      { number: "16.2", label: "Kaplica Zygmuntowska", audio: "audio/pl/16_2_Kaplica_Zygmuntowska.mp3" },
+      { number: "16.3", label: "Dzwon Zygmunt", audio: "audio/pl/16_3_Dzwon_Zygmunt.mp3" },
+      { number: "16.4", label: "Krypty", audio: "audio/pl/16_4_Krypty.mp3" }
+    ]
+  },
+  {
+    id: "zamek-na-wawelu",
+    name: "Zamek na Wawelu",
+    type: "main",
+    lat: 50.054158,
+    lng: 19.935173,
+    tracks: [
+      { number: "17.0", label: "Życie na zamku", audio: "audio/pl/17_0_Zycie_na_zamku.mp3" },
+      { number: "17.1", label: "Stańczyk", audio: "audio/pl/17_1_Stanczyk.mp3" },
+      { number: "17.2", label: "Ucieczka Henryka Walezego", audio: "audio/pl/17_2_Ucieczka_Henryka_Walezego.mp3" },
+      { number: "17.3", label: "Zaginione miasteczko wawelskie", audio: "audio/pl/17_3_Zaginione_miasteczko_wawelskie.mp3" }
+    ]
+  },
+  {
+    id: "dziedziniec-arkadowy",
+    name: "Dziedziniec Arkadowy",
+    type: "main",
+    lat: 50.054517,
+    lng: 19.936648,
+    tracks: [
+      { number: "18.0", label: "Renesansowy zamek", audio: "audio/pl/18_0_Renesansowy_zamek.mp3" },
+      { number: "18.1", label: "Urwany fryz", audio: "audio/pl/18_1_Urwany_fryz.mp3" },
+      { number: "18.2", label: "Zygmunt III i alchemia", audio: "audio/pl/18_2_Zygmunt_III_i_alchemia.mp3" },
+      { number: "18.3", label: "Turnieje rycerskie", audio: "audio/pl/18_3_Turnieje_Rycerskie.mp3" },
+      { number: "18.4", label: "Arrasy", audio: "audio/pl/18_4_Arrasy.mp3" },
+      { number: "18.5", label: "Muzeum", audio: "audio/pl/18_5_Muzeum.mp3" }
+    ]
+  },
+  {
     id: "paon-i-cyganeria",
     name: "Paon i Cyganeria",
     type: "extra",
@@ -2472,16 +2568,6 @@ const POINTS = [
     ]
   },
   {
-    id: "cegielki-wawelskie",
-    name: "Cegiełki wawelskie",
-    type: "extra",
-    lat: 50.055195,
-    lng: 19.93592,
-    tracks: [
-      { number: "•", label: "Cegiełki wawelskie", audio: "audio/pl/dodatkowe/Cegielki_Wawelskie.mp3" }
-    ]
-  },
-  {
     id: "pomnik-kosciuszki",
     name: "Pomnik Tadeusza Kościuszki",
     type: "extra",
@@ -2512,16 +2598,6 @@ const POINTS = [
     ]
   },
   {
-    id: "pawilon-wyspianskiego",
-    name: "Pawilon Wyspiańskiego",
-    type: "extra",
-    lat: 50.058866,
-    lng: 19.937798,
-    tracks: [
-      { number: "•", label: "Pawilon Wyspiańskiego", audio: null }
-    ]
-  },
-  {
     id: "kolegiata-sw-anny",
     name: "Kolegiata św. Anny",
     type: "main",
@@ -2546,6 +2622,16 @@ const POINTS = [
     ]
   },
   {
+    id: "bazylika-dominikanow",
+    name: "Bazylika Dominikanów",
+    type: "extra",
+    lat: 50.059312,
+    lng: 19.938927,
+    tracks: [
+      { number: "•", label: "Bazylika Dominikanów", audio: null }
+    ]
+  },
+  {
     id: "plac-szczepanski",
     name: "Plac Szczepański",
     type: "main",
@@ -2553,77 +2639,32 @@ const POINTS = [
     lat: 50.063805,
     lng: 19.935449,
     tracks: [
-      { number: "•", label: "Plac Szczepański", audio: null }
+      { number: "•", label: "Plac Szczepański", audio: "audio/pl/dodatkowe/Plac_Szczepanski.mp3" },
+      { number: "•", label: "Stary Teatr", audio: "audio/pl/dodatkowe/Stary_Teatr.mp3" },
+      { number: "•", label: "Pałac Sztuki", audio: "audio/pl/dodatkowe/Palac_Sztuki.mp3" }
     ]
   },
   {
-    id: "plac-sw-marii-magdaleny",
-    name: "Plac Św. Marii Magdaleny",
+    id: "ulica-sw-jana",
+    name: "Ulica św. Jana",
     type: "main",
     offRoute: true,
-    
-    lat: 50.056851,
-    lng: 19.938078,
+    lat: 50.063141,
+    lng: 19.938603,
     tracks: [
-      { number: "•", label: "Plac Św. Marii Magdaleny", audio: null }
+      { number: "•", label: "Ulica św. Jana", audio: "audio/pl/dodatkowe/Ulica_sw_Jana.mp3" },
+      { number: "•", label: "Wampir z Krakowa", audio: "audio/pl/dodatkowe/Wampir_z_Krakowa.mp3" }
     ]
   },
   {
-    id: "wzgorze-wawel",
-    name: "Wzgórze Wawel",
-    type: "main",
-    offRoute: true,
-    
-    lat: 50.055376,
-    lng: 19.936512,
-    tracks: [
-      { number: "•", label: "Wzgórze Wawel", audio: null }
-    ]
-  },
-  {
-    id: "katedra-wawelska",
-    name: "Katedra Wawelska",
-    type: "main",
-    offRoute: true,
-    
-    lat: 50.054524,
-    lng: 19.934834,
-    tracks: [
-      { number: "•", label: "Katedra Wawelska", audio: null }
-    ]
-  },
-  {
-    id: "renesansowy-dziedziniec",
-    name: "Renesansowy dziedziniec",
-    type: "main",
-    offRoute: true,
-    
-    lat: 50.054517,
-    lng: 19.936648,
-    tracks: [
-      { number: "•", label: "Renesansowy dziedziniec", audio: null }
-    ]
-  },
-  {
-    id: "pozostalosci-zabudowan",
-    name: "Pozostałości średniowiecznych zabudowań",
-    type: "main",
-    offRoute: true,
-    
-    lat: 50.053911,
-    lng: 19.934958,
-    tracks: [
-      { number: "•", label: "Pozostałości średniowiecznych zabudowań", audio: null }
-    ]
-  },
-  {
-    id: "kaplica-zygmuntowska",
-    name: "Kaplica Zygmuntowska",
+    id: "cegielki-wawelskie",
+    name: "Wejście na Wawel",
     type: "extra",
-    lat: 50.054546,
-    lng: 19.935553,
+    lat: 50.055195,
+    lng: 19.93592,
     tracks: [
-      { number: "•", label: "Kaplica Zygmuntowska", audio: null }
+      { number: "•", label: "Cegiełki wawelskie", audio: "audio/pl/dodatkowe/Cegielki_Wawelskie.mp3" },
+      { number: "•", label: "Brama Herbowa", audio: "audio/pl/dodatkowe/Brama_Herbowa.mp3" }
     ]
   },
   {
@@ -2633,32 +2674,72 @@ const POINTS = [
     lat: 50.05482,
     lng: 19.934816,
     tracks: [
-      { number: "•", label: "Brama Wazów", audio: null }
+      { number: "•", label: "Brama Wazów", audio: "audio/pl/dodatkowe/Brama_Wazow.mp3" }
     ]
   },
   {
     id: "legenda-o-smoku-wawelskim",
-    name: "Legenda o Smoku Wawelskim",
+    name: "Smok Wawelski",
     type: "extra",
     lat: 50.053021,
     lng: 19.933574,
     tracks: [
-      { number: "•", label: "Legenda o Smoku Wawelskim", audio: null }
+      { number: "•", label: "Smok Wawelski", audio: "audio/pl/dodatkowe/Smok_Wawelski.mp3" }
     ]
   },
   {
-    id: "bazylika-dominikanow",
-    name: "Bazylika Dominikanów",
+    id: "boleslaw-wstydliwy",
+    name: "Bolesław Wstydliwy",
     type: "extra",
-    lat: 50.059312,
-    lng: 19.938927,
+    lat: 50.060886,
+    lng: 19.940247,
     tracks: [
-      { number: "•", label: "Bazylika Dominikanów", audio: null }
+      { number: "•", label: "Bolesław Wstydliwy", audio: "audio/pl/dodatkowe/Boleslaw_Wstydliwy.mp3" }
+    ]
+  },
+  {
+    id: "baszty-zamkowe",
+    name: "Baszty zamkowe",
+    type: "extra",
+    lat: 50.053895,
+    lng: 19.934479,
+    tracks: [
+      { number: "•", label: "Baszty zamkowe", audio: "audio/pl/dodatkowe/Baszty_zamkowe.mp3" }
+    ]
+  },
+  {
+    id: "panorama-na-krakow",
+    name: "Panorama na Kraków",
+    type: "extra",
+    lat: 50.053276,
+    lng: 19.933654,
+    tracks: [
+      { number: "•", label: "Panorama na Kraków", audio: "audio/pl/dodatkowe/Panorama_na_Krakow.mp3" }
+    ]
+  },
+  {
+    id: "ogrody-krolewskie",
+    name: "Ogrody Królewskie",
+    type: "extra",
+    lat: 50.054702,
+    lng: 19.937526,
+    tracks: [
+      { number: "•", label: "Ogrody Królewskie", audio: "audio/pl/dodatkowe/Ogrody_Krolewskie.mp3" }
+    ]
+  },
+  {
+    id: "pomnik-psa-dzoka",
+    name: "Pomnik Psa Dżoka",
+    type: "extra",
+    lat: 50.051282,
+    lng: 19.934905,
+    tracks: [
+      { number: "•", label: "Pomnik Psa Dżoka", audio: "audio/pl/dodatkowe/Pomnik_Psa_Dzoka.mp3" }
     ]
   }
 ];
 
-const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061536, 19.938783],  [50.06143, 19.939094],  [50.061413, 19.939507],  [50.061428, 19.939576],  [50.061477, 19.939702],  [50.061419, 19.939918],  [50.061315, 19.940225],  [50.061638, 19.940464],  [50.061702, 19.940441],  [50.06246, 19.941005],  [50.063479, 19.941756],  [50.063925, 19.942128],  [50.063988, 19.942311],  [50.064074, 19.942251],  [50.064569, 19.942608],  [50.064614, 19.942486],  [50.064824, 19.942644],  [50.064858, 19.942521],  [50.064942, 19.94213],  [50.065128, 19.941464],  [50.064824, 19.941345],  [50.064962, 19.940577],  [50.064893, 19.940442],  [50.064832, 19.940414],  [50.064864, 19.940617],  [50.064838, 19.94101],  [50.064793, 19.94119],  [50.064742, 19.941254],  [50.064521, 19.941119],  [50.064081, 19.940795],  [50.063636, 19.940443],  [50.063011, 19.939966],  [50.062877, 19.939862],  [50.063093, 19.939133],  [50.063059, 19.938994],  [50.063086, 19.938789],  [50.063141, 19.938603],  [50.062378, 19.938052],  [50.062323, 19.938016],  [50.062483, 19.937501],  [50.062626, 19.937019],  [50.062635, 19.936925],  [50.061998, 19.936311],  [50.061782, 19.936124],  [50.061656, 19.93607],  [50.061539, 19.936071],  [50.061424, 19.935898],  [50.061357, 19.935472],  [50.061745, 19.934329],  [50.061742, 19.934261],  [50.06158, 19.934114],  [50.061504, 19.934029],  [50.061253, 19.933862],  [50.061033, 19.933746],  [50.060747, 19.934563],  [50.060643, 19.934818],  [50.060449, 19.934649],  [50.06023, 19.934469],  [50.060061, 19.934362],  [50.059689, 19.93444],  [50.059168, 19.934606],  [50.059166, 19.934786],  [50.059198, 19.934936],  [50.059168, 19.935096],  [50.059163, 19.935249],  [50.059171, 19.935464],  [50.059352, 19.935431],  [50.059399, 19.93608],  [50.059391, 19.936292],  [50.059359, 19.936426],  [50.059276, 19.936648],  [50.059202, 19.936671],  [50.059099, 19.936835],  [50.059035, 19.937009],  [50.058814, 19.937143],  [50.058889, 19.937608],  [50.058927, 19.93765],  [50.058897, 19.937745],  [50.058895, 19.937871],  [50.058425, 19.937969],  [50.058111, 19.938017],  [50.057759, 19.938064],  [50.057487, 19.938142],  [50.056975, 19.938185],  [50.056851, 19.938078]];
+const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061536, 19.938783],  [50.06143, 19.939094],  [50.061413, 19.939507],  [50.061428, 19.939576],  [50.061477, 19.939702],  [50.061419, 19.939918],  [50.061315, 19.940225],  [50.061638, 19.940464],  [50.061702, 19.940441],  [50.06246, 19.941005],  [50.063479, 19.941756],  [50.063925, 19.942128],  [50.063988, 19.942311],  [50.064074, 19.942251],  [50.064569, 19.942608],  [50.064614, 19.942486],  [50.064824, 19.942644],  [50.064858, 19.942521],  [50.064942, 19.94213],  [50.065128, 19.941464],  [50.064824, 19.941345],  [50.064962, 19.940577],  [50.064893, 19.940442],  [50.064832, 19.940414],  [50.064864, 19.940617],  [50.064838, 19.94101],  [50.064793, 19.94119],  [50.064742, 19.941254],  [50.064521, 19.941119],  [50.064081, 19.940795],  [50.063636, 19.940443],  [50.063011, 19.939966],  [50.062877, 19.939862],  [50.063093, 19.939133],  [50.063059, 19.938994],  [50.063086, 19.938789],  [50.063141, 19.938603],  [50.062378, 19.938052],  [50.062323, 19.938016],  [50.062483, 19.937501],  [50.062626, 19.937019],  [50.062635, 19.936925],  [50.061998, 19.936311],  [50.061782, 19.936124],  [50.061656, 19.93607],  [50.061539, 19.936071],  [50.061424, 19.935898],  [50.061357, 19.935472],  [50.061745, 19.934329],  [50.061742, 19.934261],  [50.06158, 19.934114],  [50.061504, 19.934029],  [50.061253, 19.933862],  [50.061033, 19.933746],  [50.060747, 19.934563],  [50.060643, 19.934818],  [50.060449, 19.934649],  [50.06023, 19.934469],  [50.060061, 19.934362],  [50.059689, 19.93444],  [50.059168, 19.934606],  [50.059166, 19.934786],  [50.059198, 19.934936],  [50.059168, 19.935096],  [50.059163, 19.935249],  [50.059171, 19.935464],  [50.059352, 19.935431],  [50.059399, 19.93608],  [50.059391, 19.936292],  [50.059359, 19.936426],  [50.059276, 19.936648],  [50.059202, 19.936671],  [50.059099, 19.936835],  [50.059035, 19.937009],  [50.058814, 19.937143],  [50.058889, 19.937608],  [50.058927, 19.93765],  [50.058897, 19.937745],  [50.058895, 19.937871],  [50.058425, 19.937969],  [50.058111, 19.938017],  [50.057759, 19.938064],  [50.057487, 19.938142],  [50.056975, 19.938185],  [50.056851, 19.938078],  [50.056792, 19.93803],  [50.056759, 19.937803],  [50.056767, 19.937543],  [50.056527, 19.937487],  [50.056441, 19.937475],  [50.056339, 19.937451],  [50.056156, 19.937369],  [50.056015, 19.937252],  [50.055784, 19.937058],  [50.055491, 19.936768],  [50.055482, 19.936718],  [50.055388, 19.936675],  [50.055376, 19.936512],  [50.055346, 19.936479],  [50.055067, 19.935212],  [50.05505, 19.935147],  [50.055027, 19.934994],  [50.054993, 19.934914],  [50.054917, 19.934852],  [50.054849, 19.934828],  [50.054733, 19.934837],  [50.054648, 19.93485],  [50.054558, 19.934814],  [50.054478, 19.934902],  [50.054397, 19.935029],  [50.054167, 19.935176],  [50.054288, 19.935393],  [50.054429, 19.935531],  [50.054529, 19.935858],  [50.054572, 19.936118],  [50.054573, 19.936359],  [50.054524, 19.936484],  [50.054517, 19.936648]];
 
 /* ============================================================
    MAPA
@@ -4223,12 +4304,12 @@ function selectDistrict(freeRoam, options) {
 const ROUTE_INTRO_CONTENT = {
   'stare-miasto': {
     pl: {
-      meta: '12 przystanków · ok. 2 godz. · 2,6 km',
+      meta: '18 przystanków · ok. 2,5 godz. · 3,2 km',
       desc: 'Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.',
       highlights: ['Rynek Główny i Sukiennice', 'Bazylika Mariacka i hejnał', 'Barbakan i Brama Floriańska', 'Wieża Ratuszowa i Collegium Maius']
     },
     en: {
-      meta: '12 stops · approx. 2 hrs · 2.6 km',
+      meta: '18 stops · approx. 2.5 hrs · 3.2 km',
       desc: "A walk through the heart of medieval Kraków — from the Main Market Square, past St. Mary's Basilica, the Planty Park and the medieval walls, all the way to Collegium Maius and the Franciscan Church. Go at your own pace: the guide speaks up by itself when you reach the next place.",
       highlights: ['Main Market Square and the Cloth Hall', "St. Mary's Basilica and the bugle call", "The Barbican and St. Florian's Gate", 'Town Hall Tower and Collegium Maius']
     },
@@ -4435,6 +4516,9 @@ function setSheetPeek(state, freshOpen) {
 // zdjęcia do nagrań: foto/<nazwa pliku mp3>.webp (zmniejszone, max 800 px, ok. 80 KB)
 // PHOTO_INFO: podpis na zdjęciu (cap), dłuższy opis pod zdjęciem (desc), link do źródła (src — widać go tylko w Ustawieniach → Źródła zdjęć)
 const PHOTO_INFO = {
+  "14_0_Kosciol_sw_Andrzeja": { src: "https://commons.wikimedia.org/wiki/File:Krak%C3%B3w_Ko%C5%9Bci%C3%B3%C5%82_%C5%9Bw._Andrzeja_02.jpg" },
+  "14_1_Kosciol_sw_Piotra_i_Pawla": { src: "https://commons.wikimedia.org/wiki/File:Krakow_kosciol_sw_Piotra_i_Pawla.jpg" },
+  "14_2_Plac_i_Kolumna": { src: "https://commons.wikimedia.org/wiki/File:Plac_%C5%9Bw._Marii_Magdaleny.jpg" },
   "1_0_Rynek_Glowny": { src: "https://commons.wikimedia.org/wiki/File:Sukiennice_and_Main_Market_Square_Krakow_Poland.JPG" },
   "1_1_Sredniowieczny_Rynek": { src: "https://commons.wikimedia.org/wiki/File:Cracovia_-_btv1b532357828_(1_of_2).jpg" },
   "1_2_Wspolczesny_Rynek": { src: "https://commons.wikimedia.org/wiki/File:Main_Market_Square,_view_from_S,_Old_Town,_Krak%C3%B3w,_Poland.jpg" },
@@ -4527,7 +4611,7 @@ function trackPhotoSrc(track) {
 }
 // zdjęcia, które są w foto/ (nazwa: [szerokość, wysokość]) — apka od razu wie, że zdjęcie jest,
 // bez czekania na pobranie; miniaturka w przycisku = foto/mini/<nazwa>.webp (ok. 4 KB)
-const PHOTO_FILES = {"13_0_Okol":[960,642],"Pomnik_Adama_Mickiewicza":[330,495],"Pomnik_Adama_Mickiewicza_2":[500,665],"Kamienica_Podelwie":[960,540],"12_3_Witraze_Wyspianskiego_2":[960,720],"10_1_Piwnice_tortury_i_kat":[960,691],"13_1_Ulica_Grodzka":[960,720],"13_2_Dom_Wita_Stwosza":[500,667],"Zaczarowane_golebie":[960,720],"Kosciol_sw_Krzyza":[750,1000],"Wnetrze_kosciola_krzyza":[960,640],"Kamienica_pod_Rakiem":[750,1000],"Linia_A-B":[960,463],"Tadeusz_Kosciuszko":[838,1000],"Kosciol_sw_Wociecha":[960,928],"Drewniany_Dylizans":[960,720],"Cegielki_Wawelskie":[699,1000],"Pomnik_Kosciuszki":[667,1000],"Ulica_Kanonicza":[960,720],"Collegium_Iuridicum":[960,720],"Jozef_Dietl":[750,1000],"Palac_Biskupi":[960,640],"Okno_Papieskie":[960,720],"12_0_Kosciol_Franciszkanow":[960,719],"12_1_Stanislaw_Wyspianski":[960,960],"12_2_Polichromia_Wyspianskiego":[960,986],"12_2_Polichromia_Wyspianskiego_2":[500,949],"12_2_Polichromia_Wyspianskiego_3":[960,720],"12_3_Witraze_Wyspianskiego":[500,667],"12_4_Arcybractwo_Meki_Panskiej":[500,635],"10_0_Wieza_Ratuszowa":[564,1000],"10_2_Krwawy_Burmistrz":[960,647],"10_3_Eros_Bendato":[960,825],"11_0_Collegium_Maius":[750,1000],"11_1_Dziedziniec":[960,540],"11_2_Mikolaj_Kopernik":[960,766],"11_3_Dawne_zycie_akademickie":[960,478],"1_0_Rynek_Glowny":[1280,872],"1_1_Sredniowieczny_Rynek":[960,519],"1_2_Wspolczesny_Rynek":[960,488],"2_0_Historia_sukiennic":[1280,737],"2_1_Renesansowe_Sukiennice":[960,640],"2_2_Sukiennice_dzisiaj":[960,720],"2_3_Podziemia_rynku":[960,638],"3_0_Historia_Kosciola_Mariackiego":[1280,858],"3_1_Legenda_o_trebaczu":[960,733],"3_2_Wnetrze_Kosciola":[960,638],"3_3_Oltarz_Wita_Stwosza":[750,1000],"4_0_Plac_Mariacki":[960,720],"4_2_Zak":[960,640],"5_0_Historia_Malego_Rynku":[960,720],"5_1_Pierwsza_polska_gazeta":[750,1000],"5_2_Maly_Rynek_dzisiaj":[960,768],"6_0_Historia_Placu":[960,639],"6_1_Teatr_Slowackiego":[960,640],"6_2_Wielkie_Premiery":[517,800],"6_3_Ludwik_Solski":[960,692],"7_0_Historia_Plant":[960,720],"7_1_Galeria_Pomnikow":[728,1000],"7_2_Planty_Dzisiaj":[750,1000],"8_0_Sredniowieczne_Mury":[960,613],"8_1_Brama_Florianska":[622,1000],"8_2_Barbakan":[960,640],"8_3_Marcin_Oracewicz":[797,1000],"8_4_Cechy_krakowskie":[960,624],"9_0_Muzeum_Czartoryskich":[960,638],"9_1_Zaulek_ksiazat_Czartoryskich":[750,1000],"Dom_Jana_Matejki":[586,1000],"Historia_kosciola":[750,1000],"Hold_Pruski":[1280,916],"Jama_Michalika":[960,535],"Jan_Matejko":[670,1000],"Kolegiata_sw_Anny":[960,720],"Legenda_o_Twardowskim":[960,697],"Palac_Krzysztofory":[960,640],"Paon_i_Cyganeria":[960,640],"Pierwszy_polski_kabaret":[960,676],"Przysiega_Tadeusza_Kosciuszki":[960,834],"Sw_Jan_z_Ket":[737,1000],"Tablica_ofiar_smogu":[770,1000],"Ulica_Florianska":[665,1000],"Wnetrze":[750,1000],"Wnetrze_Kolegiaty":[750,1000]};
+const PHOTO_FILES = {"14_0_Kosciol_sw_Andrzeja":[750,1000],"14_1_Kosciol_sw_Piotra_i_Pawla":[960,640],"14_2_Plac_i_Kolumna":[960,553],"13_0_Okol":[960,642],"Pomnik_Adama_Mickiewicza":[330,495],"Pomnik_Adama_Mickiewicza_2":[500,665],"Kamienica_Podelwie":[960,540],"12_3_Witraze_Wyspianskiego_2":[960,720],"10_1_Piwnice_tortury_i_kat":[960,691],"13_1_Ulica_Grodzka":[960,720],"13_2_Dom_Wita_Stwosza":[500,667],"Zaczarowane_golebie":[960,720],"Kosciol_sw_Krzyza":[750,1000],"Wnetrze_kosciola_krzyza":[960,640],"Kamienica_pod_Rakiem":[750,1000],"Linia_A-B":[960,463],"Tadeusz_Kosciuszko":[838,1000],"Kosciol_sw_Wociecha":[960,928],"Drewniany_Dylizans":[960,720],"Cegielki_Wawelskie":[699,1000],"Pomnik_Kosciuszki":[667,1000],"Ulica_Kanonicza":[960,720],"Collegium_Iuridicum":[960,720],"Jozef_Dietl":[750,1000],"Palac_Biskupi":[960,640],"Okno_Papieskie":[960,720],"12_0_Kosciol_Franciszkanow":[960,719],"12_1_Stanislaw_Wyspianski":[960,960],"12_2_Polichromia_Wyspianskiego":[960,986],"12_2_Polichromia_Wyspianskiego_2":[500,949],"12_2_Polichromia_Wyspianskiego_3":[960,720],"12_3_Witraze_Wyspianskiego":[500,667],"12_4_Arcybractwo_Meki_Panskiej":[500,635],"10_0_Wieza_Ratuszowa":[564,1000],"10_2_Krwawy_Burmistrz":[960,647],"10_3_Eros_Bendato":[960,825],"11_0_Collegium_Maius":[750,1000],"11_1_Dziedziniec":[960,540],"11_2_Mikolaj_Kopernik":[960,766],"11_3_Dawne_zycie_akademickie":[960,478],"1_0_Rynek_Glowny":[1280,872],"1_1_Sredniowieczny_Rynek":[960,519],"1_2_Wspolczesny_Rynek":[960,488],"2_0_Historia_sukiennic":[1280,737],"2_1_Renesansowe_Sukiennice":[960,640],"2_2_Sukiennice_dzisiaj":[960,720],"2_3_Podziemia_rynku":[960,638],"3_0_Historia_Kosciola_Mariackiego":[1280,858],"3_1_Legenda_o_trebaczu":[960,733],"3_2_Wnetrze_Kosciola":[960,638],"3_3_Oltarz_Wita_Stwosza":[750,1000],"4_0_Plac_Mariacki":[960,720],"4_2_Zak":[960,640],"5_0_Historia_Malego_Rynku":[960,720],"5_1_Pierwsza_polska_gazeta":[750,1000],"5_2_Maly_Rynek_dzisiaj":[960,768],"6_0_Historia_Placu":[960,639],"6_1_Teatr_Slowackiego":[960,640],"6_2_Wielkie_Premiery":[517,800],"6_3_Ludwik_Solski":[960,692],"7_0_Historia_Plant":[960,720],"7_1_Galeria_Pomnikow":[728,1000],"7_2_Planty_Dzisiaj":[750,1000],"8_0_Sredniowieczne_Mury":[960,613],"8_1_Brama_Florianska":[622,1000],"8_2_Barbakan":[960,640],"8_3_Marcin_Oracewicz":[797,1000],"8_4_Cechy_krakowskie":[960,624],"9_0_Muzeum_Czartoryskich":[960,638],"9_1_Zaulek_ksiazat_Czartoryskich":[750,1000],"Dom_Jana_Matejki":[586,1000],"Historia_kosciola":[750,1000],"Hold_Pruski":[1280,916],"Jama_Michalika":[960,535],"Jan_Matejko":[670,1000],"Kolegiata_sw_Anny":[960,720],"Legenda_o_Twardowskim":[960,697],"Palac_Krzysztofory":[960,640],"Paon_i_Cyganeria":[960,640],"Pierwszy_polski_kabaret":[960,676],"Przysiega_Tadeusza_Kosciuszki":[960,834],"Sw_Jan_z_Ket":[737,1000],"Tablica_ofiar_smogu":[770,1000],"Ulica_Florianska":[665,1000],"Wnetrze":[750,1000],"Wnetrze_Kolegiaty":[750,1000]};
 function photoMiniSrc(src) { const k = photoKey(src); return PHOTO_FILES[k] ? 'foto/mini/' + k + '.webp?v=' + TRACK_PHOTO_VER : null; }
 const photoPrefetched = new Set();
 function prefetchPhoto(src) {
