@@ -1573,7 +1573,7 @@
   </div>
 </div>
 
-<audio id="audio-el" preload="metadata" playsinline></audio>
+<audio id="audio-el" preload="auto" playsinline></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
@@ -5504,9 +5504,10 @@ function prefetchNextTrack() {
   const pos = list.findIndex(x => x.point === loadedPoint && x.i === loadedTrackIndex);
   const next = pos >= 0 ? list[pos + 1] : null;
   // obecne nagranie też trafia do schowka (odtwarzacz gra je prosto z sieci — patrz sw.js), potem następne
-  fetch(src).then(r => r.blob()).catch(() => {}).then(() => {
-    if (next) fetch(next.point.tracks[next.i].audio).then(r => r.blob()).catch(() => {});
-  });
+  // po obecnym ściągamy po kolei 3 następne (jedno naraz, żeby nie zapchać słabego netu)
+  const upcoming = pos >= 0 ? list.slice(pos + 1, pos + 4) : [];
+  let chain = fetch(src).then(r => r.blob()).catch(() => {});
+  upcoming.forEach(n => { chain = chain.then(() => fetch(n.point.tracks[n.i].audio).then(r => r.blob()).catch(() => {})); });
 }
 function fullyBuffered() {
   const b = audioEl.buffered, d = audioEl.duration;
