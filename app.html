@@ -215,6 +215,112 @@
   }
   .lang-row-name { flex: 1; font-size: 16px; font-weight: 600; color: var(--ink); }
 
+  /* ---------- Menu główne ---------- */
+  #home-menu {
+    position: absolute; inset: 0; z-index: 99;
+    background: var(--paper);
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  #home-menu.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #home-inner {
+    height: 100%; overflow-y: auto; max-width: 480px; margin: 0 auto;
+    display: flex; flex-direction: column;
+    padding: calc(22px + env(safe-area-inset-top, 0px)) 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  #home-brand { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
+  #home-brand span { color: var(--brass-deep); }
+  #home-title { font-size: 28px; font-weight: 800; letter-spacing: -0.025em; color: var(--ink); margin: 18px 0 16px; line-height: 1.15; }
+  #home-menu button { font-family: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation; cursor: pointer; text-align: left; }
+  .home-card {
+    position: relative; display: flex; align-items: flex-end; gap: 12px;
+    width: 100%; min-height: 230px; flex: 1 1 230px; max-height: 340px;
+    padding: 18px; border: none; border-radius: 24px; overflow: hidden;
+    background: #3b3326 url('foto/trasa-stare-miasto.jpg') center / cover no-repeat;
+    box-shadow: 0 10px 28px rgba(27,26,23,0.25);
+    transition: transform 0.12s ease;
+  }
+  .home-card::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,17,13,0) 30%, rgba(20,17,13,0.78) 100%);
+  }
+  .home-card:active, .home-tile:active { transform: scale(0.98); }
+  .hc-text { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; color: #fff; }
+  .hc-eyebrow { font-size: 12px; font-weight: 700; color: #f6cf6b; letter-spacing: 0.01em; }
+  .hc-title { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+  .hc-sub { font-size: 14px; font-weight: 500; opacity: 0.9; margin-top: 2px; }
+  .hc-go {
+    position: relative; flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
+    background: var(--brass); display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  }
+  .hc-go svg { width: 22px; height: 22px; stroke: #14110d; }
+  #home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .home-tile {
+    display: flex; flex-direction: column; align-items: flex-start;
+    padding: 16px 14px; border-radius: 20px; min-height: 132px;
+    background: var(--paper-2); border: 1.5px solid var(--line); color: var(--ink);
+    transition: transform 0.12s ease;
+  }
+  .ht-icon {
+    width: 44px; height: 44px; border-radius: 14px; margin-bottom: auto;
+    background: var(--brass-tint); color: var(--brass-deep);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ht-icon svg { width: 24px; height: 24px; stroke: var(--brass-deep); }
+  .ht-title { font-size: 15.5px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin-top: 14px; }
+  .ht-sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 3px; line-height: 1.3; }
+  #home-map-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; margin-top: 14px; padding: 14px; border-radius: 16px;
+    background: none; border: 1.5px solid var(--line); color: var(--ink);
+    font-size: 15px; font-weight: 700; text-align: center !important;
+  }
+  #home-map-btn svg { width: 19px; height: 19px; stroke: var(--ink); }
+  #home-map-btn:active { background: var(--paper-2); }
+  #district-menu-close svg { width: 20px; height: 20px; stroke: var(--ink); }
+
+  /* ---------- Jak korzystać z apki ---------- */
+  #howto-screen {
+    position: absolute; inset: 0; z-index: 106;
+    background: var(--paper);
+    display: flex; flex-direction: column;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.35s cubic-bezier(.32,.72,0,1);
+  }
+  #howto-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(14px); }
+  #howto-close {
+    position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 16px; z-index: 2;
+    background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
+    width: 36px; height: 36px; border-radius: 50%;
+    font-size: 22px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #howto-body { flex: 1; overflow-y: auto; padding: calc(56px + env(safe-area-inset-top, 0px)) 22px 12px; max-width: 520px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+  #howto-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+  #howto-sub { font-size: 14px; color: var(--ink-dim); margin: 6px 0 20px; }
+  #howto-steps { list-style: none; margin: 0; padding: 0; }
+  #howto-steps li { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+  #howto-steps li:first-child { border-top: none; padding-top: 0; }
+  .hs-num {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--brass); color: #14110d;
+    font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  }
+  .hs-title { font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px; }
+  .hs-text { font-size: 14px; line-height: 1.5; color: var(--ink-dim); margin-top: 4px; }
+  #howto-legend {
+    display: flex; align-items: flex-end; gap: 18px; margin-top: 12px; padding: 12px 14px 10px;
+    background: #2c2a24; border-radius: 16px;
+  }
+  .hl-item { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+  .hl-item .pin-main, .hl-item .pin-extra { display: block; }
+  .hl-item .marker-main, .hl-item .marker-extra { display: block; border-radius: 50%; }
+  .hl-cap { font-size: 11.5px; font-weight: 700; color: #fff; }
+  #howto-footer { padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+  #howto-start {
+    width: 100%; padding: 16px; border-radius: 16px; border: none;
+    background: var(--ink); color: #fff; font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
+  }
+
   #district-menu {
     position: absolute; inset: 0; z-index: 100;
     display: flex; align-items: flex-end; justify-content: center;
@@ -1300,10 +1406,66 @@
     </div>
   </div>
 
+  <!-- ---------- Menu główne (start apki i przycisk "domek"): Trasy, Jak korzystać z apki, Ustawienia ---------- -->
+  <div id="home-menu" class="hidden">
+    <div id="home-inner">
+      <div id="home-brand">Krak<span>Roam</span></div>
+      <div id="home-title" data-t="homeTitle">Co dziś robimy?</div>
+      <button class="home-card" id="home-routes" type="button">
+        <span class="hc-text">
+          <span class="hc-eyebrow" data-t="homeRoutesEyebrow">Audio przewodnik po Krakowie</span>
+          <span class="hc-title" data-t="homeRoutes">Trasy</span>
+          <span class="hc-sub" data-t="homeRoutesSub">Wybierz spacer i ruszaj w drogę</span>
+        </span>
+        <span class="hc-go"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"></polyline></svg></span>
+      </button>
+      <div id="home-grid">
+        <button class="home-tile" id="home-howto" type="button">
+          <span class="ht-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"></circle><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.5-2.7 4"></path><circle cx="12" cy="17.6" r="0.6" fill="currentColor"></circle></svg></span>
+          <span class="ht-title" data-t="homeHowto">Jak korzystać z apki</span>
+          <span class="ht-sub" data-t="homeHowtoSub">Krótka instrukcja</span>
+        </button>
+        <button class="home-tile" id="home-settings" type="button">
+          <span class="ht-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="17" x2="20" y2="17"></line><circle cx="9" cy="7" r="2.4" fill="var(--paper)"></circle><circle cx="15" cy="17" r="2.4" fill="var(--paper)"></circle></svg></span>
+          <span class="ht-title" data-t="homeSettings">Ustawienia</span>
+          <span class="ht-sub" data-t="homeSettingsSub">Mapa, język, dźwięki</span>
+        </button>
+      </div>
+      <button id="home-map-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"></path><path d="M9 4v14M15 6v14"></path></svg>
+        <span data-t="homeToMap">Przejdź do mapy</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ---------- Jak korzystać z apki ---------- -->
+  <div id="howto-screen" class="hidden">
+    <button id="howto-close" type="button" aria-label="Wstecz">×</button>
+    <div id="howto-body">
+      <div id="howto-title" data-t="homeHowto">Jak korzystać z apki</div>
+      <div id="howto-sub" data-t="howtoSub">Kilka prostych kroków i ruszasz w miasto.</div>
+      <ol id="howto-steps">
+        <li><span class="hs-num">1</span><div><div class="hs-title" data-t="howto1t">Wybierz trasę</div><div class="hs-text" data-t="howto1">W menu stuknij „Trasy”, wybierz spacer i „Zaczynamy!”. Możesz też zwiedzać bez trasy, w dowolnej kolejności.</div></div></li>
+        <li><span class="hs-num">2</span><div><div class="hs-title" data-t="howto2t">Włącz lokalizację</div><div class="hs-text" data-t="howto2">Gdy telefon zapyta o lokalizację, wybierz „Pozwól”. Niebieska kropka na mapie to Ty, a jasny stożek pokazuje, gdzie patrzysz.</div></div></li>
+        <li><span class="hs-num">3</span><div><div class="hs-title" data-t="howto3t">Punkty na mapie</div><div class="hs-text" data-t="howto3">Duże złote pinezki to główne zabytki, małe białe to ciekawostki po drodze. Liczba „+3” oznacza, że w tym miejscu jest więcej punktów — przybliż mapę.</div>
+          <div id="howto-legend">
+            <span class="hl-item"><span class="pin-main"><span class="marker-main" style="background-image:url('foto/mini/3_0_Historia_Kosciola_Mariackiego.webp')"></span></span><span class="hl-cap" data-t="howtoLegMain">główny</span></span>
+            <span class="hl-item"><span class="pin-extra"><span class="marker-extra" style="background-image:url('foto/mini/Jozef_Dietl.webp')"></span></span><span class="hl-cap" data-t="howtoLegExtra">dodatkowy</span></span>
+            <span class="hl-item"><span class="pin-main"><span class="marker-main marker-done" style="background-image:url('foto/mini/1_0_Rynek_Glowny.webp')"></span></span><span class="hl-cap" data-t="howtoLegDone">odsłuchany</span></span>
+          </div>
+        </div></li>
+        <li><span class="hs-num">4</span><div><div class="hs-title" data-t="howto4t">Słuchaj</div><div class="hs-text" data-t="howto4">Stuknij pinezkę, wybierz nagranie i wciśnij play. Kolejne nagrania z tego miejsca włączą się same. Stuknij zdjęcie w panelu, żeby je powiększyć.</div></div></li>
+        <li><span class="hs-num">5</span><div><div class="hs-title" data-t="howto5t">Daj się poprowadzić</div><div class="hs-text" data-t="howto5">Niebieski przycisk z ludzikiem wyznacza drogę pieszo do wybranego punktu. Domek w rogu mapy wraca do tego menu.</div></div></li>
+        <li><span class="hs-num">6</span><div><div class="hs-title" data-t="howto6t">Dobra rada</div><div class="hs-text" data-t="howto6">Weź słuchawki i dodaj apkę do ekranu głównego telefonu — otworzysz ją jednym stuknięciem.</div></div></li>
+      </ol>
+    </div>
+    <div id="howto-footer"><button id="howto-start" type="button" data-t="howtoStart">Wybierz trasę</button></div>
+  </div>
+
   <div id="district-menu" class="entering hidden">
     <div id="district-scrim"></div>
     <div id="district-menu-inner">
-      <button id="district-menu-close" aria-label="Zamknij">×</button>
+      <button id="district-menu-close" aria-label="Wstecz"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,6 9,12 15,18"></polyline></svg></button>
       <div id="district-menu-eyebrow">KrakRoam</div>
       <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
 
@@ -1673,11 +1835,7 @@ const pwError = document.getElementById('pw-error');
 function unlockApp() {
   // hasło to teraz DRUGI krok (po wyborze języka) — po sukcesie pokazujemy od razu menu tras + ekran homescreen
   pwScreen.classList.add('hidden');
-  const dm = document.getElementById('district-menu');
-  dm.classList.remove('hidden');
-  requestAnimationFrame(() => {
-    setTimeout(() => dm.classList.remove('entering'), 60);
-  });
+  document.getElementById('home-menu').classList.remove('hidden'); // start = menu główne
   if (typeof maybeShowA2HS === 'function') maybeShowA2HS();
   if (typeof beginLocationFlow === 'function') beginLocationFlow(); // dopiero TERAZ user realnie wszedł do apki
 }
@@ -1764,6 +1922,30 @@ const FLAG_EMOJI = { pl: '🇵🇱', en: '🇬🇧' };
 const TRANSLATIONS = {
   pl: {
     menuTitle: "Gdzie dziś zwiedzamy?",
+    homeTitle: "Co dziś robimy?",
+    homeRoutesEyebrow: "Audio przewodnik po Krakowie",
+    homeRoutes: "Trasy",
+    homeRoutesSub: "Wybierz spacer i ruszaj w drogę",
+    homeHowto: "Jak korzystać z apki",
+    homeHowtoSub: "Krótka instrukcja",
+    homeSettings: "Ustawienia",
+    homeSettingsSub: "Mapa, język, dźwięki",
+    homeToMap: "Przejdź do mapy",
+    howtoSub: "Kilka prostych kroków i ruszasz w miasto.",
+    howto1t: "Wybierz trasę",
+    howto1: "W menu stuknij „Trasy”, wybierz spacer i „Zaczynamy!”. Możesz też zwiedzać bez trasy, w dowolnej kolejności.",
+    howto2t: "Włącz lokalizację",
+    howto2: "Gdy telefon zapyta o lokalizację, wybierz „Pozwól”. Niebieska kropka na mapie to Ty, a jasny stożek pokazuje, gdzie patrzysz.",
+    howto3t: "Punkty na mapie",
+    howto3: "Duże złote pinezki to główne zabytki, małe białe to ciekawostki po drodze. Liczba „+3” oznacza, że w tym miejscu jest więcej punktów — przybliż mapę.",
+    howtoLegMain: "główny", howtoLegExtra: "dodatkowy", howtoLegDone: "odsłuchany",
+    howto4t: "Słuchaj",
+    howto4: "Stuknij pinezkę, wybierz nagranie i wciśnij play. Kolejne nagrania z tego miejsca włączą się same. Stuknij zdjęcie w panelu, żeby je powiększyć.",
+    howto5t: "Daj się poprowadzić",
+    howto5: "Niebieski przycisk z ludzikiem wyznacza drogę pieszo do wybranego punktu. Domek w rogu mapy wraca do tego menu.",
+    howto6t: "Dobra rada",
+    howto6: "Weź słuchawki i dodaj apkę do ekranu głównego telefonu — otworzysz ją jednym stuknięciem.",
+    howtoStart: "Wybierz trasę",
     stareMiastoTitle: "Stare Miasto",
     stareMiastoDesc: "Spacer po średniowiecznym mieście — Rynek, Mariacki i okolice",
     kazimierzTitle: "Kazimierz",
@@ -1856,6 +2038,30 @@ const TRANSLATIONS = {
   },
   en: {
     menuTitle: "Where are we exploring today?",
+    homeTitle: "What shall we do today?",
+    homeRoutesEyebrow: "Kraków audio guide",
+    homeRoutes: "Routes",
+    homeRoutesSub: "Pick a walk and set off",
+    homeHowto: "How to use the app",
+    homeHowtoSub: "A quick guide",
+    homeSettings: "Settings",
+    homeSettingsSub: "Map, language, sounds",
+    homeToMap: "Go to the map",
+    howtoSub: "A few simple steps and you're off.",
+    howto1t: "Pick a route",
+    howto1: "Tap “Routes”, choose a walk and tap “Let's go!”. You can also explore without a route, in any order.",
+    howto2t: "Turn on location",
+    howto2: "When your phone asks for location, tap “Allow”. The blue dot on the map is you, and the light cone shows where you're facing.",
+    howto3t: "Points on the map",
+    howto3: "Big gold pins are the main sights, small white ones are curiosities along the way. A “+3” badge means more points are hidden there — zoom in.",
+    howtoLegMain: "main", howtoLegExtra: "extra", howtoLegDone: "listened",
+    howto4t: "Listen",
+    howto4: "Tap a pin, choose a recording and press play. The next recordings from that place play by themselves. Tap the photo in the panel to enlarge it.",
+    howto5t: "Get directions",
+    howto5: "The blue button with a walking figure shows the walking route to the chosen point. The house button in the map corner brings you back to this menu.",
+    howto6t: "Good tip",
+    howto6: "Bring headphones and add the app to your home screen — you'll open it with one tap.",
+    howtoStart: "Pick a route",
     stareMiastoTitle: "Old Town",
     stareMiastoDesc: "A walk through the medieval city — Main Square, St. Mary's and around",
     kazimierzTitle: "Kazimierz",
@@ -2107,6 +2313,7 @@ function applyTranslations() {
   document.getElementById('pw-sub').textContent = t('pwSub');
   document.getElementById('pw-submit').textContent = t('pwSubmit');
   document.getElementById('district-menu-title').textContent = t('menuTitle');
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
   document.querySelector('.district-row[data-district="stare-miasto"] .dr-title').textContent = t('stareMiastoTitle');
   document.querySelector('.district-row[data-district="stare-miasto"] .dr-desc').textContent = t('stareMiastoDesc');
   document.querySelector('.district-row[data-district="kazimierz"] .dr-title').textContent = t('kazimierzTitle');
@@ -4343,6 +4550,7 @@ function selectDistrict(freeRoam, options) {
   startCompass(); // gest użytkownika — właściwy moment na iOS, żeby poprosić o zgodę na kompas
   const dmEl = document.getElementById('district-menu');
   dmEl.classList.add('hidden');
+  closeHomeMenu();
   const dmInner = document.getElementById('district-menu-inner');
   dmInner.style.transform = 'translateY(0)';
 
@@ -4480,7 +4688,8 @@ document.querySelector('.district-row[data-district="stare-miasto"]').addEventLi
 document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => selectDistrict(true));
 
 document.getElementById('brand').addEventListener('click', () => {
-  openDistrictMenuFull();
+  sfx.play('menuUp');
+  openHomeMenu();
 });
 
 /* ---------- Menu dzielnic: stałe, bez przeciągania/zwijania ---------- */
@@ -4499,8 +4708,41 @@ function closeDistrictMenu() {
 }
 document.getElementById('district-menu-close').addEventListener('click', closeDistrictMenu);
 document.getElementById('district-scrim').addEventListener('click', closeDistrictMenu);
+
+/* ---------- Menu główne: Trasy / Jak korzystać z apki / Ustawienia ---------- */
+const homeMenuEl = document.getElementById('home-menu');
+const howtoEl = document.getElementById('howto-screen');
+function openHomeMenu() {
+  document.getElementById('district-menu').classList.add('hidden');
+  homeMenuEl.classList.remove('hidden');
+}
+function closeHomeMenu() {
+  homeMenuEl.classList.add('hidden');
+}
+document.getElementById('home-routes').addEventListener('click', () => openDistrictMenuFull());
+document.getElementById('home-howto').addEventListener('click', () => {
+  sfx.play('menuUp');
+  howtoEl.querySelector('#howto-body').scrollTop = 0;
+  howtoEl.classList.remove('hidden');
+});
+document.getElementById('home-settings').addEventListener('click', () => {
+  sfx.play('menuUp');
+  settingsScreenEl.classList.remove('hidden');
+});
+document.getElementById('home-map-btn').addEventListener('click', () => {
+  sfx.play('menuDown');
+  closeHomeMenu();
+  map.invalidateSize();
+});
+document.getElementById('howto-close').addEventListener('click', () => howtoEl.classList.add('hidden'));
+document.getElementById('howto-start').addEventListener('click', () => {
+  howtoEl.classList.add('hidden');
+  homeMenuEl.classList.remove('hidden');
+  openDistrictMenuFull();
+});
 document.getElementById('settings-lang-row').addEventListener('click', () => {
   settingsScreenEl.classList.add('hidden');
+  closeHomeMenu();
   document.getElementById('district-menu').classList.add('hidden');
   menuInner.style.transform = 'translateY(0)';
   document.getElementById('lang-menu').classList.remove('hidden');
@@ -4530,12 +4772,8 @@ document.querySelectorAll('.lang-row').forEach(row => {
     stopNavigation();
     updatePlayingMarker();
     if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; } catch (_) {} }
-    const dm = document.getElementById('district-menu');
-    dm.classList.remove('hidden');
-    menuInner.style.transform = 'translateY(0)';
-    requestAnimationFrame(() => {
-      setTimeout(() => dm.classList.remove('entering'), 60);
-    });
+    document.getElementById('district-menu').classList.remove('entering');
+    openHomeMenu();
   });
 });
 
@@ -5962,9 +6200,9 @@ if (savedUnlocked) {
 }
 
 if (savedLang && savedUnlocked) {
-  // ma i język, i hasło — prosto do apki
-  const dm = document.getElementById('district-menu');
-  dm.classList.remove('hidden', 'entering');
+  // ma i język, i hasło — prosto do apki (menu główne)
+  document.getElementById('home-menu').classList.remove('hidden');
+  document.getElementById('district-menu').classList.remove('entering');
   maybeShowA2HS();
   beginLocationFlow(); // apka pokazana od razu na starcie — to jest ten moment "wejścia", nie wcześniej
 } else if (savedLang && !savedUnlocked) {
