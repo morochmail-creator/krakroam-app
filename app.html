@@ -816,11 +816,44 @@
   .cluster-lg { width: 38px; height: 38px; font-size: 15px; }
 
   .marker-extra {
-    width: 18px; height: 18px; border-radius: 50%;
+    width: 13px; height: 13px; border-radius: 50%;
     background: #ece6d6;
-    border: 2.5px solid #fff;
-    box-shadow: 0 0 0 1.5px #14110d, 0 2px 8px rgba(0,0,0,0.55);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1.5px #14110d, 0 2px 6px rgba(0,0,0,0.55);
   }
+  /* ---------- Punkt główny = pinezka ze zdjęciem obiektu (łatwiej skojarzyć, co jest co) ----------
+     Kółko ze zdjęciem to nadal .marker-main (działają na nim ramki: gra / cel nawigacji / odsłuchany),
+     a ostry "dzióbek" pod spodem wskazuje dokładne miejsce na mapie. */
+  .pin-main { position: relative; width: 46px; height: 58px; }
+  .pin-main::after {
+    content: ""; position: absolute; left: 50%; bottom: 1px; transform: translateX(-50%);
+    border-left: 8px solid transparent; border-right: 8px solid transparent;
+    border-top: 14px solid #f6cf6b;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.55));
+  }
+  .pin-main .marker-main {
+    position: absolute; top: 0; left: 0; z-index: 1;
+    width: 46px; height: 46px; box-sizing: border-box;
+    border: 3px solid #f6cf6b;
+    background-size: cover; background-position: center;
+    box-shadow: 0 0 0 1.5px #14110d, 0 4px 12px rgba(0,0,0,0.6);
+  }
+  .pin-main .marker-main.marker-done::after {
+    inset: auto; top: -6px; right: -6px; width: 19px; height: 19px; border-radius: 50%;
+    border: 2px solid #fff; box-sizing: border-box;
+    background: #3f8a5c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 70% no-repeat;
+  }
+  .pin-main.pin-nav::after { border-top-color: var(--route); }
+  /* nazwa pod pinezką (włączana klasą .pin-names na mapie) */
+  .pin-label {
+    display: none; position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+    max-width: 110px; padding: 2px 7px; border-radius: 6px;
+    background: rgba(20,17,13,0.82); color: #fff;
+    font: 700 11px/1.25 'Inter', sans-serif; text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.45); pointer-events: none;
+  }
+  .pin-names .pin-label { display: block; }
   /* punkt, którego nagranie jest wczytane (.marker-current) lub właśnie gra (.marker-playing, pulsuje) */
   /* odsłuchany punkt: ptaszek w środku */
   .marker-main.marker-done, .marker-extra.marker-done { position: relative; }
@@ -3068,9 +3101,31 @@ document.querySelectorAll('.layer-option').forEach(el => {
   el.addEventListener('click', () => setMapMode(el.dataset.mode));
 });
 
+// (zdjęcia: przeniesione wyżej, bo pinezki punktów głównych potrzebują ich już przy tworzeniu mapy)
+const TRACK_PHOTO_VER = '3'; // przy podmianie zdjęć podbij numer, żeby telefony pobrały nowe
+const PHOTO_FILES = {"14_0_Kosciol_sw_Andrzeja":[750,1000],"14_1_Kosciol_sw_Piotra_i_Pawla":[960,640],"14_2_Plac_i_Kolumna":[960,553],"13_0_Okol":[960,642],"Pomnik_Adama_Mickiewicza":[330,495],"Pomnik_Adama_Mickiewicza_2":[500,665],"Kamienica_Podelwie":[960,540],"12_3_Witraze_Wyspianskiego_2":[960,720],"10_1_Piwnice_tortury_i_kat":[960,691],"13_1_Ulica_Grodzka":[960,720],"13_2_Dom_Wita_Stwosza":[500,667],"Zaczarowane_golebie":[960,720],"Kosciol_sw_Krzyza":[750,1000],"Wnetrze_kosciola_krzyza":[960,640],"Kamienica_pod_Rakiem":[750,1000],"Linia_A-B":[960,463],"Tadeusz_Kosciuszko":[838,1000],"Kosciol_sw_Wociecha":[960,928],"Drewniany_Dylizans":[960,720],"Cegielki_Wawelskie":[699,1000],"Pomnik_Kosciuszki":[667,1000],"Ulica_Kanonicza":[960,720],"Collegium_Iuridicum":[960,720],"Jozef_Dietl":[750,1000],"Palac_Biskupi":[960,640],"Okno_Papieskie":[960,720],"12_0_Kosciol_Franciszkanow":[960,719],"12_1_Stanislaw_Wyspianski":[960,960],"12_2_Polichromia_Wyspianskiego":[960,986],"12_2_Polichromia_Wyspianskiego_2":[500,949],"12_2_Polichromia_Wyspianskiego_3":[960,720],"12_3_Witraze_Wyspianskiego":[500,667],"12_4_Arcybractwo_Meki_Panskiej":[500,635],"10_0_Wieza_Ratuszowa":[564,1000],"10_2_Krwawy_Burmistrz":[960,647],"10_3_Eros_Bendato":[960,825],"11_0_Collegium_Maius":[750,1000],"11_1_Dziedziniec":[960,540],"11_2_Mikolaj_Kopernik":[960,766],"11_3_Dawne_zycie_akademickie":[960,478],"1_0_Rynek_Glowny":[1280,872],"1_1_Sredniowieczny_Rynek":[960,519],"1_2_Wspolczesny_Rynek":[960,488],"2_0_Historia_sukiennic":[1280,737],"2_1_Renesansowe_Sukiennice":[960,640],"2_2_Sukiennice_dzisiaj":[960,720],"2_3_Podziemia_rynku":[960,638],"3_0_Historia_Kosciola_Mariackiego":[1280,858],"3_1_Legenda_o_trebaczu":[960,733],"3_2_Wnetrze_Kosciola":[960,638],"3_3_Oltarz_Wita_Stwosza":[750,1000],"4_0_Plac_Mariacki":[960,720],"4_2_Zak":[960,640],"5_0_Historia_Malego_Rynku":[960,720],"5_1_Pierwsza_polska_gazeta":[750,1000],"5_2_Maly_Rynek_dzisiaj":[960,768],"6_0_Historia_Placu":[960,639],"6_1_Teatr_Slowackiego":[960,640],"6_2_Wielkie_Premiery":[517,800],"6_3_Ludwik_Solski":[960,692],"7_0_Historia_Plant":[960,720],"7_1_Galeria_Pomnikow":[728,1000],"7_2_Planty_Dzisiaj":[750,1000],"8_0_Sredniowieczne_Mury":[960,613],"8_1_Brama_Florianska":[622,1000],"8_2_Barbakan":[960,640],"8_3_Marcin_Oracewicz":[797,1000],"8_4_Cechy_krakowskie":[960,624],"9_0_Muzeum_Czartoryskich":[960,638],"9_1_Zaulek_ksiazat_Czartoryskich":[750,1000],"Dom_Jana_Matejki":[586,1000],"Historia_kosciola":[750,1000],"Hold_Pruski":[1280,916],"Jama_Michalika":[960,535],"Jan_Matejko":[670,1000],"Kolegiata_sw_Anny":[960,720],"Legenda_o_Twardowskim":[960,697],"Palac_Krzysztofory":[960,640],"Paon_i_Cyganeria":[960,640],"Pierwszy_polski_kabaret":[960,676],"Przysiega_Tadeusza_Kosciuszki":[960,834],"Sw_Jan_z_Ket":[737,1000],"Tablica_ofiar_smogu":[770,1000],"Ulica_Florianska":[665,1000],"Wnetrze":[750,1000],"Wnetrze_Kolegiaty":[750,1000]};
 const MARKER_HIT_SIZE = 38; // pole dotyku pinezki (sama kropka jest mniejsza, patrz CSS .marker-hit)
 function makeDivIcon(className) {
   return L.divIcon({ className: '', html: `<div class="marker-hit"><div class="${className}"></div></div>`, iconSize: [MARKER_HIT_SIZE, MARKER_HIT_SIZE] });
+}
+
+// pinezka punktu głównego: zdjęcie pierwszego nagrania punktu, które ma zdjęcie (mała miniaturka ok. 4 KB)
+function pointPinPhoto(p) {
+  for (const tr of p.tracks || []) {
+    const mini = photoMiniSrc(trackPhotoSrc(tr));
+    if (mini) return mini;
+  }
+  return null;
+}
+function makePinIcon(p) {
+  const photo = pointPinPhoto(p);
+  const bg = photo ? ` style="background-image:url('${photo}')"` : '';
+  const label = String(pointName(p)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return L.divIcon({
+    className: '',
+    html: `<div class="pin-main"><div class="marker-main"${bg}></div><div class="pin-label">${label}</div></div>`,
+    iconSize: [46, 58], iconAnchor: [23, 57]
+  });
 }
 
 function clusterIconFactory(cssClass) {
@@ -3151,6 +3206,7 @@ function applyMarkerState(id) {
   if (!dot) return; // punkt jest akurat schowany w bąbelku grupy — zaznaczy się, gdy się pokaże (zdarzenie 'add')
   dot.classList.toggle('marker-done', typeof doneIds !== 'undefined' && doneIds.includes(id));
   dot.classList.toggle('marker-nav', id === navMarkedId);
+  if (dot.parentNode.classList.contains('pin-main')) dot.parentNode.classList.toggle('pin-nav', id === navMarkedId);
   dot.classList.toggle('marker-current', id === playingPointId);
   dot.classList.toggle('marker-playing', id === playingPointId && playingActive);
 }
@@ -3167,8 +3223,7 @@ function pointIsDone(p) {
 }
 let doneIds = POINTS.filter(pointIsDone).map(p => p.id); // zaliczone punkty (główne i dodatkowe)
 POINTS.forEach(p => {
-  const className = p.type === 'main' ? 'marker-main' : 'marker-extra';
-  const icon = makeDivIcon(className);
+  const icon = p.type === 'main' ? makePinIcon(p) : makeDivIcon('marker-extra');
   const marker = L.marker([p.lat, p.lng], { icon, pointType: p.type, zIndexOffset: p.type === 'main' ? 100 : 0 });
 
   marker.on('click', () => {
@@ -4599,7 +4654,6 @@ const PHOTO_INFO = {
   "Hold_Pruski": { cap: { pl: "Hołd pruski\nJan Matejko, 1879–1882", en: "The Prussian Homage\nJan Matejko, 1879–1882" } },
   "Przysiega_Tadeusza_Kosciuszki": { cap: { pl: "Przysięga Tadeusza Kościuszki na Rynku Głównym w Krakowie\nMichał Stachowicz, ok. 1821", en: "Kościuszko’s Oath on the Main Market Square in Kraków\nMichał Stachowicz, c. 1821" } },
 };
-const TRACK_PHOTO_VER = '3'; // przy podmianie zdjęć podbij numer, żeby telefony pobrały nowe
 function photoKey(src) { return src ? src.split('/').pop().split('?')[0].replace(/\.(webp|jpe?g|png)$/i, '') : ''; }
 function photoText(field) { return field ? (field[currentLang] || field.pl) : ''; }
 // zdjęcie do nagrania: pole "photo" w tracku albo foto/<nazwa pliku mp3>.webp
@@ -4611,7 +4665,6 @@ function trackPhotoSrc(track) {
 }
 // zdjęcia, które są w foto/ (nazwa: [szerokość, wysokość]) — apka od razu wie, że zdjęcie jest,
 // bez czekania na pobranie; miniaturka w przycisku = foto/mini/<nazwa>.webp (ok. 4 KB)
-const PHOTO_FILES = {"14_0_Kosciol_sw_Andrzeja":[750,1000],"14_1_Kosciol_sw_Piotra_i_Pawla":[960,640],"14_2_Plac_i_Kolumna":[960,553],"13_0_Okol":[960,642],"Pomnik_Adama_Mickiewicza":[330,495],"Pomnik_Adama_Mickiewicza_2":[500,665],"Kamienica_Podelwie":[960,540],"12_3_Witraze_Wyspianskiego_2":[960,720],"10_1_Piwnice_tortury_i_kat":[960,691],"13_1_Ulica_Grodzka":[960,720],"13_2_Dom_Wita_Stwosza":[500,667],"Zaczarowane_golebie":[960,720],"Kosciol_sw_Krzyza":[750,1000],"Wnetrze_kosciola_krzyza":[960,640],"Kamienica_pod_Rakiem":[750,1000],"Linia_A-B":[960,463],"Tadeusz_Kosciuszko":[838,1000],"Kosciol_sw_Wociecha":[960,928],"Drewniany_Dylizans":[960,720],"Cegielki_Wawelskie":[699,1000],"Pomnik_Kosciuszki":[667,1000],"Ulica_Kanonicza":[960,720],"Collegium_Iuridicum":[960,720],"Jozef_Dietl":[750,1000],"Palac_Biskupi":[960,640],"Okno_Papieskie":[960,720],"12_0_Kosciol_Franciszkanow":[960,719],"12_1_Stanislaw_Wyspianski":[960,960],"12_2_Polichromia_Wyspianskiego":[960,986],"12_2_Polichromia_Wyspianskiego_2":[500,949],"12_2_Polichromia_Wyspianskiego_3":[960,720],"12_3_Witraze_Wyspianskiego":[500,667],"12_4_Arcybractwo_Meki_Panskiej":[500,635],"10_0_Wieza_Ratuszowa":[564,1000],"10_2_Krwawy_Burmistrz":[960,647],"10_3_Eros_Bendato":[960,825],"11_0_Collegium_Maius":[750,1000],"11_1_Dziedziniec":[960,540],"11_2_Mikolaj_Kopernik":[960,766],"11_3_Dawne_zycie_akademickie":[960,478],"1_0_Rynek_Glowny":[1280,872],"1_1_Sredniowieczny_Rynek":[960,519],"1_2_Wspolczesny_Rynek":[960,488],"2_0_Historia_sukiennic":[1280,737],"2_1_Renesansowe_Sukiennice":[960,640],"2_2_Sukiennice_dzisiaj":[960,720],"2_3_Podziemia_rynku":[960,638],"3_0_Historia_Kosciola_Mariackiego":[1280,858],"3_1_Legenda_o_trebaczu":[960,733],"3_2_Wnetrze_Kosciola":[960,638],"3_3_Oltarz_Wita_Stwosza":[750,1000],"4_0_Plac_Mariacki":[960,720],"4_2_Zak":[960,640],"5_0_Historia_Malego_Rynku":[960,720],"5_1_Pierwsza_polska_gazeta":[750,1000],"5_2_Maly_Rynek_dzisiaj":[960,768],"6_0_Historia_Placu":[960,639],"6_1_Teatr_Slowackiego":[960,640],"6_2_Wielkie_Premiery":[517,800],"6_3_Ludwik_Solski":[960,692],"7_0_Historia_Plant":[960,720],"7_1_Galeria_Pomnikow":[728,1000],"7_2_Planty_Dzisiaj":[750,1000],"8_0_Sredniowieczne_Mury":[960,613],"8_1_Brama_Florianska":[622,1000],"8_2_Barbakan":[960,640],"8_3_Marcin_Oracewicz":[797,1000],"8_4_Cechy_krakowskie":[960,624],"9_0_Muzeum_Czartoryskich":[960,638],"9_1_Zaulek_ksiazat_Czartoryskich":[750,1000],"Dom_Jana_Matejki":[586,1000],"Historia_kosciola":[750,1000],"Hold_Pruski":[1280,916],"Jama_Michalika":[960,535],"Jan_Matejko":[670,1000],"Kolegiata_sw_Anny":[960,720],"Legenda_o_Twardowskim":[960,697],"Palac_Krzysztofory":[960,640],"Paon_i_Cyganeria":[960,640],"Pierwszy_polski_kabaret":[960,676],"Przysiega_Tadeusza_Kosciuszki":[960,834],"Sw_Jan_z_Ket":[737,1000],"Tablica_ofiar_smogu":[770,1000],"Ulica_Florianska":[665,1000],"Wnetrze":[750,1000],"Wnetrze_Kolegiaty":[750,1000]};
 function photoMiniSrc(src) { const k = photoKey(src); return PHOTO_FILES[k] ? 'foto/mini/' + k + '.webp?v=' + TRACK_PHOTO_VER : null; }
 const photoPrefetched = new Set();
 function prefetchPhoto(src) {
