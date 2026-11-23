@@ -4589,6 +4589,12 @@ let currentTrackIndex = 0;
 // gdy leci audio z punktu X, a user otwiera panel punktu Y, audio z X gra dalej, dopóki user sam nie włączy nagrania z Y
 let loadedPoint = null;
 let loadedTrackIndex = 0;
+// w panelu oglądany jest inny punkt niż ten, którego nagranie jest wczytane (np. gra X, a turysta otworzył punkt Y):
+// pasek postępu, czasy i przycisk play w panelu dotyczą wtedy oglądanego nagrania Y, więc stoją na zerze;
+// zwinięty pasek (odtwarzacz) dalej pokazuje to, co naprawdę gra
+function viewingOther() {
+  try { return !!(loadedPoint && currentPoint && currentPoint !== loadedPoint); } catch (_) { return false; }
+}
 
 let sheetPeek = false;
 function setSheetPeek(state, freshOpen) {
@@ -5218,6 +5224,7 @@ function renderTrackList() {
     if (active) active.scrollIntoView({ block: 'nearest' });
   });
   updateTrackNav();
+  refreshPlayerView(); // pasek, czasy i play zawsze dla oglądanego nagrania
 }
 
 function loadTrack(autoplay) {
@@ -5271,7 +5278,35 @@ function trackDuration() {
   const d = audioEl.duration;
   return (isFinite(d) && d > 0) ? d : estDuration;
 }
+// długości nagrań: prawdziwa (gdy nagranie było już wczytane) albo szacunek z rozmiaru pliku
+var durCache = null;
+function viewedTrackTotal() {
+  durCache = durCache || {};
+  const tr = currentPoint && currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
+  const src = tr && tr.audio;
+  if (!src) return 0;
+  if (durCache[src] === undefined) {
+    durCache[src] = 0;
+    fetch(src, { method: 'HEAD' }).then(r => {
+      const len = +r.headers.get('content-length');
+      if (len && !durCache[src]) { durCache[src] = len * 8 / 64000; if (viewingOther()) showTimes(0); }
+    }).catch(() => { delete durCache[src]; });
+  }
+  return durCache[src];
+}
+function refreshPlayerView() {
+  setPlayIcon(!audioEl.paused && !audioEl.ended);
+  const d = audioEl.duration;
+  updateProgressUI(d > 0 ? audioEl.currentTime / d * 100 : 0);
+  showTimes(audioEl.currentTime);
+}
 function showTimes(cur) {
+  if (viewingOther()) {
+    const vd = viewedTrackTotal();
+    timeCurrent.textContent = '0:00';
+    timeTotal.textContent = vd ? '-' + fmtTime(vd) : '0:00';
+    return;
+  }
   const d = trackDuration();
   timeCurrent.textContent = fmtTime(cur);
   timeTotal.textContent = d ? '-' + fmtTime(Math.max(0, d - cur)) : '0:00';
@@ -5288,7 +5323,7 @@ function setPlayIcon(isPlaying) {
   const icon = isPlaying
     ? '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16"></rect><rect x="14" y="4" width="5" height="16"></rect></svg>'
     : '<svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>';
-  playBtn.innerHTML = icon;
+  playBtn.innerHTML = (isPlaying && viewingOther()) ? '<svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>' : icon;
   const peekPlayBtn = document.getElementById('peek-play-btn');
   if (peekPlayBtn) peekPlayBtn.innerHTML = icon;
 }
@@ -5296,7 +5331,8 @@ function setPlayIcon(isPlaying) {
 function togglePlayPause(viewed) {
   // główny przycisk play w panelu dotyczy oglądanego punktu: jeśli wczytane jest nagranie z innego punktu
   // (a nic nie gra), start ma włączyć nagranie z tego punktu, a nie wznowić stare
-  if (viewed === true && audioEl.paused && currentPoint && currentPoint !== loadedPoint) { loadTrack(true); return; }
+  // (także gdy tamto akurat gra — w panelu Y przycisk pokazuje "play", więc ma włączyć Y)
+  if (viewed === true && viewingOther()) { loadTrack(true); return; }
   if (!audioEl.src) return;
   if (audioEl.paused) {
     if (!nativeVolume && volumeLevel < 1) setVolume(volumeLevel);
@@ -5322,8 +5358,9 @@ document.getElementById('peek-play-btn').addEventListener('click', (e) => {
 const progressThumb = document.getElementById('progress-thumb');
 const peekProgressFill = document.getElementById('peek-progress-fill');
 function updateProgressUI(pct) {
-  progressFill.style.width = pct + '%';
-  progressThumb.style.left = pct + '%';
+  const own = viewingOther() ? 0 : pct; // pasek w panelu: oglądane nagranie (Y) stoi na zerze
+  progressFill.style.width = own + '%';
+  progressThumb.style.left = own + '%';
   peekProgressFill.style.width = pct + '%';
 }
 /* ---------- Postęp trasy: punkt jest zaliczony, gdy wysłuchana jest połowa jego nagrań (nagranie = 90%) ---------- */
@@ -5458,7 +5495,10 @@ function applyPendingSeek() {
     audioEl.currentTime = p * audioEl.duration;
   }
 }
-audioEl.addEventListener('loadedmetadata', () => { applyPendingSeek(); showTimes(audioEl.currentTime); });
+audioEl.addEventListener('loadedmetadata', () => {
+  if (audioEl.duration > 0) { durCache = durCache || {}; durCache[audioEl.getAttribute('src')] = audioEl.duration; }
+  applyPendingSeek(); showTimes(audioEl.currentTime);
+});
 audioEl.addEventListener('canplay', applyPendingSeek);
 audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); markPointDone(); playNextInPoint(); });
 /* ---------- Autoodtwarzanie: po skończonym nagraniu leci następne w tym samym punkcie ---------- */
@@ -5645,6 +5685,7 @@ function attachSeek(el, trackEl) {
   };
   el.addEventListener('pointerdown', e => {
     if (!trackDuration()) return;
+    if (el === progressWrap && viewingOther()) return; // pasek nagrania Y, a gra X — nie przewijamy X
     lastPct = null;
     seeking = true;
     try { el.setPointerCapture(e.pointerId); } catch (_) {}
