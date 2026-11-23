@@ -3587,22 +3587,42 @@ function clusterIcon(cluster) {
 // a znikający nie znika w ułamku sekundy, tylko jego kopia chwilę gaśnie i się kurczy.
 (function () {
   const isPin = el => el && el.querySelector && el.querySelector('.pin-main, .pin-extra, .cluster-dot');
+  // Biblioteka grupująca przy KAŻDYM zoomie zdejmuje i od razu dokłada te same punkty. Bez tego
+  // sprawdzenia każdy punkt gasł i "wyrastał" na nowo, więc przy dużym przybliżeniu wszystko skakało.
+  // Dlatego animujemy tylko punkty, które naprawdę pojawiają się/znikają (inne miejsce na mapie niż przed chwilą).
+  const recentlyRemoved = new Map(); // miejsce -> czas zdjęcia
+  const recentlyAdded = new Map();   // miejsce -> czas dodania
+  const keyOf = m => { const ll = m.getLatLng(); return ll.lat.toFixed(6) + ',' + ll.lng.toFixed(6); };
+  const now = () => performance.now();
   const onAdd = L.Marker.prototype.onAdd, onRemove = L.Marker.prototype.onRemove;
   L.Marker.prototype.onAdd = function (map) {
     onAdd.call(this, map);
     const el = this._icon;
     if (!isPin(el)) return;
+    const k = keyOf(this), t = recentlyRemoved.get(k);
+    recentlyAdded.set(k, now());
+    if (t !== undefined && now() - t < 120) return; // ten sam punkt w tym samym miejscu — bez animacji
     el.classList.remove('pin-in'); void el.offsetWidth; el.classList.add('pin-in');
     clearTimeout(el._pinInT); el._pinInT = setTimeout(() => el.classList.remove('pin-in'), 450);
   };
   L.Marker.prototype.onRemove = function (map) {
     const el = this._icon;
     if (isPin(el) && el.parentNode && !document.hidden) {
+      const k = keyOf(this), parent = el.parentNode;
+      recentlyRemoved.set(k, now());
       const ghost = el.cloneNode(true);
       ghost.classList.remove('pin-in', 'leaflet-interactive');
       ghost.classList.add('pin-out', 'leaflet-zoom-hide');
-      el.parentNode.appendChild(ghost);
-      setTimeout(() => ghost.remove(), 300);
+      ghost.style.visibility = 'hidden';
+      parent.appendChild(ghost);
+      // dopiero po chwili widać, czy punkt naprawdę zniknął, czy biblioteka tylko dołożyła go z powrotem
+      setTimeout(() => {
+        const t = recentlyAdded.get(k);
+        if (t !== undefined && now() - t < 200) { ghost.remove(); return; }
+        ghost.style.visibility = '';
+        ghost.classList.remove('pin-out'); void ghost.offsetWidth; ghost.classList.add('pin-out');
+        setTimeout(() => ghost.remove(), 300);
+      }, 30);
     }
     return onRemove.call(this, map);
   };
