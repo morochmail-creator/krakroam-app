@@ -653,7 +653,7 @@
   #topbar {
     position: absolute; top: 0; left: 0; right: 0; z-index: 10;
     display: flex; align-items: center; justify-content: flex-end;
-    padding: calc(30px + env(safe-area-inset-top, 0px)) 18px 16px;
+    padding: calc(30px + env(safe-area-inset-top, 0px)) 16px 16px; /* tyle samo od krawędzi co przycisk nawigacji po lewej */
     /* pasek jest na całą szerokość, ale pusty — nie może łapać stuknięć, bo punkty pod nim "nie reagowały" */
     pointer-events: none;
   }
@@ -741,7 +741,7 @@
   #nav-top-bar.hidden { display: none; }
   #nav-top-full {
     display: flex; align-items: center; gap: 12px;
-    background: var(--route); border: 1.5px solid var(--line-strong);
+    background: var(--route); border: none;
     border-radius: 18px; padding: 10px 10px 10px 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.28);
     width: max-content; max-width: calc(100vw - 110px);
@@ -768,13 +768,14 @@
     margin-left: 2px;
   }
   #nav-top-peek {
-    display: none; background: var(--route); border: 1.5px solid var(--line-strong);
-    border-radius: 50%; width: 46px; height: 46px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.28); cursor: pointer;
-    align-items: center; justify-content: center;
+    display: none; background: var(--route); border: none;
+    border-radius: 50%; width: 50px; height: 50px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.3); cursor: pointer;
+    align-items: center; justify-content: center; transition: transform 0.1s ease;
   }
+  #nav-top-peek:active { transform: scale(0.94); }
   #nav-top-bar.collapsed #nav-top-peek { display: flex; }
-  #nav-top-peek svg { width: 19px; height: 19px; stroke: #fff; }
+  #nav-top-peek svg { width: 23px; height: 23px; stroke: #fff; stroke-width: 2.2; }
 
   /* ---------- Komunikat "jesteś na miejscu" ---------- */
   #arrival-toast {
@@ -800,10 +801,11 @@
     display: flex; flex-direction: column; gap: 10px;
     position: relative;
   }
+  /* przyciski na mapie: jeden wygląd — okrągłe 50 px, bez grubej czarnej obwódki, miękki cień */
   #brand, #locate-btn, #settings-btn, #view-toggle-btn, #north-btn {
-    width: 46px; height: 46px; border-radius: 50%;
-    background: var(--paper); border: 1.5px solid var(--line-strong);
-    box-shadow: var(--shadow-float);
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--paper); border: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.3);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: transform 0.1s ease, background 0.15s ease;
@@ -820,7 +822,7 @@
   #north-btn.rotated { opacity: 1; visibility: visible; transform: scale(1); pointer-events: auto; }
   #north-btn.rotated:active { transform: scale(0.94); }
   #north-needle { transform-origin: 12px 12px; }
-  #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--ink); color: var(--ink); }
+  #brand svg, #locate-btn svg, #settings-btn svg { width: 23px; height: 23px; stroke: var(--ink); color: var(--ink); stroke-width: 2.2; }
   #locate-btn.active { background: var(--route); }
   #locate-btn.active svg { stroke: #fff; color: #fff; }
   #view-toggle-label { font-size: 12px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
@@ -1124,14 +1126,21 @@
   /* przycisk "Prowadź do startu" (trasa wybrana, a Ty jesteś daleko od niej) */
   #route-start-btn {
     position: absolute; z-index: 60; left: 50%; transform: translateX(-50%);
-    top: calc(env(safe-area-inset-top, 0px) + 16px);
-    display: flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 999px;
-    background: var(--route); color: #fff; font: 800 15px 'Inter', sans-serif; white-space: nowrap;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.35); cursor: pointer;
+    bottom: calc(190px + env(safe-area-inset-bottom, 0px)); /* nad zwiniętym panelem i licznikiem punktów */
+    display: flex; align-items: center; gap: 10px; padding: 17px 30px; border: 3px solid #fff; border-radius: 999px;
+    background: var(--route); color: #fff; font: 800 18px 'Inter', sans-serif; letter-spacing: -0.01em; white-space: nowrap;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.4); cursor: pointer;
+    animation: startPulse 1.8s ease-in-out infinite;
   }
   #route-start-btn.hidden { display: none; }
-  #route-start-btn svg { width: 18px; height: 18px; stroke: #fff; fill: #fff; }
-  #route-start-btn:active { transform: translateX(-50%) scale(0.97); }
+  #route-start-btn svg { width: 22px; height: 22px; stroke: #fff; fill: #fff; }
+  #route-start-btn:active { animation: none; transform: translateX(-50%) scale(0.96); }
+  /* lekkie "oddychanie" + rozchodząca się niebieska fala — zachęca do kliknięcia */
+  @keyframes startPulse {
+    0%   { transform: translateX(-50%) scale(1);    box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 0 rgba(31,111,224,0.55); }
+    50%  { transform: translateX(-50%) scale(1.05); box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 14px rgba(31,111,224,0); }
+    100% { transform: translateX(-50%) scale(1);    box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 0 rgba(31,111,224,0); }
+  }
   /* ---------- Płynne pojawianie się / znikanie punktów przy zoomie (zamiast nagłego "pyk") ---------- */
   @keyframes pinIn { from { opacity: 0; transform: scale(0.35); } 60% { opacity: 1; } to { opacity: 1; transform: none; } }
   @keyframes pinOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.35); } }
@@ -1419,8 +1428,8 @@
   /* przycisk lokalizacji "pulsuje" na czerwono, dopóki GPS nie działa */
   #locate-btn.gps-off { animation: gps-off-pulse 1.6s ease-out infinite; }
   @keyframes gps-off-pulse {
-    0%   { box-shadow: var(--shadow-float), 0 0 0 0 rgba(224,72,61,0.7); }
-    100% { box-shadow: var(--shadow-float), 0 0 0 14px rgba(224,72,61,0); }
+    0%   { box-shadow: 0 4px 14px rgba(0,0,0,0.3), 0 0 0 0 rgba(224,72,61,0.6); }
+    100% { box-shadow: 0 4px 14px rgba(0,0,0,0.3), 0 0 0 12px rgba(224,72,61,0); }
   }
 
   #track-list {
