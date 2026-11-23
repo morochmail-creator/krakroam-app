@@ -189,6 +189,12 @@
     transition: opacity 0.4s ease, visibility 0.4s ease;
   }
   #splash.done { opacity: 0; visibility: hidden; pointer-events: none; }
+  /* krótka animacja startu (~0,8 s): logo wyskakuje i lekko rośnie, potem ekran płynnie znika — bez czekania na pobieranie */
+  #splash-icon, #splash-brand { animation: splashIn 0.55s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
+  #splash-brand { animation-delay: 0.08s; }
+  @keyframes splashIn { from { opacity: 0; transform: scale(0.82) translateY(6px); } to { opacity: 1; transform: none; } }
+  #splash.done #splash-icon, #splash.done #splash-brand { transform: scale(1.08); transition: transform 0.4s ease; }
+  #splash-bar, #splash-status, #splash-skip { display: none !important; }
   #splash-icon { width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
   #splash-brand { font: 800 30px 'Inter', system-ui, sans-serif; letter-spacing: -0.02em; color: #fafaf8; }
   #splash-brand span { color: #d9a239; }
@@ -209,7 +215,8 @@
     border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; box-sizing: border-box;
     animation: imgSpin 0.8s linear infinite; pointer-events: none;
   }
-  .ri-photo.is-loading::before, #home-menu .is-loading::before { border-color: rgba(0,0,0,0.12); border-top-color: var(--brass-deep); }
+  .hc-spin { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .ri-photo.is-loading::before { border-color: rgba(0,0,0,0.12); border-top-color: var(--brass-deep); }
   #splash.loaded #splash-bar-fill { animation: none; width: 100%; transition: width 0.25s ease; }
   @keyframes splash-fill { from { width: 0; } to { width: 85%; } }
 
@@ -7271,62 +7278,46 @@ if (savedLang && savedUnlocked) {
 }
 // jeśli brak zapamiętanego języka — ekran wyboru języka zostaje domyślnie widoczny, nic więcej nie robimy
 
-// Ekran ładowania z paskiem (Pektus: słaby internet = puste, brzydkie pola). Zanim pokażemy apkę, pobieramy:
-// zdjęcia z menu (okładki tras, zmieniające się zdjęcia na karcie "Trasy", zdjęcia ekranów tras),
-// miniaturki pinezek na mapie i pierwsze nagranie każdej trasy (+ nagrania wprowadzenia, gdy będą).
-// Po 6 s pojawia się "Pomiń", a po 25 s apka i tak startuje — reszta dociąga się w tle.
-(function bootPreload() {
+// Start apki: krótka animacja logo (~0,8 s) i od razu menu (Pektus: bez czekania na pasek).
+// W tle pobieramy po kolei: zdjęcia z menu → miniaturki pinezek → pierwsze nagranie każdej trasy (+ wprowadzenie).
+// Na zdjęciach, które jeszcze nie doszły, kręci się kółeczko; karta "Trasy" pokazuje tylko pobrane zdjęcia.
+(function splashAndPreload() {
   const el = document.getElementById('splash');
-  if (!el) return;
-  const pl = (localStorage.getItem('krakroam_lang') || (navigator.language || 'pl')).slice(0, 2) === 'pl';
-  const fill = document.getElementById('splash-bar-fill'), status = document.getElementById('splash-status'), skip = document.getElementById('splash-skip');
-  status.textContent = pl ? 'Przygotowujemy zdjęcia i nagrania…' : 'Getting photos and recordings ready…';
-  skip.textContent = pl ? 'Pomiń' : 'Skip';
+  if (el) {
+    setTimeout(() => el.classList.add('done'), 800);
+    setTimeout(() => el.remove(), 1300);
+  }
+  // okładka karty "Trasy" w menu głównym: kółeczko, dopóki się nie pobierze
+  const homeSpin = document.createElement('span');
+  homeSpin.className = 'hc-spin is-loading';
+  document.getElementById('home-routes').appendChild(homeSpin);
+  const coverProbe = new Image();
+  coverProbe.onload = coverProbe.onerror = () => homeSpin.remove();
+  coverProbe.src = 'foto/trasa-stare-miasto.jpg';
 
-  const imgs = new Set(['foto/trasa-stare-miasto.jpg']);
+  const imgs = new Set();
   ['stare-miasto', 'kazimierz'].forEach(k => { imgs.add('foto/trasa-' + k + '.jpg?v=' + PHOTO_VER); imgs.add('foto/trasa-' + k + '-1.jpg?v=' + PHOTO_VER); });
-  ['foto/trasa-stare-miasto-2.jpg?v=3', 'foto/trasa-stare-miasto-3.jpg?v=3'].forEach(u => imgs.add(u));
   try { routesSlideshow.urls.forEach(u => imgs.add(u)); } catch (_) {}
-  POINTS.forEach(p => { const m = pointPinPhoto(p); if (m) imgs.add(m); });
+  const pins = new Set();
+  POINTS.forEach(p => { const m = pointPinPhoto(p); if (m) pins.add(m); });
   const audios = new Set();
   INTRO_POINT.tracks.forEach(tr => tr.audio && audios.add(tr.audio));
   [POINTS_STARE_MIASTO, POINTS_KAZIMIERZ].forEach(list => {
     const first = list.find(p => p.type === 'main' && !p.offRoute && p.tracks.some(tr => tr.audio));
     if (first) audios.add(first.tracks.find(tr => tr.audio).audio);
   });
-
-  const jobs = [];
-  imgs.forEach(u => jobs.push({ w: 1, run: () => new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = u; }) }));
-  audios.forEach(u => jobs.push({ w: 6, run: async () => {
+  const loadImg = u => () => new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = u; });
+  const jobs = [...imgs].map(loadImg).concat([...pins].map(loadImg), [...audios].map(u => async () => {
     try { if (window.caches && await caches.match(u)) return; } catch (_) {}
     await fetch(u).then(r => r.blob()).catch(() => {});
-  } }));
-  const total = jobs.reduce((a, j) => a + j.w, 0) || 1;
-  let doneW = 0, finished = false;
-  const show = () => { fill.style.width = Math.max(4, Math.round(doneW / total * 100)) + '%'; };
-  const finish = () => {
-    if (finished) return;
-    finished = true;
-    fill.style.width = '100%';
-    el.classList.add('loaded');
-    setTimeout(() => el.classList.add('done'), 300);
-    setTimeout(() => el.remove(), 900);
-  };
+  }));
   const timeout = ms => new Promise(r => setTimeout(r, ms));
-  // po 4 naraz — żeby słaby internet nie dławił się kilkudziesięcioma pobraniami jednocześnie
   let next = 0;
-  const worker = async () => {
-    while (next < jobs.length && !finished) {
-      const j = jobs[next++];
-      await Promise.race([j.run(), timeout(20000)]);
-      doneW += j.w; show();
-    }
-  };
-  const started = performance.now();
-  Promise.all([0, 1, 2, 3].map(worker)).then(() => setTimeout(finish, Math.max(0, 700 - (performance.now() - started))));
-  setTimeout(() => skip.classList.add('show'), 6000);
-  skip.addEventListener('click', finish);
-  setTimeout(finish, 25000);
+  // po 3 naraz — słaby internet nie dławi się kilkudziesięcioma pobraniami jednocześnie
+  const worker = async () => { while (next < jobs.length) { const j = jobs[next++]; await Promise.race([j(), timeout(20000)]); } };
+  // start po załadowaniu strony, żeby nie spowalniać samego otwarcia apki
+  const go = () => [0, 1, 2].forEach(worker);
+  if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
 })();
 
 // "Schowek" apki w telefonie (sw.js): szybsze otwieranie, mapa i nagrania z pamięci telefonu na słabym zasięgu
