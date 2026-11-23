@@ -239,17 +239,28 @@
     box-shadow: 0 10px 28px rgba(27,26,23,0.25);
     transition: transform 0.12s ease;
   }
+  /* pokaz zdjęć w karcie "Trasy": dwie warstwy na zmianę, płynne przenikanie + powolne przybliżanie */
+  .hc-slide {
+    position: absolute; inset: 0; z-index: 0;
+    background: center / cover no-repeat;
+    opacity: 0; transform: scale(1.02);
+    transition: opacity 1.4s ease, transform 7s linear;
+    will-change: opacity, transform;
+  }
+  .hc-slide.on { opacity: 1; transform: scale(1.1); }
+  @media (prefers-reduced-motion: reduce) { .hc-slide, .hc-slide.on { transform: none; } }
   .home-card::before {
+    z-index: 1;
     content: ""; position: absolute; inset: 0;
     background: linear-gradient(180deg, rgba(20,17,13,0) 30%, rgba(20,17,13,0.78) 100%);
   }
   .home-card:active, .home-tile:active { transform: scale(0.98); }
-  .hc-text { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; color: #fff; }
+  .hc-text { position: relative; z-index: 2; flex: 1; min-width: 0; display: flex; flex-direction: column; color: #fff; }
   .hc-eyebrow { font-size: 12px; font-weight: 700; color: #f6cf6b; letter-spacing: 0.01em; }
   .hc-title { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
   .hc-sub { font-size: 14px; font-weight: 500; opacity: 0.9; margin-top: 2px; }
   .hc-go {
-    position: relative; flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
+    position: relative; z-index: 2; flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
     background: var(--brass); display: flex; align-items: center; justify-content: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
   }
@@ -1412,6 +1423,7 @@
       <div id="home-brand">Krak<span>Roam</span></div>
       <div id="home-title" data-t="homeTitle">Co dziś robimy?</div>
       <button class="home-card" id="home-routes" type="button">
+        <span class="hc-slide"></span><span class="hc-slide"></span>
         <span class="hc-text">
           <span class="hc-eyebrow" data-t="homeRoutesEyebrow">Audio przewodnik po Krakowie</span>
           <span class="hc-title" data-t="homeRoutes">Trasy</span>
@@ -1836,6 +1848,7 @@ function unlockApp() {
   // hasło to teraz DRUGI krok (po wyborze języka) — po sukcesie pokazujemy od razu menu tras + ekran homescreen
   pwScreen.classList.add('hidden');
   document.getElementById('home-menu').classList.remove('hidden'); // start = menu główne
+  routesSlideshow.start();
   if (typeof maybeShowA2HS === 'function') maybeShowA2HS();
   if (typeof beginLocationFlow === 'function') beginLocationFlow(); // dopiero TERAZ user realnie wszedł do apki
 }
@@ -4715,10 +4728,57 @@ const howtoEl = document.getElementById('howto-screen');
 function openHomeMenu() {
   document.getElementById('district-menu').classList.add('hidden');
   homeMenuEl.classList.remove('hidden');
+  routesSlideshow.start();
 }
 function closeHomeMenu() {
   homeMenuEl.classList.add('hidden');
+  routesSlideshow.stop();
 }
+// Karta "Trasy": co kilka sekund losowe zdjęcie ze Starego Miasta (płynne przenikanie). Działa tylko,
+// gdy menu jest widoczne — na mapie nie pobiera zdjęć i nie męczy baterii.
+const routesSlideshow = (function () {
+  const PICKS = ['1_0_Rynek_Glowny', '1_2_Wspolczesny_Rynek', '2_0_Historia_sukiennic', '3_0_Historia_Kosciola_Mariackiego',
+    '3_2_Wnetrze_Kosciola', '4_0_Plac_Mariacki', '6_0_Historia_Placu', '6_1_Teatr_Slowackiego', '8_0_Sredniowieczne_Mury',
+    '8_2_Barbakan', '9_0_Muzeum_Czartoryskich', '10_2_Krwawy_Burmistrz', '11_1_Dziedziniec', '12_2_Polichromia_Wyspianskiego_3',
+    '13_0_Okol', '13_1_Ulica_Grodzka', '14_1_Kosciol_sw_Piotra_i_Pawla', '14_2_Plac_i_Kolumna', 'Kolegiata_sw_Anny',
+    'Ulica_Kanonicza', 'Palac_Krzysztofory'];
+  const urls = PICKS.filter(k => PHOTO_FILES[k]).map(k => 'foto/' + k + '.webp?v=' + TRACK_PHOTO_VER)
+    .concat(['foto/trasa-stare-miasto-2.jpg', 'foto/trasa-stare-miasto-3.jpg']);
+  const layers = document.querySelectorAll('#home-routes .hc-slide');
+  const EVERY = 5000;
+  let timer = null, front = 0, bag = [], last = null;
+  function nextUrl() {
+    if (!bag.length) { bag = urls.slice().sort(() => Math.random() - 0.5); if (bag[0] === last) bag.push(bag.shift()); }
+    return (last = bag.shift());
+  }
+  function step() {
+    const url = nextUrl();
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => {
+      if (!timer) return;
+      const show = layers[front ^ 1], hide = layers[front];
+      show.style.transition = 'none'; show.classList.remove('on');
+      show.style.backgroundImage = `url('${url}')`;
+      void show.offsetWidth; // start animacji od nowa
+      show.style.transition = '';
+      show.classList.add('on');
+      hide.classList.remove('on');
+      front ^= 1;
+      timer = setTimeout(step, EVERY);
+    };
+    img.onerror = () => { if (timer) timer = setTimeout(step, 500); };
+    img.src = url;
+  }
+  return {
+    start() { if (timer || !layers.length) return; timer = setTimeout(step, EVERY - 1500); },
+    stop() { clearTimeout(timer); timer = null; }
+  };
+})();
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) routesSlideshow.stop();
+  else if (!homeMenuEl.classList.contains('hidden')) routesSlideshow.start();
+});
 document.getElementById('home-routes').addEventListener('click', () => openDistrictMenuFull());
 document.getElementById('home-howto').addEventListener('click', () => {
   sfx.play('menuUp');
@@ -6202,6 +6262,7 @@ if (savedUnlocked) {
 if (savedLang && savedUnlocked) {
   // ma i język, i hasło — prosto do apki (menu główne)
   document.getElementById('home-menu').classList.remove('hidden');
+  routesSlideshow.start();
   document.getElementById('district-menu').classList.remove('entering');
   maybeShowA2HS();
   beginLocationFlow(); // apka pokazana od razu na starcie — to jest ten moment "wejścia", nie wcześniej
