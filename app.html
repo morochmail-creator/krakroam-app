@@ -1126,19 +1126,19 @@
   /* przycisk "Prowadź do startu" (trasa wybrana, a Ty jesteś daleko od niej) */
   #route-start-btn {
     position: absolute; z-index: 60; left: 50%; transform: translateX(-50%);
-    bottom: calc(190px + env(safe-area-inset-bottom, 0px)); /* nad zwiniętym panelem i licznikiem punktów */
-    display: flex; align-items: center; gap: 10px; padding: 17px 30px; border: 3px solid #fff; border-radius: 999px;
-    background: var(--route); color: #fff; font: 800 18px 'Inter', sans-serif; letter-spacing: -0.01em; white-space: nowrap;
+    top: calc(96px + env(safe-area-inset-top, 0px)); /* pod rzędem przycisków na górze, nie przy samej krawędzi */
+    display: flex; align-items: center; gap: 8px; padding: 12px 22px; border: 2px solid #fff; border-radius: 999px;
+    background: var(--route); color: #fff; font: 800 15.5px 'Inter', sans-serif; letter-spacing: -0.01em; white-space: nowrap;
     box-shadow: 0 10px 28px rgba(0,0,0,0.4); cursor: pointer;
     animation: startPulse 1.8s ease-in-out infinite;
   }
   #route-start-btn.hidden { display: none; }
-  #route-start-btn svg { width: 22px; height: 22px; stroke: #fff; fill: #fff; }
+  #route-start-btn svg { width: 18px; height: 18px; stroke: #fff; fill: #fff; }
   #route-start-btn:active { animation: none; transform: translateX(-50%) scale(0.96); }
   /* lekkie "oddychanie" + rozchodząca się niebieska fala — zachęca do kliknięcia */
   @keyframes startPulse {
     0%   { transform: translateX(-50%) scale(1);    box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 0 rgba(31,111,224,0.55); }
-    50%  { transform: translateX(-50%) scale(1.05); box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 14px rgba(31,111,224,0); }
+    50%  { transform: translateX(-50%) scale(1.03); box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 10px rgba(31,111,224,0); }
     100% { transform: translateX(-50%) scale(1);    box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 0 rgba(31,111,224,0); }
   }
   /* ---------- Płynne pojawianie się / znikanie punktów przy zoomie (zamiast nagłego "pyk") ---------- */
@@ -4251,7 +4251,9 @@ function clusterIcon(cluster) {
 
 const pointCluster = L.markerClusterGroup({
   maxClusterRadius: 50, // pinezki ze zdjęciem są szerokie (46px) — mniejszy promień = nachodzące na siebie pinezki przy oddaleniu
-  disableClusteringAtZoom: 17,
+  // grupy działają też na przybliżeniu 17 (gęsty Kazimierz: przy 16,5–17,5 pinezki wchodziły na siebie);
+  // dopiero od 18 każdy punkt stoi osobno
+  disableClusteringAtZoom: 18,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
   zoomToBoundsOnClick: false, // przybliżanie robimy sami (zoomIntoCluster) — zawsze wyraźnie i płynnie
