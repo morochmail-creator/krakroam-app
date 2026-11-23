@@ -1078,11 +1078,27 @@
   .pin-extra .pin-label { top: 46px; }
   /* ---------- Oddalona mapa (zoom < 17): tylko główne punkty jako małe kółka ze zdjęciem, bez dzióbka ----------
      Kółko siedzi dokładnie na miejscu punktu (tam, gdzie był czubek pinezki). */
-  #map.zoom-far .pin-main::after { display: none; }
   #map.zoom-far .pin-main .marker-main { width: 32px; height: 32px; top: 41px; left: 7px; border-width: 2.5px; }
   #map.zoom-far .pin-main.pin-group::before { width: 32px; height: 32px; top: 37px; left: 11px; border-width: 2.5px; }
   #map.zoom-far .pin-main .pin-count { top: 33px; right: -3px; min-width: 19px; height: 19px; padding: 0 4px; font-size: 10.5px; line-height: 15px; }
   #map.zoom-far .pin-main .marker-main.marker-done::after { top: -5px; right: -5px; width: 15px; height: 15px; }
+  /* ---------- Płynne pojawianie się / znikanie punktów przy zoomie (zamiast nagłego "pyk") ---------- */
+  @keyframes pinIn { from { opacity: 0; transform: scale(0.35); } 60% { opacity: 1; } to { opacity: 1; transform: none; } }
+  @keyframes pinOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.35); } }
+  .leaflet-marker-icon.pin-in > .pin-main, .leaflet-marker-icon.pin-in > .pin-extra,
+  .leaflet-marker-icon.pin-out > .pin-main, .leaflet-marker-icon.pin-out > .pin-extra { transform-origin: 50% 98%; }
+  .leaflet-marker-icon.pin-in > * { animation: pinIn 0.38s cubic-bezier(0.2, 1.25, 0.4, 1) both; }
+  .leaflet-marker-icon.pin-out { pointer-events: none !important; }
+  .leaflet-marker-icon.pin-out > * { animation: pinOut 0.26s ease-in both; }
+  /* zmiana pinezka <-> kółko przy oddalaniu też płynnie */
+  .pin-main .marker-main, .pin-main.pin-group::before, .pin-main .pin-count {
+    transition: width 0.3s ease, height 0.3s ease, top 0.3s ease, left 0.3s ease, right 0.3s ease, border-width 0.3s ease;
+  }
+  .pin-main::after { transition: opacity 0.25s ease; }
+  #map.zoom-far .pin-main::after { display: block; opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .leaflet-marker-icon.pin-in > *, .leaflet-marker-icon.pin-out > * { animation: none; }
+  }
   /* nazwa pod pinezką (włączana klasą .pin-names na mapie) */
   .pin-label {
     display: none; position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
@@ -3557,6 +3573,31 @@ function clusterIcon(cluster) {
   return makePinIcon(p, `<div class="pin-count">+${count - 1}</div>`, 'pin-group');
 }
 
+// Płynne pojawianie się i znikanie punktów (pinezek i grup) przy zoomie: nowy punkt "wyrasta" z miejsca,
+// a znikający nie znika w ułamku sekundy, tylko jego kopia chwilę gaśnie i się kurczy.
+(function () {
+  const isPin = el => el && el.querySelector && el.querySelector('.pin-main, .pin-extra, .cluster-dot');
+  const onAdd = L.Marker.prototype.onAdd, onRemove = L.Marker.prototype.onRemove;
+  L.Marker.prototype.onAdd = function (map) {
+    onAdd.call(this, map);
+    const el = this._icon;
+    if (!isPin(el)) return;
+    el.classList.remove('pin-in'); void el.offsetWidth; el.classList.add('pin-in');
+    clearTimeout(el._pinInT); el._pinInT = setTimeout(() => el.classList.remove('pin-in'), 450);
+  };
+  L.Marker.prototype.onRemove = function (map) {
+    const el = this._icon;
+    if (isPin(el) && el.parentNode && !document.hidden) {
+      const ghost = el.cloneNode(true);
+      ghost.classList.remove('pin-in', 'leaflet-interactive');
+      ghost.classList.add('pin-out', 'leaflet-zoom-hide');
+      el.parentNode.appendChild(ghost);
+      setTimeout(() => ghost.remove(), 300);
+    }
+    return onRemove.call(this, map);
+  };
+})();
+
 const pointCluster = L.markerClusterGroup({
   maxClusterRadius: 50, // pinezki ze zdjęciem są szerokie (46px) — mniejszy promień = nachodzące na siebie pinezki przy oddaleniu
   disableClusteringAtZoom: 17,
@@ -5189,7 +5230,7 @@ const PHOTO_INFO = {
   "9_0_Muzeum_Czartoryskich": { src: "https://commons.wikimedia.org/wiki/File:Czartoryski%27s_alley,_Pijarska_street,_Old_Town,_Krak%C3%B3w,_Poland.jpg" },
   "9_1_Zaulek_ksiazat_Czartoryskich": { src: "https://commons.wikimedia.org/wiki/File:Gate_of_Czartoryski_Museum,_Krak%C3%B3w,_2022,_01.jpg" },
   "10_0_Wieza_Ratuszowa": { src: "https://commons.wikimedia.org/wiki/File:Krakau_-_Rathausturm.jpg" },
-  "10_2_Krwawy_Burmistrz": { src: "https://commons.wikimedia.org/wiki/File:Czeczotka_tenement_hose,_1_Wi%C5%9Blna_street,_Old_Town_,_Krak%C3%B3w,_Poland.JPG" },
+  "10_2_Krwawy_Burmistrz": { src: "https://commons.wikimedia.org/wiki/File:Czeczotka_tenement_hose,_1_Wi%C5%9Blna_street,_Old_Town_,_Krak%C3%B3w,_Poland.JPG", cap: { pl: "Kamienica Krwawego Burmistrza", en: "House of the Bloody Mayor" } },
   "10_3_Eros_Bendato": { src: "https://commons.wikimedia.org/wiki/File:Eros_Bendato_Sculpture_in_Krak%C3%B3w._Poland.jpg" },
   "11_0_Collegium_Maius": { src: "https://commons.wikimedia.org/wiki/File:Collegium_Maius_Jagiello%C5%84ska_Street,_Krak%C3%B3w,_Poland,_2022.jpg" },
   "11_1_Dziedziniec": { src: "https://commons.wikimedia.org/wiki/File:Collegium_Maius_2017.jpg" },
