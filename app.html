@@ -430,6 +430,8 @@
   .dr-go .dr-chevron { width: 18px; height: 18px; stroke: #1b1a17; }
   .dr-sub { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); margin: 20px 2px 10px; }
   .dr-grid { display: flex; gap: 10px; }
+  .dr-hero-2 { margin-top: 14px; height: 280px; }
+  .dr-tag-new { background: #fff; }
   .dr-tile { flex: 1; height: 120px; border-radius: 18px; background: #8e887a; }
   .dr-tile .dr-cover { filter: grayscale(0.85) brightness(0.95); }
   .dr-tile .dr-cover::after { background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(10,8,5,0.8)); }
@@ -1624,17 +1626,23 @@
         <div class="dr-hero-txt">
           <div class="dr-title">Stare Miasto</div>
           <div class="dr-desc">Rynek, Mariacki, Wawel i okolice</div>
-          <div class="dr-stats"><span id="dr-st-stops"></span><span data-t="riTimeVal">1,5–2 h</span><span id="dr-st-km"></span></div>
+          <div class="dr-stats"><span class="dr-st-stops"></span><span class="dr-st-time"></span><span class="dr-st-km"></span></div>
+          <div class="dr-go"><span data-t="routeIntroStart">Zaczynamy!</span><svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"></polyline></svg></div>
+        </div>
+      </div>
+
+      <div class="district-row dr-hero dr-hero-2" data-district="kazimierz">
+        <div class="dr-cover"></div>
+        <span class="dr-tag dr-tag-new" data-t="drNew">Nowa trasa</span>
+        <div class="dr-hero-txt">
+          <div class="dr-title">Kazimierz</div>
+          <div class="dr-stats"><span class="dr-st-stops"></span><span class="dr-st-time"></span><span class="dr-st-km"></span></div>
           <div class="dr-go"><span data-t="routeIntroStart">Zaczynamy!</span><svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"></polyline></svg></div>
         </div>
       </div>
 
       <div class="dr-sub" data-i18n="comingSoon">Wkrótce</div>
       <div class="dr-grid">
-        <div class="district-row dr-tile soon" data-district="kazimierz">
-          <div class="dr-cover"></div>
-          <div class="dr-title">Kazimierz</div>
-        </div>
         <div class="district-row dr-tile soon" data-district="podgorze">
           <div class="dr-cover"></div>
           <div class="dr-title">Podgórze</div>
@@ -1671,7 +1679,7 @@
       <div id="ri-stats">
         <div class="ri-stat"><b id="ri-main">0</b><span data-t="riMain">główne przystanki</span></div>
         <div class="ri-stat"><b id="ri-extra">0</b><span data-t="riExtra">punkty dodatkowe</span></div>
-        <div class="ri-stat"><b data-t="riTimeVal">1,5–2 h</b><span data-t="riTime">czas spaceru</span></div>
+        <div class="ri-stat"><b id="ri-time">1,5–2 h</b><span data-t="riTime">czas spaceru</span></div>
         <div class="ri-stat"><b id="ri-km">0 km</b><span data-t="riKm">długość trasy</span></div>
       </div>
       <div id="route-intro-photos"></div>
@@ -2177,7 +2185,7 @@ const TRANSLATIONS = {
     riMore: "Czytaj dalej", riLess: "Zwiń", riFirstPhoto: "Wzgórze Wawelskie",
     routeIntroSeeLabel: "Najważniejsze miejsca na trasie:",
     routeIntroStart: "Zaczynamy!",
-    drFeatured: "Polecana", drStops: "przystanków", soonBack: "Wróć do tras",
+    drFeatured: "Polecana", drNew: "Nowa trasa", drStops: "przystanków", soonBack: "Wróć do tras",
     soonText: "Nad tą trasą właśnie pracujemy.\nWkrótce znajdziesz tu opis, zdjęcia, mapę i nagrania. Zajrzyj niedługo!",
     gpsUnsupported: "Twoja przeglądarka nie obsługuje lokalizacji GPS.",
     playLabel: "Odtwórz", playPauseLabel: "Odtwórz/Pauza", stopLabel: "Stop",
@@ -2302,7 +2310,7 @@ const TRANSLATIONS = {
     riMore: "Read more", riLess: "Show less", riFirstPhoto: "Wawel Hill",
     routeIntroSeeLabel: "Top sights on the route:",
     routeIntroStart: "Let's go!",
-    drFeatured: "Recommended", drStops: "stops", soonBack: "Back to routes",
+    drFeatured: "Recommended", drNew: "New route", drStops: "stops", soonBack: "Back to routes",
     soonText: "We are working on this route right now.\nSoon you will find a description, photos, a map and recordings here. Check back soon!",
     gpsUnsupported: "Your browser doesn't support GPS location.",
     playLabel: "Play", playPauseLabel: "Play/Pause", stopLabel: "Stop",
@@ -2580,7 +2588,13 @@ const INTRO_POINT = {
   ]
 };
 
-const POINTS = [
+// Która trasa jest wczytana (Stare Miasto / Kazimierz). Zmiana trasy = zapis wyboru i przeładowanie strony,
+// dzięki temu cała reszta apki dalej pracuje na jednej liście POINTS i jednej linii ROUTE_LINE.
+const ROUTE_KEYS = ['stare-miasto', 'kazimierz'];
+let CURRENT_ROUTE = 'stare-miasto';
+try { const r = localStorage.getItem('krakroam_route'); if (ROUTE_KEYS.includes(r)) CURRENT_ROUTE = r; } catch (_) {}
+
+const POINTS_STARE_MIASTO = [
   {
     id: "rynek-glowny",
     name: "Rynek Główny",
@@ -3185,7 +3199,547 @@ const POINTS = [
   }
 ];
 
-const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061536, 19.938783],  [50.06143, 19.939094],  [50.061413, 19.939507],  [50.061428, 19.939576],  [50.061477, 19.939702],  [50.061419, 19.939918],  [50.061315, 19.940225],  [50.061638, 19.940464],  [50.061702, 19.940441],  [50.06246, 19.941005],  [50.063479, 19.941756],  [50.063925, 19.942128],  [50.063988, 19.942311],  [50.064074, 19.942251],  [50.064569, 19.942608],  [50.064614, 19.942486],  [50.064824, 19.942644],  [50.064858, 19.942521],  [50.064942, 19.94213],  [50.065128, 19.941464],  [50.064824, 19.941345],  [50.064962, 19.940577],  [50.064893, 19.940442],  [50.064832, 19.940414],  [50.064864, 19.940617],  [50.064838, 19.94101],  [50.064793, 19.94119],  [50.064742, 19.941254],  [50.064521, 19.941119],  [50.064081, 19.940795],  [50.063636, 19.940443],  [50.063011, 19.939966],  [50.062877, 19.939862],  [50.063093, 19.939133],  [50.063059, 19.938994],  [50.063086, 19.938789],  [50.063141, 19.938603],  [50.062378, 19.938052],  [50.062323, 19.938016],  [50.062483, 19.937501],  [50.062626, 19.937019],  [50.062635, 19.936925],  [50.061998, 19.936311],  [50.061782, 19.936124],  [50.061656, 19.93607],  [50.061539, 19.936071],  [50.061424, 19.935898],  [50.061357, 19.935472],  [50.061745, 19.934329],  [50.061742, 19.934261],  [50.06158, 19.934114],  [50.061504, 19.934029],  [50.061253, 19.933862],  [50.061033, 19.933746],  [50.060747, 19.934563],  [50.060643, 19.934818],  [50.060449, 19.934649],  [50.06023, 19.934469],  [50.060061, 19.934362],  [50.059689, 19.93444],  [50.059168, 19.934606],  [50.059166, 19.934786],  [50.059198, 19.934936],  [50.059168, 19.935096],  [50.059163, 19.935249],  [50.059171, 19.935464],  [50.059352, 19.935431],  [50.059399, 19.93608],  [50.059391, 19.936292],  [50.059359, 19.936426],  [50.059276, 19.936648],  [50.059202, 19.936671],  [50.059099, 19.936835],  [50.059035, 19.937009],  [50.058814, 19.937143],  [50.058889, 19.937608],  [50.058927, 19.93765],  [50.058897, 19.937745],  [50.058895, 19.937871],  [50.058425, 19.937969],  [50.058111, 19.938017],  [50.057759, 19.938064],  [50.057487, 19.938142],  [50.056975, 19.938185],  [50.056851, 19.938078],  [50.056792, 19.93803],  [50.056759, 19.937803],  [50.056767, 19.937543],  [50.056527, 19.937487],  [50.056441, 19.937475],  [50.056339, 19.937451],  [50.056156, 19.937369],  [50.056015, 19.937252],  [50.055784, 19.937058],  [50.055491, 19.936768],  [50.055482, 19.936718],  [50.055388, 19.936675],  [50.055376, 19.936512],  [50.055346, 19.936479],  [50.055067, 19.935212],  [50.05505, 19.935147],  [50.055027, 19.934994],  [50.054993, 19.934914],  [50.054917, 19.934852],  [50.054849, 19.934828],  [50.054733, 19.934837],  [50.054648, 19.93485],  [50.054558, 19.934814],  [50.054478, 19.934902],  [50.054397, 19.935029],  [50.054167, 19.935176],  [50.054288, 19.935393],  [50.054429, 19.935531],  [50.054529, 19.935858],  [50.054572, 19.936118],  [50.054573, 19.936359],  [50.054524, 19.936484],  [50.054517, 19.936648]];
+const ROUTE_LINE_STARE_MIASTO = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601, 19.938436],  [50.061536, 19.938783],  [50.06143, 19.939094],  [50.061413, 19.939507],  [50.061428, 19.939576],  [50.061477, 19.939702],  [50.061419, 19.939918],  [50.061315, 19.940225],  [50.061638, 19.940464],  [50.061702, 19.940441],  [50.06246, 19.941005],  [50.063479, 19.941756],  [50.063925, 19.942128],  [50.063988, 19.942311],  [50.064074, 19.942251],  [50.064569, 19.942608],  [50.064614, 19.942486],  [50.064824, 19.942644],  [50.064858, 19.942521],  [50.064942, 19.94213],  [50.065128, 19.941464],  [50.064824, 19.941345],  [50.064962, 19.940577],  [50.064893, 19.940442],  [50.064832, 19.940414],  [50.064864, 19.940617],  [50.064838, 19.94101],  [50.064793, 19.94119],  [50.064742, 19.941254],  [50.064521, 19.941119],  [50.064081, 19.940795],  [50.063636, 19.940443],  [50.063011, 19.939966],  [50.062877, 19.939862],  [50.063093, 19.939133],  [50.063059, 19.938994],  [50.063086, 19.938789],  [50.063141, 19.938603],  [50.062378, 19.938052],  [50.062323, 19.938016],  [50.062483, 19.937501],  [50.062626, 19.937019],  [50.062635, 19.936925],  [50.061998, 19.936311],  [50.061782, 19.936124],  [50.061656, 19.93607],  [50.061539, 19.936071],  [50.061424, 19.935898],  [50.061357, 19.935472],  [50.061745, 19.934329],  [50.061742, 19.934261],  [50.06158, 19.934114],  [50.061504, 19.934029],  [50.061253, 19.933862],  [50.061033, 19.933746],  [50.060747, 19.934563],  [50.060643, 19.934818],  [50.060449, 19.934649],  [50.06023, 19.934469],  [50.060061, 19.934362],  [50.059689, 19.93444],  [50.059168, 19.934606],  [50.059166, 19.934786],  [50.059198, 19.934936],  [50.059168, 19.935096],  [50.059163, 19.935249],  [50.059171, 19.935464],  [50.059352, 19.935431],  [50.059399, 19.93608],  [50.059391, 19.936292],  [50.059359, 19.936426],  [50.059276, 19.936648],  [50.059202, 19.936671],  [50.059099, 19.936835],  [50.059035, 19.937009],  [50.058814, 19.937143],  [50.058889, 19.937608],  [50.058927, 19.93765],  [50.058897, 19.937745],  [50.058895, 19.937871],  [50.058425, 19.937969],  [50.058111, 19.938017],  [50.057759, 19.938064],  [50.057487, 19.938142],  [50.056975, 19.938185],  [50.056851, 19.938078],  [50.056792, 19.93803],  [50.056759, 19.937803],  [50.056767, 19.937543],  [50.056527, 19.937487],  [50.056441, 19.937475],  [50.056339, 19.937451],  [50.056156, 19.937369],  [50.056015, 19.937252],  [50.055784, 19.937058],  [50.055491, 19.936768],  [50.055482, 19.936718],  [50.055388, 19.936675],  [50.055376, 19.936512],  [50.055346, 19.936479],  [50.055067, 19.935212],  [50.05505, 19.935147],  [50.055027, 19.934994],  [50.054993, 19.934914],  [50.054917, 19.934852],  [50.054849, 19.934828],  [50.054733, 19.934837],  [50.054648, 19.93485],  [50.054558, 19.934814],  [50.054478, 19.934902],  [50.054397, 19.935029],  [50.054167, 19.935176],  [50.054288, 19.935393],  [50.054429, 19.935531],  [50.054529, 19.935858],  [50.054572, 19.936118],  [50.054573, 19.936359],  [50.054524, 19.936484],  [50.054517, 19.936648]];
+
+// ---------- Trasa 2: Kazimierz (z pliku Google Earth "Trasa 2 Kazimierz", 2026-11-23). Nagrań jeszcze nie ma — audio: null ----------
+const POINTS_KAZIMIERZ = [
+ {
+  "id": "kaz-plac-nowy",
+  "name": "Plac Nowy",
+  "type": "main",
+  "lat": 50.0516572,
+  "lng": 19.9452144,
+  "tracks": [
+   {
+    "number": "1.0",
+    "label": "Plac Nowy",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-murale-historycznych-postaci",
+  "name": "Murale historycznych postaci",
+  "type": "main",
+  "lat": 50.051079,
+  "lng": 19.9464858,
+  "tracks": [
+   {
+    "number": "2.0",
+    "label": "Murale historycznych postaci",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-synagoga-izaaka",
+  "name": "Synagoga Izaaka",
+  "type": "main",
+  "lat": 50.0515118,
+  "lng": 19.9461752,
+  "tracks": [
+   {
+    "number": "3.0",
+    "label": "Synagoga Izaaka",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-ulica-szeroka",
+  "name": "Ulica Szeroka",
+  "type": "main",
+  "lat": 50.0518378,
+  "lng": 19.9484149,
+  "tracks": [
+   {
+    "number": "4.0",
+    "label": "Ulica Szeroka",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-zabytki-kazimierskie",
+  "name": "Zabytki Kazimierskie",
+  "type": "main",
+  "lat": 50.0528633,
+  "lng": 19.9477797,
+  "tracks": [
+   {
+    "number": "5.0",
+    "label": "Zabytki Kazimierskie",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-skwer-ozjasza-thona",
+  "name": "Skwer Ozjasza Thona",
+  "type": "main",
+  "lat": 50.0528008,
+  "lng": 19.9441586,
+  "tracks": [
+   {
+    "number": "6.0",
+    "label": "Skwer Ozjasza Thona",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-pasaz-schindlera",
+  "name": "Pasaż Schindlera",
+  "type": "main",
+  "lat": 50.0508536,
+  "lng": 19.9441014,
+  "tracks": [
+   {
+    "number": "7.0",
+    "label": "Pasaż Schindlera",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-bazylika-bozego-ciala",
+  "name": "Bazylika Bożego Ciała",
+  "type": "main",
+  "lat": 50.0499563,
+  "lng": 19.9444271,
+  "tracks": [
+   {
+    "number": "8.0",
+    "label": "Bazylika Bożego Ciała",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-plac-wolnica",
+  "name": "Plac Wolnica",
+  "type": "main",
+  "lat": 50.0488134,
+  "lng": 19.9440237,
+  "tracks": [
+   {
+    "number": "9.0",
+    "label": "Plac Wolnica",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-kosciol-sw-katarzyny",
+  "name": "Kościół św. Katarzyny",
+  "type": "main",
+  "lat": 50.0492491,
+  "lng": 19.9417428,
+  "tracks": [
+   {
+    "number": "10.0",
+    "label": "Kościół św. Katarzyny",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-skalka",
+  "name": "Skałka",
+  "type": "main",
+  "lat": 50.0484196,
+  "lng": 19.9382349,
+  "tracks": [
+   {
+    "number": "11.0",
+    "label": "Skałka",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-synagoga-wysoka",
+  "name": "Synagoga Wysoka",
+  "type": "extra",
+  "lat": 50.0513005,
+  "lng": 19.9473737,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Synagoga Wysoka",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-plac-bawol",
+  "name": "Plac Bawół",
+  "type": "extra",
+  "lat": 50.05029,
+  "lng": 19.9487731,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Plac Bawół",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-nowy-cmentarz-zydowski",
+  "name": "Nowy Cmentarz Żydowski",
+  "type": "extra",
+  "lat": 50.0541608,
+  "lng": 19.9501005,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Nowy Cmentarz Żydowski",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-mural",
+  "name": "Mural",
+  "type": "extra",
+  "lat": 50.0514482,
+  "lng": 19.9451688,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Mural",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-ulica-jozefa",
+  "name": "Ulica Józefa",
+  "type": "extra",
+  "lat": 50.0509215,
+  "lng": 19.945845,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Ulica Józefa",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-ulica-ciemna-i-mezuza",
+  "name": "Ulica Ciemna i mezuza",
+  "type": "extra",
+  "lat": 50.0517825,
+  "lng": 19.947275,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Ulica Ciemna i mezuza",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-dom-heleny-rubinstein",
+  "name": "Dom Heleny Rubinstein",
+  "type": "extra",
+  "lat": 50.0523722,
+  "lng": 19.9481849,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Dom Heleny Rubinstein",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-sklepy",
+  "name": "Sklepy",
+  "type": "extra",
+  "lat": 50.0531083,
+  "lng": 19.9473615,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Sklepy",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-synagoga-kupa",
+  "name": "Synagoga Kupa",
+  "type": "extra",
+  "lat": 50.0529478,
+  "lng": 19.9454887,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Synagoga Kupa",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-estera",
+  "name": "Estera",
+  "type": "extra",
+  "lat": 50.0522386,
+  "lng": 19.9451111,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Estera",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-dawne-szyldy",
+  "name": "Dawne szyldy",
+  "type": "extra",
+  "lat": 50.0517934,
+  "lng": 19.9444447,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Dawne szyldy",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-i-m-happy-again",
+  "name": "I'm Happy Again",
+  "type": "extra",
+  "lat": 50.05115,
+  "lng": 19.9437654,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "I'm Happy Again",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-okienko-na-cmentarz",
+  "name": "Okienko na cmentarz",
+  "type": "extra",
+  "lat": 50.0523933,
+  "lng": 19.9466184,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Okienko na cmentarz",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-o-zydzie-lewko",
+  "name": "O Żydzie Lewko",
+  "type": "extra",
+  "lat": 50.05245,
+  "lng": 19.947976,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "O Żydzie Lewko",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-gimnazjum-zydowskie",
+  "name": "Gimnazjum żydowskie",
+  "type": "extra",
+  "lat": 50.0537635,
+  "lng": 19.9449341,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Gimnazjum żydowskie",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-wampir-z-krakowa",
+  "name": "Wampir z Krakowa",
+  "type": "extra",
+  "lat": 50.0503957,
+  "lng": 19.941357,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Wampir z Krakowa",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-most-pilsudzkiego",
+  "name": "Most Piłsudzkiego",
+  "type": "extra",
+  "lat": 50.0454417,
+  "lng": 19.9450169,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Most Piłsudzkiego",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-pozostalosci-murow",
+  "name": "Pozostałości murów",
+  "type": "extra",
+  "lat": 50.0464201,
+  "lng": 19.9448452,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Pozostałości murów",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-mur-obronny-kazimierza",
+  "name": "Mur obronny Kazimierza",
+  "type": "extra",
+  "lat": 50.0496626,
+  "lng": 19.9396183,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Mur obronny Kazimierza",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-stara-zajezdnia",
+  "name": "Stara Zajezdnia",
+  "type": "extra",
+  "lat": 50.0499208,
+  "lng": 19.9473904,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Stara Zajezdnia",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-kladka-ojca-bernatka",
+  "name": "Kładka Ojca Bernatka",
+  "type": "extra",
+  "lat": 50.0465171,
+  "lng": 19.9475439,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Kładka Ojca Bernatka",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-zydowskie-muzeum-galicja",
+  "name": "Żydowskie muzeum Galicja",
+  "type": "extra",
+  "lat": 50.0508092,
+  "lng": 19.9495993,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Żydowskie muzeum Galicja",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-ulica-starowislna",
+  "name": "Ulica Starowiślna",
+  "type": "extra",
+  "lat": 50.0549432,
+  "lng": 19.9470449,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Ulica Starowiślna",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-krk-walls",
+  "name": "Krk Walls",
+  "type": "extra",
+  "lat": 50.0553724,
+  "lng": 19.9483695,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Krk Walls",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-sara-schenirer",
+  "name": "Sara Schenirer",
+  "type": "extra",
+  "lat": 50.0500391,
+  "lng": 19.9423886,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Sara Schenirer",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-swinia-na-rzece",
+  "name": "Świnia na rzece",
+  "type": "extra",
+  "lat": 50.0486581,
+  "lng": 19.9510859,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Świnia na rzece",
+    "audio": null
+   }
+  ]
+ },
+ {
+  "id": "kaz-wiezienie-gestapo",
+  "name": "Więzienie Gestapo",
+  "type": "extra",
+  "lat": 50.0505651,
+  "lng": 19.9475968,
+  "tracks": [
+   {
+    "number": "•",
+    "label": "Więzienie Gestapo",
+    "audio": null
+   }
+  ]
+ }
+];
+const ROUTE_LINE_KAZIMIERZ = [[50.051657, 19.945214], [50.051585, 19.94528], [50.051537, 19.945404], [50.051538, 19.945496], [50.051315, 19.945626], [50.050921, 19.945845], [50.051079, 19.946486], [50.051392, 19.946318], [50.051449, 19.946251], [50.051472, 19.946187], [50.051512, 19.946175], [50.051513, 19.94623], [50.051507, 19.946337], [50.051598, 19.946966], [50.051716, 19.946921], [50.05178, 19.947272], [50.051847, 19.947623], [50.051773, 19.947663], [50.051751, 19.947729], [50.051807, 19.948169], [50.051828, 19.948247], [50.051815, 19.948322], [50.051798, 19.948379], [50.051838, 19.948414], [50.051893, 19.948357], [50.052103, 19.948238], [50.052273, 19.94817], [50.052368, 19.948137], [50.05261, 19.948031], [50.052863, 19.94778], [50.053013, 19.947545], [50.053108, 19.947361], [50.053306, 19.946943], [50.05314, 19.946226], [50.052948, 19.945489], [50.052813, 19.944776], [50.052702, 19.944289], [50.052801, 19.944159], [50.052712, 19.944099], [50.052664, 19.944243], [50.052778, 19.944744], [50.052638, 19.944847], [50.052189, 19.945112], [50.052124, 19.945059], [50.051929, 19.94471], [50.05179, 19.944493], [50.051702, 19.944466], [50.051518, 19.944576], [50.05139, 19.944182], [50.051308, 19.943895], [50.051268, 19.943938], [50.051202, 19.943983], [50.051111, 19.94401], [50.05096, 19.944057], [50.050854, 19.944101], [50.050777, 19.944121], [50.050588, 19.944212], [50.050562, 19.944072], [50.050537, 19.94404], [50.050149, 19.944184], [50.049947, 19.944276], [50.049943, 19.944315], [50.049956, 19.944427], [50.049929, 19.944358], [50.049918, 19.9443], [50.049515, 19.944472], [50.049381, 19.944532], [50.049297, 19.94444], [50.04916, 19.94442], [50.04909, 19.94439], [50.048813, 19.944024], [50.048895, 19.94376], [50.048988, 19.943547], [50.049011, 19.943331], [50.049105, 19.943273], [50.049076, 19.943077], [50.049011, 19.943105], [50.048957, 19.943095], [50.048711, 19.942163], [50.049189, 19.941924], [50.049163, 19.941807], [50.049248, 19.941743], [50.049159, 19.941208], [50.049124, 19.941022], [50.049062, 19.940787], [50.04903, 19.940753], [50.048996, 19.940628], [50.048669, 19.939238], [50.048494, 19.938557], [50.048473, 19.938454], [50.048474, 19.938404], [50.048438, 19.938312], [50.04842, 19.938235]];
+const POINTS = CURRENT_ROUTE === 'kazimierz' ? POINTS_KAZIMIERZ : POINTS_STARE_MIASTO;
+const ROUTE_LINE = CURRENT_ROUTE === 'kazimierz' ? ROUTE_LINE_KAZIMIERZ : ROUTE_LINE_STARE_MIASTO;
+
 
 /* ============================================================
    MAPA
@@ -3194,7 +3748,7 @@ const ROUTE_LINE = [[50.061854, 19.938275],  [50.061664, 19.937771],  [50.061601
 // dokładnie ten sam obszar co przy wyborze "Zwiedzaj bez trasy", widoczny od razu w tle,
 // jeszcze zanim user wybierze język czy dzielnicę
 const initialCityBounds = L.latLngBounds(
-  POINTS.map(p => [p.lat, p.lng]).concat([[50.0492, 19.9463], [50.0397, 19.9499]])
+  POINTS.map(p => [p.lat, p.lng]).concat([[50.0512, 19.9455], [50.0397, 19.9499]])
 );
 // wspólny "rysownik" linii (trasa złota, linia prowadząca niebieska) — patrz redrawLinesWhileZooming niżej
 const lineRenderer = L.svg({ padding: 0.15 }); // mały zapas: przy obróconej mapie warstwa linii i tak jest większa, a na iPhonie duża warstwa = brak pamięci
@@ -3678,9 +4232,9 @@ function applyMarkerState(id) {
   dot.classList.toggle('marker-current', id === playingPointId);
   dot.classList.toggle('marker-playing', id === playingPointId && playingActive);
 }
-const PROGRESS_KEY = 'krakroam_done_stare-miasto';
+const PROGRESS_KEY = 'krakroam_done_' + CURRENT_ROUTE;
 // nagranie jest "wysłuchane" po 90%, a punkt jest zaliczony (ptaszek na mapie), gdy wysłuchana jest połowa jego nagrań
-const TRACKS_KEY = 'krakroam_tracks_stare-miasto';
+const TRACKS_KEY = 'krakroam_tracks_' + CURRENT_ROUTE;
 let doneTracks = []; // wpisy "idPunktu|numerNagrania"
 try { doneTracks = JSON.parse(localStorage.getItem(TRACKS_KEY) || '[]'); } catch (_) {}
 const trackKey = (p, i) => p.id + '|' + i;
@@ -4874,6 +5428,7 @@ const ROUTE_INTRO_CONTENT = {
         'Idziesz swoim tempem, a w słuchawkach opowiadamy Ci historie, których nie przeczytasz na tablicach. Tak, jakby miasto samo zaczęło mówić.'
       ],
       hours: 'Ulice, place i zabytki z zewnątrz zobaczysz <b>o każdej porze dnia i nocy</b>. Wyjątkiem jest <b>Wzgórze Wawelskie</b>: wejdziesz na nie bezpłatnie codziennie <b>od 6:00 do zmroku</b>.',
+      time: '1,5–2 h', firstPhoto: 'Wzgórze Wawelskie',
       highlights: ['Rynek Główny', 'Kościół Mariacki', 'Sukiennice', 'Barbakan', 'Brama Floriańska', 'Wieża Ratuszowa', 'Collegium Maius', 'Ulica Grodzka', 'Zamek Królewski na Wawelu']
     },
     en: {
@@ -4885,13 +5440,45 @@ const ROUTE_INTRO_CONTENT = {
         'Walk at your own pace while we tell you the stories you will never read on a plaque, as if the city itself had started to speak.'
       ],
       hours: 'Streets, squares and the sights from outside are open <b>at any time, day or night</b>. The exception is <b>Wawel Hill</b>: you can walk in for free every day <b>from 6:00 until dusk</b>.',
+      time: '1.5–2 h', firstPhoto: 'Wawel Hill',
       highlights: ['Main Market Square', "St. Mary's Basilica", 'Cloth Hall', 'The Barbican', "St. Florian's Gate", 'Town Hall Tower', 'Collegium Maius', 'Grodzka Street', 'Wawel Royal Castle']
     },
+  },
+  'kazimierz': {
+    pl: {
+      desc: [
+        'Kazimierz przez ponad 450 lat był osobnym miastem. Założył go w 1335 roku król Kazimierz Wielki i dał mu swoje imię. Do Krakowa przyłączono go dopiero w 1800 roku.',
+        'Przez stulecia żyli tu obok siebie chrześcijanie i Żydzi. Żydowska część Kazimierza była jednym z najważniejszych miejsc życia żydowskiego w Europie: synagogi, szkoły, sklepy i warsztaty stały tu ściana w ścianę.',
+        'Druga wojna światowa przerwała ten świat. Dziś Kazimierz znów tętni życiem: stare kamienice, synagogi i kościoły sąsiadują z kawiarniami, muralami i zapiekankami z placu Nowego.',
+        'Idź spokojnie, zaglądaj w bramy i podwórka, a my opowiemy Ci historie, których nie przeczytasz na tablicach.'
+      ],
+      hours: 'Ulice i place Kazimierza zobaczysz <b>o każdej porze dnia i nocy</b>. Synagogi, kościoły i muzea mają <b>własne godziny otwarcia</b>, więc jeśli chcesz wejść do środka, sprawdź je wcześniej.',
+      time: '1–1,5 h', firstPhoto: 'Kazimierz',
+      highlights: ['Plac Nowy', 'Synagoga Izaaka', 'Ulica Szeroka', 'Pasaż Schindlera', 'Bazylika Bożego Ciała', 'Plac Wolnica', 'Kościół św. Katarzyny', 'Skałka', 'Murale Kazimierza']
+    },
+    en: {
+      desc: [
+        'For more than 450 years Kazimierz was a separate town. King Casimir the Great founded it in 1335 and gave it his name. It only became part of Kraków in 1800.',
+        'For centuries Christians and Jews lived here side by side. The Jewish part of Kazimierz was one of the most important centres of Jewish life in Europe: synagogues, schools, shops and workshops stood wall to wall.',
+        'The Second World War ended that world. Today Kazimierz is full of life again: old tenements, synagogues and churches sit next to cafés, murals and the famous zapiekanki of Plac Nowy.',
+        'Take your time, peek into gateways and courtyards, and we will tell you the stories you will never read on a plaque.'
+      ],
+      hours: 'You can see the streets and squares of Kazimierz <b>at any time, day or night</b>. Synagogues, churches and museums have <b>their own opening hours</b>, so check them first if you want to go inside.',
+      time: '1–1.5 h', firstPhoto: 'Kazimierz',
+      highlights: ['Plac Nowy', 'Isaac Synagogue', 'Szeroka Street', 'Schindler Passage', 'Corpus Christi Basilica', 'Wolnica Square', "St. Catherine's Church", 'Skałka', 'Kazimierz murals']
+    }
   }
 };
 const routeIntroEl = document.getElementById('route-intro-screen');
 
 function openRouteIntro(districtKey) {
+  if (ROUTE_KEYS.includes(districtKey) && districtKey !== CURRENT_ROUTE) {
+    // inna trasa niż wczytana — zapisujemy wybór i przeładowujemy stronę prosto na ekran tej trasy
+    try { localStorage.setItem('krakroam_route', districtKey); sessionStorage.setItem('krakroam_open_intro', districtKey); } catch (_) {}
+    try { audioEl.pause(); } catch (_) {}
+    location.reload();
+    return;
+  }
   const byLang = ROUTE_INTRO_CONTENT[districtKey];
   if (!byLang) { selectDistrict(false); return; } // zabezpieczenie — brak opisu nie powinien blokować wejścia na trasę
   const data = byLang[currentLang] || byLang.pl;
@@ -4904,6 +5491,7 @@ function openRouteIntro(districtKey) {
   routeIntroEl.classList.remove('soon');
   document.getElementById('route-intro-start-btn').textContent = t('routeIntroStart');
   document.getElementById('ri-km').textContent = routeKm();
+  document.getElementById('ri-time').textContent = data.time;
   document.getElementById('ri-hours-text').innerHTML = data.hours;
   const descEl = document.getElementById('route-intro-desc');
   descEl.innerHTML = '';
@@ -4945,7 +5533,7 @@ function loadRouteIntroPhotos(key) {
     if (PHOTO_FILES[photoKey(src)] && !pool.some(x => x.src === src)) pool.push({ src, label: pointName(p) });
   })));
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  const list = [{ src: 'foto/trasa-' + key + '-1.jpg?v=' + PHOTO_VER, label: t('riFirstPhoto') }].concat(pool.slice(0, 15));
+  const list = [{ src: 'foto/trasa-' + key + '-1.jpg?v=' + PHOTO_VER, label: ((ROUTE_INTRO_CONTENT[key] || {})[currentLang] || (ROUTE_INTRO_CONTENT[key] || {}).pl || {}).firstPhoto || t('riFirstPhoto') }].concat(pool.slice(0, 15));
   list.forEach((it, i) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -4969,15 +5557,21 @@ document.querySelectorAll('.district-row[data-district] .dr-cover').forEach(c =>
   probe.onload = () => { c.style.backgroundImage = 'url("' + src + '")'; };
   probe.src = src;
 });
-function routeKm() {
+function routeKm(line) {
+  line = line || ROUTE_LINE;
   let m = 0;
-  for (let i = 1; i < ROUTE_LINE.length; i++) m += L.latLng(ROUTE_LINE[i - 1]).distanceTo(ROUTE_LINE[i]);
+  for (let i = 1; i < line.length; i++) m += L.latLng(line[i - 1]).distanceTo(line[i]);
   return (m / 1000).toFixed(1).replace('.', currentLang === 'pl' ? ',' : '.') + ' km';
 }
 function fillRouteCardStats() {
-  const n = POINTS.filter(p => p.type === 'main' && !p.offRoute).length;
-  document.getElementById('dr-st-stops').textContent = n + ' ' + t('drStops');
-  document.getElementById('dr-st-km').textContent = routeKm();
+  [['stare-miasto', POINTS_STARE_MIASTO, ROUTE_LINE_STARE_MIASTO], ['kazimierz', POINTS_KAZIMIERZ, ROUTE_LINE_KAZIMIERZ]].forEach(([key, pts, line]) => {
+    const card = document.querySelector('.dr-hero[data-district="' + key + '"]');
+    if (!card) return;
+    const n = pts.filter(p => p.type === 'main' && !p.offRoute).length;
+    card.querySelector('.dr-st-stops').textContent = n + ' ' + t('drStops');
+    card.querySelector('.dr-st-time').textContent = (ROUTE_INTRO_CONTENT[key][currentLang] || ROUTE_INTRO_CONTENT[key].pl).time;
+    card.querySelector('.dr-st-km').textContent = routeKm(line);
+  });
 }
 fillRouteCardStats();
 // trasa w przygotowaniu (Kazimierz, Podgórze): da się kliknąć — pokazuje ekran trasy ze zdjęciem i informacją "wkrótce"
@@ -5018,6 +5612,7 @@ document.getElementById('route-intro-start-btn').addEventListener('click', () =>
 });
 
 document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', () => openRouteIntro('stare-miasto'));
+document.querySelector('.district-row[data-district="kazimierz"]').addEventListener('click', () => openRouteIntro('kazimierz'));
 document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => selectDistrict(true));
 
 document.getElementById('brand').addEventListener('click', () => {
@@ -5158,11 +5753,11 @@ document.querySelectorAll('.lang-row').forEach(row => {
 });
 
 // Środki (w przybliżeniu) poszczególnych dzielnic — do polecenia najbliższej trasy
-const staremiastoCenterLat = POINTS.reduce((s, p) => s + p.lat, 0) / POINTS.length;
-const staremiastoCenterLng = POINTS.reduce((s, p) => s + p.lng, 0) / POINTS.length;
+const staremiastoCenterLat = POINTS_STARE_MIASTO.reduce((s, p) => s + p.lat, 0) / POINTS_STARE_MIASTO.length;
+const staremiastoCenterLng = POINTS_STARE_MIASTO.reduce((s, p) => s + p.lng, 0) / POINTS_STARE_MIASTO.length;
 const DISTRICT_CENTERS = {
   'stare-miasto': { latlng: [staremiastoCenterLat, staremiastoCenterLng], labelKey: 'stareMiastoTitle', available: true },
-  'kazimierz': { latlng: [50.0492, 19.9463], labelKey: 'kazimierzTitle', available: false },
+  'kazimierz': { latlng: [50.0512, 19.9455], labelKey: 'kazimierzTitle', available: true },
   'podgorze': { latlng: [50.0397, 19.9499], labelKey: 'podgorzeTitle', available: false }
 };
 
@@ -6639,6 +7234,10 @@ if (savedLang && savedUnlocked) {
   document.getElementById('home-menu').classList.remove('hidden');
   routesSlideshow.start();
   document.getElementById('district-menu').classList.remove('entering');
+  // po zmianie trasy (przeładowanie strony) od razu pokazujemy ekran wybranej trasy
+  let reopenIntro = null;
+  try { reopenIntro = sessionStorage.getItem('krakroam_open_intro'); sessionStorage.removeItem('krakroam_open_intro'); } catch (_) {}
+  if (reopenIntro === CURRENT_ROUTE) { openDistrictMenuFull(); openRouteIntro(CURRENT_ROUTE); }
   maybeShowA2HS();
   beginLocationFlow(); // apka pokazana od razu na starcie — to jest ten moment "wejścia", nie wcześniej
 } else if (savedLang && !savedUnlocked) {
