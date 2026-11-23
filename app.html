@@ -1119,9 +1119,19 @@
   #map.zoom-far .pin-extra::after { opacity: 0; }
   #map.zoom-far .pin-extra .marker-extra { width: 24px; height: 24px; top: 31px; left: 6px; border-width: 2px; }
   #map.zoom-far .pin-extra .marker-extra.marker-done::after { top: -5px; right: -5px; width: 13px; height: 13px; }
-  /* długi lot kamery: pinezki i linie chowają się na czas lotu (płynniej na telefonie) */
-  #map .leaflet-marker-pane, #map .leaflet-overlay-pane { transition: opacity 0.25s ease; }
-  #map.long-fly .leaflet-marker-pane, #map.long-fly .leaflet-overlay-pane { opacity: 0; transition: opacity 0.15s ease; }
+  /* długi lot kamery: pinezki zostają, ale bez cieni i animacji (cienie są najdroższe do przerysowania w każdej klatce) */
+  #map.long-fly .leaflet-marker-pane * { box-shadow: none !important; filter: none !important; transition: none !important; }
+  /* przycisk "Prowadź do startu" (trasa wybrana, a Ty jesteś daleko od niej) */
+  #route-start-btn {
+    position: absolute; z-index: 60; left: 50%; transform: translateX(-50%);
+    top: calc(env(safe-area-inset-top, 0px) + 16px);
+    display: flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 999px;
+    background: var(--route); color: #fff; font: 800 15px 'Inter', sans-serif; white-space: nowrap;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35); cursor: pointer;
+  }
+  #route-start-btn.hidden { display: none; }
+  #route-start-btn svg { width: 18px; height: 18px; stroke: #fff; fill: #fff; }
+  #route-start-btn:active { transform: translateX(-50%) scale(0.97); }
   /* ---------- Płynne pojawianie się / znikanie punktów przy zoomie (zamiast nagłego "pyk") ---------- */
   @keyframes pinIn { from { opacity: 0; transform: scale(0.35); } 60% { opacity: 1; } to { opacity: 1; transform: none; } }
   @keyframes pinOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.35); } }
@@ -1722,6 +1732,7 @@
     </div>
   </div>
 
+  <button id="route-start-btn" class="hidden" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3,11 21,3 13,21 11,13"></polygon></svg><span>Prowadź do startu</span></button>
   <div id="map-stage">
     <div id="map-tilt">
       <div id="map-spin">
@@ -2210,7 +2221,7 @@ const TRANSLATIONS = {
     riMore: "Czytaj dalej", riLess: "Zwiń", riFirstPhoto: "Wzgórze Wawelskie",
     routeIntroSeeLabel: "Najważniejsze miejsca na trasie:",
     routeIntroStart: "Zaczynamy!",
-    drFeatured: "Polecana", drNew: "Nowa trasa", drStops: "przystanków", soonBack: "Wróć do tras",
+    drFeatured: "Polecana", routeStartNav: "Prowadź do startu", drNew: "Nowa trasa", drStops: "przystanków", soonBack: "Wróć do tras",
     soonText: "Nad tą trasą właśnie pracujemy.\nWkrótce znajdziesz tu opis, zdjęcia, mapę i nagrania. Zajrzyj niedługo!",
     gpsUnsupported: "Twoja przeglądarka nie obsługuje lokalizacji GPS.",
     playLabel: "Odtwórz", playPauseLabel: "Odtwórz/Pauza", stopLabel: "Stop",
@@ -2335,7 +2346,7 @@ const TRANSLATIONS = {
     riMore: "Read more", riLess: "Show less", riFirstPhoto: "Wawel Hill",
     routeIntroSeeLabel: "Top sights on the route:",
     routeIntroStart: "Let's go!",
-    drFeatured: "Recommended", drNew: "New route", drStops: "stops", soonBack: "Back to routes",
+    drFeatured: "Recommended", routeStartNav: "Take me to the start", drNew: "New route", drStops: "stops", soonBack: "Back to routes",
     soonText: "We are working on this route right now.\nSoon you will find a description, photos, a map and recordings here. Check back soon!",
     gpsUnsupported: "Your browser doesn't support GPS location.",
     playLabel: "Play", playPauseLabel: "Play/Pause", stopLabel: "Stop",
@@ -2615,7 +2626,7 @@ const INTRO_POINT = {
 
 // Która trasa jest wczytana (Stare Miasto / Kazimierz). Zmiana trasy = zapis wyboru i przeładowanie strony,
 // dzięki temu cała reszta apki dalej pracuje na jednej liście POINTS i jednej linii ROUTE_LINE.
-const ROUTE_KEYS = ['stare-miasto', 'kazimierz'];
+const ROUTE_KEYS = ['stare-miasto', 'kazimierz', 'free-roam']; // free-roam = punkty wszystkich tras naraz, bez linii
 let CURRENT_ROUTE = 'stare-miasto';
 try { const r = localStorage.getItem('krakroam_route'); if (ROUTE_KEYS.includes(r)) CURRENT_ROUTE = r; } catch (_) {}
 
@@ -3762,8 +3773,8 @@ const POINTS_KAZIMIERZ = [
  }
 ];
 const ROUTE_LINE_KAZIMIERZ = [[50.051657, 19.945214], [50.051585, 19.94528], [50.051537, 19.945404], [50.051538, 19.945496], [50.051315, 19.945626], [50.050921, 19.945845], [50.051079, 19.946486], [50.051392, 19.946318], [50.051449, 19.946251], [50.051472, 19.946187], [50.051512, 19.946175], [50.051513, 19.94623], [50.051507, 19.946337], [50.051598, 19.946966], [50.051716, 19.946921], [50.05178, 19.947272], [50.051847, 19.947623], [50.051773, 19.947663], [50.051751, 19.947729], [50.051807, 19.948169], [50.051828, 19.948247], [50.051815, 19.948322], [50.051798, 19.948379], [50.051838, 19.948414], [50.051893, 19.948357], [50.052103, 19.948238], [50.052273, 19.94817], [50.052368, 19.948137], [50.05261, 19.948031], [50.052863, 19.94778], [50.053013, 19.947545], [50.053108, 19.947361], [50.053306, 19.946943], [50.05314, 19.946226], [50.052948, 19.945489], [50.052813, 19.944776], [50.052702, 19.944289], [50.052801, 19.944159], [50.052712, 19.944099], [50.052664, 19.944243], [50.052778, 19.944744], [50.052638, 19.944847], [50.052189, 19.945112], [50.052124, 19.945059], [50.051929, 19.94471], [50.05179, 19.944493], [50.051702, 19.944466], [50.051518, 19.944576], [50.05139, 19.944182], [50.051308, 19.943895], [50.051268, 19.943938], [50.051202, 19.943983], [50.051111, 19.94401], [50.05096, 19.944057], [50.050854, 19.944101], [50.050777, 19.944121], [50.050588, 19.944212], [50.050562, 19.944072], [50.050537, 19.94404], [50.050149, 19.944184], [50.049947, 19.944276], [50.049943, 19.944315], [50.049956, 19.944427], [50.049929, 19.944358], [50.049918, 19.9443], [50.049515, 19.944472], [50.049381, 19.944532], [50.049297, 19.94444], [50.04916, 19.94442], [50.04909, 19.94439], [50.048813, 19.944024], [50.048895, 19.94376], [50.048988, 19.943547], [50.049011, 19.943331], [50.049105, 19.943273], [50.049076, 19.943077], [50.049011, 19.943105], [50.048957, 19.943095], [50.048711, 19.942163], [50.049189, 19.941924], [50.049163, 19.941807], [50.049248, 19.941743], [50.049159, 19.941208], [50.049124, 19.941022], [50.049062, 19.940787], [50.04903, 19.940753], [50.048996, 19.940628], [50.048669, 19.939238], [50.048494, 19.938557], [50.048473, 19.938454], [50.048474, 19.938404], [50.048438, 19.938312], [50.04842, 19.938235]];
-const POINTS = CURRENT_ROUTE === 'kazimierz' ? POINTS_KAZIMIERZ : POINTS_STARE_MIASTO;
-const ROUTE_LINE = CURRENT_ROUTE === 'kazimierz' ? ROUTE_LINE_KAZIMIERZ : ROUTE_LINE_STARE_MIASTO;
+const POINTS = CURRENT_ROUTE === 'kazimierz' ? POINTS_KAZIMIERZ : CURRENT_ROUTE === 'free-roam' ? POINTS_STARE_MIASTO.concat(POINTS_KAZIMIERZ) : POINTS_STARE_MIASTO;
+const ROUTE_LINE = CURRENT_ROUTE === 'kazimierz' ? ROUTE_LINE_KAZIMIERZ : CURRENT_ROUTE === 'free-roam' ? [] : ROUTE_LINE_STARE_MIASTO;
 
 
 /* ============================================================
@@ -3838,14 +3849,12 @@ const map = L.map('map', {
 // w każdej klatce takiego ruchu, więc zawsze ma swoją normalną grubość.
 map.on('zoom', () => {
   if (map._animatingZoom || !lineRenderer._map) return; // krótka animacja zoomu przyciskiem — Leaflet ogarnia sam
-  if (map._longFly) return; // długi lot: linie są wtedy schowane, nie ma czego rysować
   lineRenderer._reset();
 });
 
-// Długi lot kamery (np. z jednego końca miasta na drugi): na telefonie przycinał, bo w każdej klatce
-// przesuwały się wszystkie pinezki ze zdjęciami i od nowa rysowały linie tras, a do tego dochodziły kafelki mapy.
-// Teraz na czas takiego lotu pinezki i linie płynnie znikają, a po wylądowaniu wracają — telefon ma do
-// przesunięcia tylko samą mapę. Krótkie loty (blisko, na ekranie) działają jak dotąd.
+// Długi lot kamery (np. z jednego końca miasta na drugi): na telefonie przycinał. Na czas takiego lotu
+// pinezki zostają widoczne (Pektus: znikanie wyglądało słabo), ale tracą cienie — to one najbardziej
+// obciążały telefon przy przerysowaniu każdej klatki. Po wylądowaniu cienie wracają.
 (function () {
   const flyTo = map.flyTo;
   const el = map.getContainer();
@@ -4293,9 +4302,15 @@ function applyMarkerState(id) {
 }
 const PROGRESS_KEY = 'krakroam_done_' + CURRENT_ROUTE;
 // nagranie jest "wysłuchane" po 90%, a punkt jest zaliczony (ptaszek na mapie), gdy wysłuchana jest połowa jego nagrań
-const TRACKS_KEY = 'krakroam_tracks_' + CURRENT_ROUTE;
+// jeden wspólny spis wysłuchanych nagrań dla wszystkich tras (id punktów są różne), żeby zwiedzanie bez trasy
+// widziało to samo co trasy; stare osobne spisy tras są dołączane przy starcie
+const TRACKS_KEY = 'krakroam_tracks_all';
 let doneTracks = []; // wpisy "idPunktu|numerNagrania"
-try { doneTracks = JSON.parse(localStorage.getItem(TRACKS_KEY) || '[]'); } catch (_) {}
+try {
+  const all = new Set(JSON.parse(localStorage.getItem(TRACKS_KEY) || '[]'));
+  ['stare-miasto', 'kazimierz'].forEach(k => JSON.parse(localStorage.getItem('krakroam_tracks_' + k) || '[]').forEach(x => all.add(x)));
+  doneTracks = [...all];
+} catch (_) {}
 const trackKey = (p, i) => p.id + '|' + i;
 function pointIsDone(p) {
   const playable = p.tracks.map((tr, i) => tr.audio ? i : -1).filter(i => i >= 0);
@@ -5149,7 +5164,25 @@ function hideNavTargetMarker() {
 }
 
 const NAV_START_ZOOM = 18;
+const NEAR_ROUTE_M = 1000;
+function userNearRoute() {
+  if (!gpsMarker) return false;
+  const g = gpsMarker.getLatLng(), u = [g.lat, g.lng];
+  return POINTS.some(p => distMeters(u, [p.lat, p.lng]) <= NEAR_ROUTE_M) || ROUTE_LINE.some(q => distMeters(u, q) <= NEAR_ROUTE_M);
+}
+const routeStartBtn = document.getElementById('route-start-btn');
+function showRouteOverview() {
+  const b = L.latLngBounds(ROUTE_LINE.length ? ROUTE_LINE : POINTS.map(p => [p.lat, p.lng]));
+  POINTS.filter(p => p.type === 'main').forEach(p => b.extend([p.lat, p.lng]));
+  map.flyToBounds(b, { paddingTopLeft: [30, 110], paddingBottomRight: [30, 150], duration: 1.2, maxZoom: 17 });
+  routeStartBtn.querySelector('span').textContent = t('routeStartNav');
+  routeStartBtn.classList.remove('hidden');
+}
+function hideRouteStartBtn() { routeStartBtn.classList.add('hidden'); }
+routeStartBtn.addEventListener('click', () => { hideRouteStartBtn(); startNavigation(startPoint); });
+
 function startNavigation(targetPoint, opts) {
+  hideRouteStartBtn();
   const fromLatLng = opts && opts.from; // opcjonalny początek linii zamiast pozycji GPS (przycisk "Kolejny punkt")
   // targetPoint opcjonalny — domyślnie punkt startowy trasy (wywołanie automatyczne po wyborze trasy)
   if (targetPoint) {
@@ -5423,6 +5456,7 @@ function selectDistrict(freeRoam, options) {
   dmInner.style.transform = 'translateY(0)';
 
   // reset stanu nawigacji przy każdym (ponownym) wyborze
+  hideRouteStartBtn();
   routeChosen = !freeRoam;
   if (typeof updateRouteProgress === 'function') updateRouteProgress();
   reachedNavTarget = false;
@@ -5450,7 +5484,10 @@ function selectDistrict(freeRoam, options) {
     // żeby nikt nie musiał niczego szukać na mapie (to był realny problem testerów)
     INTRO_POINT.nameKey = 'introTitleRoute';
     openSheet(INTRO_POINT, { force: true });
-    startNavigation(startPoint); // pasek nawigacji na górze odpala się automatycznie razem z panelem audio
+    // Pektus (2026-11-23): blisko trasy (do ~1 km) — od razu nawigacja do startu, jak wcześniej.
+    // Daleko albo bez GPS — najpierw cała trasa z punktami i przycisk "Prowadź do startu".
+    if (userNearRoute()) startNavigation(startPoint);
+    else { try { setSheetPeek(true); } catch (_) {} showRouteOverview(); } // panel zwinięty, żeby było widać całą trasę
   } else {
     // tryb swobodny — też pokazujemy panel wprowadzający, ale z inną nazwą (bez konkretnego "startu")
     INTRO_POINT.nameKey = 'introTitleFreeRoam';
@@ -5677,7 +5714,16 @@ document.getElementById('route-intro-start-btn').addEventListener('click', () =>
 
 document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', () => openRouteIntro('stare-miasto'));
 document.querySelector('.district-row[data-district="kazimierz"]').addEventListener('click', () => openRouteIntro('kazimierz'));
-document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => selectDistrict(true));
+document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => {
+  if (CURRENT_ROUTE !== 'free-roam') {
+    // zwiedzanie bez trasy = punkty WSZYSTKICH tras (Pektus) — wczytujemy je od nowa
+    try { localStorage.setItem('krakroam_route', 'free-roam'); sessionStorage.setItem('krakroam_open_intro', 'free-roam'); } catch (_) {}
+    try { audioEl.pause(); } catch (_) {}
+    location.reload();
+    return;
+  }
+  selectDistrict(true);
+});
 
 document.getElementById('brand').addEventListener('click', () => {
   sfx.play('menuUp');
@@ -6803,7 +6849,7 @@ document.getElementById('settings-progress-row').addEventListener('click', () =>
 });
 function resetProgress() {
   const old = doneIds; doneIds = []; doneTracks = [];
-  try { localStorage.removeItem(TRACKS_KEY); localStorage.removeItem(PROGRESS_KEY); } catch (_) {}
+  try { localStorage.removeItem(TRACKS_KEY); localStorage.removeItem(PROGRESS_KEY); ['stare-miasto', 'kazimierz'].forEach(k => localStorage.removeItem('krakroam_tracks_' + k)); } catch (_) {}
   if (currentPoint && currentPoint.type !== 'intro') renderTrackList();
   updateRouteProgress();
   old.forEach(applyMarkerState);
@@ -7306,7 +7352,10 @@ if (savedLang && savedUnlocked) {
   // po zmianie trasy (przeładowanie strony) od razu pokazujemy ekran wybranej trasy
   let reopenIntro = null;
   try { reopenIntro = sessionStorage.getItem('krakroam_open_intro'); sessionStorage.removeItem('krakroam_open_intro'); } catch (_) {}
-  if (reopenIntro === CURRENT_ROUTE) { openDistrictMenuFull(); openRouteIntro(CURRENT_ROUTE); }
+  if (reopenIntro === CURRENT_ROUTE) {
+    if (CURRENT_ROUTE === 'free-roam') selectDistrict(true);
+    else { openDistrictMenuFull(); openRouteIntro(CURRENT_ROUTE); }
+  }
   maybeShowA2HS();
   beginLocationFlow(); // apka pokazana od razu na starcie — to jest ten moment "wejścia", nie wcześniej
 } else if (savedLang && !savedUnlocked) {
