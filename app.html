@@ -489,13 +489,13 @@
     font-size: 32px; font-weight: 800; letter-spacing: -0.025em; color: var(--ink);
     margin-bottom: 16px; text-align: center; line-height: 1.1;
   }
-  #ri-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 18px; }
+  #ri-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
   .ri-stat {
-    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px;
-    background: var(--paper-2); border-radius: 14px; padding: 11px 4px 10px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px;
+    background: var(--paper-2); border-radius: 16px; padding: 13px 8px 12px;
   }
-  .ri-stat b { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; white-space: nowrap; }
-  .ri-stat span { font-size: 10.5px; font-weight: 600; color: var(--ink-dim); line-height: 1.2; }
+  .ri-stat b { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; white-space: nowrap; }
+  .ri-stat span { font-size: 13px; font-weight: 600; color: var(--ink-dim); line-height: 1.25; }
   #route-intro-photos {
     display: flex; gap: 10px; overflow-x: auto; margin: 0 -24px 18px; padding: 0 24px 4px;
     scroll-snap-type: x mandatory; scroll-padding-left: 24px; scrollbar-width: none;
@@ -519,20 +519,32 @@
   }
   #ri-hours-icon { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--route); display: flex; align-items: center; justify-content: center; }
   #ri-hours-icon svg { width: 19px; height: 19px; stroke: #fff; }
-  #ri-hours-title { font-size: 14.5px; font-weight: 800; color: var(--ink); margin-bottom: 3px; }
-  #ri-hours-text { font-size: 13px; line-height: 1.5; color: var(--ink); }
+  #ri-hours-title { font-size: 16px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+  #ri-hours-text { font-size: 14.5px; line-height: 1.5; color: var(--ink); }
   #ri-hours-text b { font-weight: 700; }
   #route-intro-desc { font-size: 15px; color: var(--ink); line-height: 1.6; margin-bottom: 22px; }
   #route-intro-desc p { margin: 0 0 12px; }
+  /* opis zwinięty: widać początek, reszta pod "Czytaj dalej" */
+  #route-intro-desc.collapsed { max-height: 205px; overflow: hidden; position: relative; margin-bottom: 4px; }
+  #route-intro-desc.collapsed::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
+    background: linear-gradient(180deg, transparent, var(--paper));
+  }
+  #ri-more {
+    display: inline-flex; align-items: center; gap: 6px; margin: 0 0 22px; padding: 8px 0;
+    background: none; border: none; color: var(--brass-deep); font: 700 14.5px 'Inter', sans-serif; cursor: pointer;
+  }
+  #ri-more svg { width: 16px; height: 16px; stroke: currentColor; transition: transform 0.2s ease; }
+  #ri-more.open svg { transform: rotate(180deg); }
   #route-intro-desc p:first-child { font-size: 17px; font-weight: 700; line-height: 1.45; letter-spacing: -0.01em; }
   #route-intro-highlights-label {
     font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px;
   }
-  #route-intro-highlights { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  #route-intro-highlights { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   #route-intro-highlights li {
-    display: flex; align-items: center; gap: 11px;
-    font-size: 14px; color: var(--ink); background: var(--paper-2);
-    border-radius: 12px; padding: 11px 13px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; color: var(--ink); background: var(--paper-2);
+    border-radius: 999px; padding: 9px 14px;
   }
   #route-intro-highlights li::before {
     content: ""; flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--brass);
@@ -1643,6 +1655,7 @@
         <div><div id="ri-hours-title" data-t="riHoursTitle">Zwiedzasz, kiedy chcesz</div><div id="ri-hours-text" data-t="riHoursText"></div></div>
       </div>
       <div id="route-intro-desc"></div>
+      <button id="ri-more" type="button"><span data-t="riMore">Czytaj dalej</span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg></button>
       <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
       <ul id="route-intro-highlights"></ul>
     </div>
@@ -2133,6 +2146,7 @@ const TRANSLATIONS = {
     routeIntroEyebrow: "Trasa",
     riMain: "główne przystanki", riExtra: "punkty dodatkowe", riTime: "czas spaceru", riTimeVal: "1,5–2 h", riKm: "długość trasy",
     riHoursTitle: "Zwiedzasz, kiedy chcesz",
+    riMore: "Czytaj dalej", riLess: "Zwiń", riFirstPhoto: "Wzgórze Wawelskie",
     routeIntroSeeLabel: "Najważniejsze miejsca na trasie:",
     routeIntroStart: "Zaczynamy!",
     gpsUnsupported: "Twoja przeglądarka nie obsługuje lokalizacji GPS.",
@@ -2255,6 +2269,7 @@ const TRANSLATIONS = {
     routeIntroEyebrow: "Route",
     riMain: "main stops", riExtra: "extra points", riTime: "walking time", riTimeVal: "1.5–2 h", riKm: "route length",
     riHoursTitle: "Explore whenever you like",
+    riMore: "Read more", riLess: "Show less", riFirstPhoto: "Wawel Hill",
     routeIntroSeeLabel: "Top sights on the route:",
     routeIntroStart: "Let's go!",
     gpsUnsupported: "Your browser doesn't support GPS location.",
@@ -4805,6 +4820,10 @@ function openRouteIntro(districtKey) {
   const descEl = document.getElementById('route-intro-desc');
   descEl.innerHTML = '';
   data.desc.forEach(par => { const el = document.createElement('p'); el.textContent = par; descEl.appendChild(el); });
+  descEl.classList.add('collapsed');
+  const more = document.getElementById('ri-more');
+  more.classList.remove('open');
+  more.querySelector('span').textContent = t('riMore');
   document.getElementById('route-intro-body').scrollTop = 0;
   const list = document.getElementById('route-intro-highlights');
   list.innerHTML = '';
@@ -4821,6 +4840,13 @@ function openRouteIntro(districtKey) {
 // zdjęcia trasy: foto/trasa-<klucz>-1.jpg, -2, -3 — puste miejsca zostają jako ramki z aparatem, aż wrzucisz pliki
 // ?v=2 — telefon nie bierze starej odpowiedzi "brak pliku" zapamiętanej, zanim zdjęcia wgraliśmy; przy podmianie zdjęć podbij numer
 const PHOTO_VER = '2';
+document.getElementById('ri-more').addEventListener('click', () => {
+  const descEl = document.getElementById('route-intro-desc'), more = document.getElementById('ri-more');
+  const open = descEl.classList.toggle('collapsed') === false;
+  more.classList.toggle('open', open);
+  more.querySelector('span').textContent = t(open ? 'riLess' : 'riMore');
+  sfx.play('tap');
+});
 // zdjęcia trasy: najpierw stałe foto/trasa-<klucz>-1.jpg, potem 15 losowych zdjęć z punktów (głównych i dodatkowych)
 function loadRouteIntroPhotos(key) {
   const box = document.getElementById('route-intro-photos');
@@ -4831,7 +4857,7 @@ function loadRouteIntroPhotos(key) {
     if (PHOTO_FILES[photoKey(src)] && !pool.some(x => x.src === src)) pool.push({ src, label: pointName(p) });
   })));
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  const list = [{ src: 'foto/trasa-' + key + '-1.jpg?v=' + PHOTO_VER, label: '' }].concat(pool.slice(0, 15));
+  const list = [{ src: 'foto/trasa-' + key + '-1.jpg?v=' + PHOTO_VER, label: t('riFirstPhoto') }].concat(pool.slice(0, 15));
   list.forEach((it, i) => {
     const b = document.createElement('button');
     b.type = 'button';
