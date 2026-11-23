@@ -365,13 +365,13 @@
   .hs-title { font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px; }
   .hs-text { font-size: 14px; line-height: 1.5; color: var(--ink-dim); margin-top: 4px; }
   #howto-legend {
-    display: flex; align-items: flex-end; gap: 18px; margin-top: 12px; padding: 12px 14px 10px;
+    display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; margin-top: 12px; padding: 12px 14px 10px;
     background: #2c2a24; border-radius: 16px;
   }
   .hl-item { display: flex; flex-direction: column; align-items: center; gap: 9px; }
   .hl-item .pin-main, .hl-item .pin-extra { display: block; }
   .hl-item .marker-main, .hl-item .marker-extra { display: block; border-radius: 50%; }
-  .hl-cap { font-size: 11.5px; font-weight: 700; color: #fff; }
+  .hl-cap { font-size: 11.5px; font-weight: 700; color: #fff; white-space: nowrap; }
   #howto-footer { padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin: 0 auto; width: 100%; box-sizing: border-box; }
   #howto-start {
     width: 100%; padding: 16px; border-radius: 16px; border: none;
@@ -1668,11 +1668,12 @@
       <ol id="howto-steps">
         <li><span class="hs-num">1</span><div><div class="hs-title" data-t="howto1t">Wybierz trasę</div><div class="hs-text" data-t="howto1">W menu stuknij „Trasy”, wybierz spacer i „Zaczynamy!”. Możesz też zwiedzać bez trasy, w dowolnej kolejności.</div></div></li>
         <li><span class="hs-num">2</span><div><div class="hs-title" data-t="howto2t">Włącz lokalizację</div><div class="hs-text" data-t="howto2">Gdy telefon zapyta o lokalizację, wybierz „Pozwól”. Niebieska kropka na mapie to Ty, a jasny stożek pokazuje, gdzie patrzysz.</div></div></li>
-        <li><span class="hs-num">3</span><div><div class="hs-title" data-t="howto3t">Punkty na mapie</div><div class="hs-text" data-t="howto3">Duże złote pinezki to główne zabytki, małe białe to ciekawostki po drodze. Liczba „+3” oznacza, że w tym miejscu jest więcej punktów — przybliż mapę.</div>
+        <li><span class="hs-num">3</span><div><div class="hs-title" data-t="howto3t">Punkty na mapie</div><div class="hs-text" data-t="howto3">Duże złote pinezki to główne zabytki, małe białe to ciekawostki po drodze. Liczba „+3” oznacza, że w tym miejscu jest więcej punktów — przybliż mapę. Pinezka z zieloną, pulsującą obwódką to punkt, którego właśnie słuchasz.</div>
           <div id="howto-legend">
             <span class="hl-item"><span class="pin-main"><span class="marker-main" style="background-image:url('foto/mini/3_0_Historia_Kosciola_Mariackiego.webp')"></span></span><span class="hl-cap" data-t="howtoLegMain">główny</span></span>
             <span class="hl-item"><span class="pin-extra"><span class="marker-extra" style="background-image:url('foto/mini/Jozef_Dietl.webp')"></span></span><span class="hl-cap" data-t="howtoLegExtra">dodatkowy</span></span>
             <span class="hl-item"><span class="pin-main"><span class="marker-main marker-done" style="background-image:url('foto/mini/1_0_Rynek_Glowny.webp')"></span></span><span class="hl-cap" data-t="howtoLegDone">odsłuchany</span></span>
+            <span class="hl-item"><span class="pin-main"><span class="marker-main marker-current marker-playing" style="background-image:url('foto/mini/1_0_Rynek_Glowny.webp')"></span></span><span class="hl-cap" data-t="howtoLegPlaying">teraz gra</span></span>
           </div>
         </div></li>
         <li><span class="hs-num">4</span><div><div class="hs-title" data-t="howto4t">Słuchaj</div><div class="hs-text" data-t="howto4">Stuknij pinezkę, wybierz nagranie i wciśnij play. Kolejne nagrania z tego miejsca włączą się same. Stuknij zdjęcie w panelu, żeby je powiększyć.</div></div></li>
@@ -2164,8 +2165,8 @@ const TRANSLATIONS = {
     howto2t: "Włącz lokalizację",
     howto2: "Gdy telefon zapyta o lokalizację, wybierz „Pozwól”. Niebieska kropka na mapie to Ty, a jasny stożek pokazuje, gdzie patrzysz.",
     howto3t: "Punkty na mapie",
-    howto3: "Duże złote pinezki to główne zabytki, małe białe to ciekawostki po drodze. Liczba „+3” oznacza, że w tym miejscu jest więcej punktów — przybliż mapę.",
-    howtoLegMain: "główny", howtoLegExtra: "dodatkowy", howtoLegDone: "odsłuchany",
+    howto3: "Duże złote pinezki to główne zabytki, małe białe to ciekawostki po drodze. Liczba „+3” oznacza, że w tym miejscu jest więcej punktów — przybliż mapę. Pinezka z zieloną, pulsującą obwódką to punkt, którego właśnie słuchasz.",
+    howtoLegMain: "główny", howtoLegExtra: "dodatkowy", howtoLegDone: "odsłuchany", howtoLegPlaying: "teraz gra",
     howto4t: "Słuchaj",
     howto4: "Stuknij pinezkę, wybierz nagranie i wciśnij play. Kolejne nagrania z tego miejsca włączą się same. Stuknij zdjęcie w panelu, żeby je powiększyć.",
     howto5t: "Daj się poprowadzić",
@@ -2289,8 +2290,8 @@ const TRANSLATIONS = {
     howto2t: "Turn on location",
     howto2: "When your phone asks for location, tap “Allow”. The blue dot on the map is you, and the light cone shows where you're facing.",
     howto3t: "Points on the map",
-    howto3: "Big gold pins are the main sights, small white ones are curiosities along the way. A “+3” badge means more points are hidden there — zoom in.",
-    howtoLegMain: "main", howtoLegExtra: "extra", howtoLegDone: "listened",
+    howto3: "Big gold pins are the main sights, small white ones are curiosities along the way. A “+3” badge means more points are hidden there — zoom in. A pin with a pulsing green ring is the point you are listening to right now.",
+    howtoLegMain: "main", howtoLegExtra: "extra", howtoLegDone: "listened", howtoLegPlaying: "playing",
     howto4t: "Listen",
     howto4: "Tap a pin, choose a recording and press play. The next recordings from that place play by themselves. Tap the photo in the panel to enlarge it.",
     howto5t: "Get directions",
