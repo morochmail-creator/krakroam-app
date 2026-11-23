@@ -398,7 +398,11 @@
     display: flex; align-items: center; justify-content: center;
     z-index: 2;
   }
-  #district-menu-eyebrow { display: none; }
+  #district-menu-eyebrow {
+    text-align: center; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 36px;
+    color: var(--ink); margin: 0 44px 10px;
+  }
+  #district-menu-eyebrow span { color: var(--brass-deep); }
   #district-menu-title {
     font-size: 21px; font-weight: 800; letter-spacing: -0.01em; text-align: left;
     color: var(--ink); margin: 4px 0 18px;
@@ -1606,7 +1610,7 @@
     <div id="district-scrim"></div>
     <div id="district-menu-inner">
       <button id="district-menu-close" aria-label="Wstecz"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,6 9,12 15,18"></polyline></svg></button>
-      <div id="district-menu-eyebrow">KrakRoam</div>
+      <div id="district-menu-eyebrow">Krak<span>Roam</span></div>
       <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
 
       <div class="district-row" data-district="stare-miasto">
