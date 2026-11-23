@@ -450,18 +450,41 @@
   .dr-go .dr-chevron { width: 18px; height: 18px; stroke: #1b1a17; }
   .dr-sub { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); margin: 20px 2px 10px; }
   .dr-grid { display: flex; gap: 10px; }
-  .dr-hero-2 { margin-top: 14px; height: 280px; }
+  #route-carousel { position: relative; height: min(330px, 42vh); margin: 0 -20px; overflow: hidden; touch-action: pan-y; }
+  #rc-track { position: absolute; inset: 0; }
+  #rc-track .dr-hero {
+    position: absolute; top: 0; left: 50%; width: calc(100% - 64px); max-width: 400px; height: 100%;
+    margin-left: calc(min(100% - 64px, 400px) / -2);
+    transition: transform 0.38s cubic-bezier(0.25, 0.9, 0.3, 1), opacity 0.38s ease;
+  }
+  #rc-track .dr-hero.rc-side { opacity: 0.55; }
+  #rc-track.dragging .dr-hero { transition: none; }
+  .rc-arrow {
+    position: absolute; top: 50%; z-index: 5; width: 42px; height: 42px; margin-top: -21px; border-radius: 50%;
+    border: none; background: rgba(255,255,255,0.95); box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .rc-arrow svg { width: 22px; height: 22px; stroke: #1b1a17; }
+  .rc-arrow:active { transform: scale(0.92); }
+  #rc-prev { left: 8px; } #rc-next { right: 8px; }
+  #rc-dots { display: flex; justify-content: center; gap: 6px; margin: 10px 0 12px; }
+  #rc-dots i { width: 7px; height: 7px; border-radius: 4px; background: var(--line); transition: width 0.25s ease, background 0.25s ease; }
+  #rc-dots i.on { width: 20px; background: var(--brass-deep); }
+  .dr-hero.soon .dr-cover { filter: grayscale(0.85); }
+  .dr-tag-soon { background: rgba(20,17,13,0.65); color: #fff; }
+  .dr-go-soon { background: rgba(255,255,255,0.2); color: #fff; }
   .dr-tag-new { background: #fff; }
   .dr-tile { flex: 1; height: 120px; border-radius: 18px; background: #8e887a; }
   .dr-tile .dr-cover { filter: grayscale(0.85) brightness(0.95); }
   .dr-tile .dr-cover::after { background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(10,8,5,0.8)); }
   .dr-tile .dr-title { position: absolute; left: 12px; bottom: 10px; z-index: 1; color: #fff; font-size: 16px; font-weight: 800; }
-  .dr-free { margin-top: 12px; display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; border: 1.5px dashed #b9b3a4; }
-  .dr-free-ic { width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px; background: #3b5446; color: #fff; display: flex; align-items: center; justify-content: center; }
+  .dr-free { display: flex; align-items: center; gap: 14px; padding: 18px 16px; border-radius: 20px; background: linear-gradient(135deg, #5d7a68, #2f4538); box-shadow: 0 6px 18px rgba(0,0,0,0.16); }
+  .dr-free-ic { width: 44px; height: 44px; flex-shrink: 0; border-radius: 13px; background: rgba(255,255,255,0.18); color: #fff; display: flex; align-items: center; justify-content: center; }
   .dr-free-ic svg { width: 22px; height: 22px; stroke: #fff; }
   .district-row-mid { flex: 1; min-width: 0; }
-  .dr-free .dr-title { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
-  .dr-free .dr-desc { font-size: 12.5px; color: var(--ink-dim); margin-top: 3px; line-height: 1.35; }
+  .dr-free .dr-title { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; color: #fff; }
+  .dr-free .dr-desc { font-size: 12.5px; color: rgba(255,255,255,0.85); margin-top: 3px; line-height: 1.35; }
+  .dr-free .dr-chevron { stroke: #fff; }
   .dr-chevron { flex-shrink: 0; width: 20px; height: 20px; stroke: var(--brass-deep); }
   /* trasa w przygotowaniu: ten sam ekran trasy, ale bez liczb, godzin i listy — tylko zdjęcie i krótka informacja */
   #route-intro-screen.soon #ri-stats, #route-intro-screen.soon #ri-hours, #route-intro-screen.soon #ri-more,
@@ -1664,6 +1687,9 @@
       <div id="district-menu-eyebrow">Krak<span>Roam</span></div>
       <div id="district-menu-title">Gdzie dziś zwiedzamy?</div>
 
+      <!-- karuzela tras (Pektus, wersja B): przesuwanie palcem w obie strony + strzałki, kręci się w kółko -->
+      <div id="route-carousel">
+        <div id="rc-track">
       <div class="district-row dr-hero" data-district="stare-miasto">
         <div class="dr-cover"></div>
         <span class="dr-tag" data-t="drFeatured">Polecana</span>
@@ -1675,7 +1701,7 @@
         </div>
       </div>
 
-      <div class="district-row dr-hero dr-hero-2" data-district="kazimierz">
+      <div class="district-row dr-hero" data-district="kazimierz">
         <div class="dr-cover"></div>
         <span class="dr-tag dr-tag-new" data-t="drNew">Nowa trasa</span>
         <div class="dr-hero-txt">
@@ -1684,20 +1710,25 @@
           <div class="dr-go"><span data-t="routeIntroStart">Zaczynamy!</span><svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"></polyline></svg></div>
         </div>
       </div>
-
-      <div class="dr-sub" data-i18n="comingSoon">Wkrótce</div>
-      <div class="dr-grid">
-        <div class="district-row dr-tile soon" data-district="podgorze">
-          <div class="dr-cover"></div>
+      <div class="district-row dr-hero soon" data-district="podgorze">
+        <div class="dr-cover"></div>
+        <span class="dr-tag dr-tag-soon" data-i18n="comingSoon">Wkrótce</span>
+        <div class="dr-hero-txt">
           <div class="dr-title">Podgórze</div>
+          <div class="dr-go dr-go-soon"><span data-t="drSoonMore">Zobacz, co szykujemy</span></div>
         </div>
       </div>
+        </div>
+        <button id="rc-prev" class="rc-arrow" type="button" aria-label="Poprzednia trasa"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,5 8,12 15,19"></polyline></svg></button>
+        <button id="rc-next" class="rc-arrow" type="button" aria-label="Następna trasa"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5 16,12 9,19"></polyline></svg></button>
+      </div>
+      <div id="rc-dots"></div>
 
       <div class="district-row dr-free" data-district="free-roam">
         <div class="dr-free-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polygon points="15.5,8.5 13,13 8.5,15.5 11,11" fill="currentColor"></polygon></svg></div>
         <div class="district-row-mid">
           <div class="dr-title" data-i18n="freeRoamTitle">Zwiedzaj bez trasy</div>
-          <div class="dr-desc" data-i18n="freeRoamDesc">Wybieraj punkty sam, w dowolnej kolejności</div>
+          <div class="dr-desc" data-i18n="freeRoamDesc">Punkty wszystkich tras, w dowolnej kolejności</div>
         </div>
         <svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"></polyline></svg>
       </div>
@@ -2145,7 +2176,7 @@ const TRANSLATIONS = {
     podgorzeTitle: "Podgórze",
     comingSoon: "Wkrótce",
     freeRoamTitle: "Zwiedzaj bez trasy",
-    freeRoamDesc: "Wybieraj punkty sam, w dowolnej kolejności",
+    freeRoamDesc: "Punkty wszystkich tras, w dowolnej kolejności",
     nearestBtn: "Poleć trasę najbliżej mnie",
     nearestWaiting: "Czekam na lokalizację — spróbuj za chwilę.",
     nearestFound: label => `Najbliżej Ciebie: ${label} — otwieram trasę…`,
@@ -2230,7 +2261,7 @@ const TRANSLATIONS = {
     riMore: "Czytaj dalej", riLess: "Zwiń", riFirstPhoto: "Wzgórze Wawelskie",
     routeIntroSeeLabel: "Najważniejsze miejsca na trasie:",
     routeIntroStart: "Zaczynamy!",
-    drFeatured: "Polecana", routeStartNav: "Prowadź do startu", drNew: "Nowa trasa", drStops: "przystanków", soonBack: "Wróć do tras",
+    drFeatured: "Polecana", drSoonMore: "Zobacz, co szykujemy", routeStartNav: "Prowadź do startu", drNew: "Nowa trasa", drStops: "przystanków", soonBack: "Wróć do tras",
     soonText: "Nad tą trasą właśnie pracujemy.\nWkrótce znajdziesz tu opis, zdjęcia, mapę i nagrania. Zajrzyj niedługo!",
     gpsUnsupported: "Twoja przeglądarka nie obsługuje lokalizacji GPS.",
     playLabel: "Odtwórz", playPauseLabel: "Odtwórz/Pauza", stopLabel: "Stop",
@@ -2270,7 +2301,7 @@ const TRANSLATIONS = {
     podgorzeTitle: "Podgórze",
     comingSoon: "Coming soon",
     freeRoamTitle: "Explore without a route",
-    freeRoamDesc: "Pick points yourself, in any order",
+    freeRoamDesc: "Points of all routes, in any order",
     nearestBtn: "Recommend the route nearest me",
     nearestWaiting: "Waiting for location — try again in a moment.",
     nearestFound: label => `Nearest to you: ${label} — opening the route…`,
@@ -2355,7 +2386,7 @@ const TRANSLATIONS = {
     riMore: "Read more", riLess: "Show less", riFirstPhoto: "Wawel Hill",
     routeIntroSeeLabel: "Top sights on the route:",
     routeIntroStart: "Let's go!",
-    drFeatured: "Recommended", routeStartNav: "Take me to the start", drNew: "New route", drStops: "stops", soonBack: "Back to routes",
+    drFeatured: "Recommended", drSoonMore: "See what is coming", routeStartNav: "Take me to the start", drNew: "New route", drStops: "stops", soonBack: "Back to routes",
     soonText: "We are working on this route right now.\nSoon you will find a description, photos, a map and recordings here. Check back soon!",
     gpsUnsupported: "Your browser doesn't support GPS location.",
     playLabel: "Play", playPauseLabel: "Play/Pause", stopLabel: "Stop",
@@ -5712,7 +5743,65 @@ function openSoonRoute(key) {
   document.getElementById('route-intro-body').scrollTop = 0;
   routeIntroEl.classList.remove('hidden');
 }
-document.querySelectorAll('.dr-tile.soon').forEach(row => row.addEventListener('click', () => { sfx.play('tap'); openSoonRoute(row.dataset.district); }));
+document.querySelectorAll('.dr-hero.soon').forEach(row => row.addEventListener('click', () => { sfx.play('tap'); openSoonRoute(row.dataset.district); }));
+
+// Karuzela tras: karty w kółko (po ostatniej znowu pierwsza), przesuwanie palcem w obie strony, strzałki, kropki.
+// Karta na środku = wybrana; boczne lekko wystają i są przygaszone. Stuknięcie w boczną kartę przewija do niej.
+(function routeCarousel() {
+  const box = document.getElementById('route-carousel'), track = document.getElementById('rc-track');
+  const cards = [...track.querySelectorAll('.dr-hero')], n = cards.length, dots = document.getElementById('rc-dots');
+  let idx = 0, prevOff = cards.map((_, i) => i), dragX = 0, startX = 0, startY = 0, dragging = false, moved = false;
+  cards.forEach(() => dots.appendChild(document.createElement('i')));
+  const off = i => { let o = ((i - idx) % n + n) % n; if (o > n / 2) o -= n; return o; };
+  function layout(animate) {
+    const w = cards[0].offsetWidth || 300, step = w + 12;
+    cards.forEach((c, i) => {
+      const o = off(i);
+      // karta, która "przeskakuje" na drugi koniec kółka, jedzie bez animacji (inaczej przelatywałaby przez środek)
+      const jump = Math.abs(o - prevOff[i]) > 1;
+      c.style.transition = (!animate || jump) ? 'none' : '';
+      c.style.transform = 'translateX(' + (o * step + dragX) + 'px)';
+      c.classList.toggle('rc-side', o !== 0);
+      c.style.visibility = Math.abs(o) > 1 ? 'hidden' : '';
+      prevOff[i] = o;
+    });
+    [...dots.children].forEach((d, i) => d.classList.toggle('on', i === idx));
+  }
+  function go(d) { idx = (idx + d + n) % n; dragX = 0; sfx.play('tap'); layout(true); }
+  document.getElementById('rc-prev').addEventListener('click', e => { e.stopPropagation(); go(-1); });
+  document.getElementById('rc-next').addEventListener('click', e => { e.stopPropagation(); go(1); });
+  box.addEventListener('touchstart', e => {
+    if (e.target.closest('.rc-arrow')) return;
+    const t = e.touches[0]; startX = t.clientX; startY = t.clientY; dragging = true; moved = false;
+  }, { passive: true });
+  box.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0], dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!moved && Math.abs(dx) < 8) return;
+    if (!moved && Math.abs(dy) > Math.abs(dx)) { dragging = false; return; } // przewijanie w pionie — nie ruszamy karuzeli
+    moved = true; track.classList.add('dragging'); dragX = dx; layout(false);
+  }, { passive: true });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false; track.classList.remove('dragging');
+    if (moved && Math.abs(dragX) > 50) go(dragX < 0 ? 1 : -1);
+    else { dragX = 0; layout(true); }
+  };
+  box.addEventListener('touchend', end); box.addEventListener('touchcancel', end);
+  // po przeciągnięciu palcem nie otwieramy karty; stuknięcie w boczną kartę tylko ją wysuwa na środek
+  track.addEventListener('click', e => {
+    const card = e.target.closest('.dr-hero');
+    if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; return; }
+    if (card && off(cards.indexOf(card)) !== 0) { e.stopPropagation(); e.preventDefault(); go(off(cards.indexOf(card))); }
+  }, true);
+  // karuzela startuje od wczytanej trasy (po zmianie trasy wracasz na jej kartę)
+  const cur = cards.findIndex(c => c.dataset.district === CURRENT_ROUTE);
+  if (cur > 0) idx = cur;
+  prevOff = cards.map((_, i) => off(i));
+  layout(false);
+  window.addEventListener('resize', () => layout(false));
+  window.routeCarouselLayout = () => layout(false);
+})();
 
 function closeRouteIntro() {
   routeIntroEl.classList.add('hidden');
@@ -5751,6 +5840,7 @@ function openDistrictMenuFull() {
   sfx.play('menuUp');
   districtMenuEl.classList.remove('hidden');
   menuInner.style.transform = 'translateY(0)';
+  if (window.routeCarouselLayout) window.routeCarouselLayout();
 }
 
 function closeDistrictMenu() {
