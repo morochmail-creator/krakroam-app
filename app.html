@@ -481,37 +481,50 @@
   #route-intro-body {
     flex: 1; overflow-y: auto; padding: calc(56px + env(safe-area-inset-top, 0px)) 24px 12px;
   }
-  #route-intro-icon {
-    width: 56px; height: 56px; border-radius: 16px; margin-bottom: 18px;
-    background: var(--brass-tint);
-    display: flex; align-items: center; justify-content: center;
-  }
-  #route-intro-icon svg { width: 27px; height: 27px; stroke: var(--brass-deep); }
   #route-intro-eyebrow {
-    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--brass-deep); margin-bottom: 6px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--brass-deep); margin-bottom: 4px; text-align: center;
   }
   #route-intro-title {
-    font-size: 25px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink);
-    margin-bottom: 8px;
+    font-size: 32px; font-weight: 800; letter-spacing: -0.025em; color: var(--ink);
+    margin-bottom: 16px; text-align: center; line-height: 1.1;
   }
-  #route-intro-meta { font-size: 13px; color: var(--ink-dim); margin-bottom: 18px; }
+  #ri-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 18px; }
+  .ri-stat {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px;
+    background: var(--paper-2); border-radius: 14px; padding: 11px 4px 10px;
+  }
+  .ri-stat b { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; white-space: nowrap; }
+  .ri-stat span { font-size: 10.5px; font-weight: 600; color: var(--ink-dim); line-height: 1.2; }
   #route-intro-photos {
-    display: flex; gap: 10px; overflow-x: auto; margin: 0 -24px 20px; padding: 0 24px 4px;
+    display: flex; gap: 10px; overflow-x: auto; margin: 0 -24px 18px; padding: 0 24px 4px;
     scroll-snap-type: x mandatory; scroll-padding-left: 24px; scrollbar-width: none;
   }
   #route-intro-photos::-webkit-scrollbar { display: none; }
   .ri-photo {
-    flex: 0 0 72%; max-width: 280px; aspect-ratio: 4 / 3; border-radius: 16px;
-    scroll-snap-align: start; position: relative; overflow: hidden;
-    background: var(--paper-2) center / cover no-repeat;
-    border: 1.5px dashed var(--line-strong);
-    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 72%; max-width: 300px; aspect-ratio: 4 / 3; border-radius: 16px; padding: 0; border: none;
+    scroll-snap-align: start; position: relative; overflow: hidden; cursor: pointer;
+    background: var(--paper-2);
   }
-  .ri-photo svg { width: 30px; height: 30px; stroke: var(--ink-dim); opacity: 0.6; }
-  .ri-photo.has-photo { border: none; cursor: pointer; }
-  .ri-photo.has-photo svg { display: none; }
-  #route-intro-desc { font-size: 14.5px; color: var(--ink); line-height: 1.55; margin-bottom: 22px; }
+  .ri-photo:first-child { flex-basis: 86%; max-width: 360px; }
+  .ri-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ri-photo-cap {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 10px 8px; text-align: left;
+    background: linear-gradient(180deg, rgba(20,17,13,0) 0%, rgba(20,17,13,0.7) 100%);
+    color: #fff; font-size: 12px; font-weight: 700;
+  }
+  #ri-hours {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 20px;
+    background: var(--route-tint); border-radius: 16px; padding: 13px 14px;
+  }
+  #ri-hours-icon { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--route); display: flex; align-items: center; justify-content: center; }
+  #ri-hours-icon svg { width: 19px; height: 19px; stroke: #fff; }
+  #ri-hours-title { font-size: 14.5px; font-weight: 800; color: var(--ink); margin-bottom: 3px; }
+  #ri-hours-text { font-size: 13px; line-height: 1.5; color: var(--ink); }
+  #ri-hours-text b { font-weight: 700; }
+  #route-intro-desc { font-size: 15px; color: var(--ink); line-height: 1.6; margin-bottom: 22px; }
+  #route-intro-desc p { margin: 0 0 12px; }
+  #route-intro-desc p:first-child { font-size: 17px; font-weight: 700; line-height: 1.45; letter-spacing: -0.01em; }
   #route-intro-highlights-label {
     font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px;
   }
@@ -1616,26 +1629,22 @@
   <div id="route-intro-screen" class="hidden">
     <button id="route-intro-close" aria-label="Wstecz">×</button>
     <div id="route-intro-body">
-      <div id="route-intro-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4.5 21V8.5l2-5 2 5V21"></path>
-          <path d="M15.5 21v-8a2 2 0 1 1 4 0v8"></path>
-          <path d="M9 21v-5.5a3 3 0 0 1 6 0V21"></path>
-          <path d="M3 21h18"></path>
-        </svg>
-      </div>
       <div id="route-intro-eyebrow">Trasa</div>
       <div id="route-intro-title">Stare Miasto</div>
-      <div id="route-intro-meta">18 przystanków · ok. 2,5 godz. · 3,2 km</div>
-      <div id="route-intro-photos"><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div><div class="ri-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"></path><circle cx="12" cy="13.2" r="3.3"></circle></svg></div></div>
-      <div id="route-intro-desc">Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.</div>
+      <div id="ri-stats">
+        <div class="ri-stat"><b id="ri-main">0</b><span data-t="riMain">główne przystanki</span></div>
+        <div class="ri-stat"><b id="ri-extra">0</b><span data-t="riExtra">punkty dodatkowe</span></div>
+        <div class="ri-stat"><b data-t="riTimeVal">1,5–2 h</b><span data-t="riTime">czas spaceru</span></div>
+        <div class="ri-stat"><b id="ri-km">0 km</b><span data-t="riKm">długość trasy</span></div>
+      </div>
+      <div id="route-intro-photos"></div>
+      <div id="ri-hours">
+        <div id="ri-hours-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12,7 12,12 15.5,14"></polyline></svg></div>
+        <div><div id="ri-hours-title" data-t="riHoursTitle">Zwiedzasz, kiedy chcesz</div><div id="ri-hours-text" data-t="riHoursText"></div></div>
+      </div>
+      <div id="route-intro-desc"></div>
       <div id="route-intro-highlights-label">Zobaczysz m.in.:</div>
-      <ul id="route-intro-highlights">
-        <li>Barbakan i Brama Floriańska</li>
-        <li>Rynek Główny i Sukiennice</li>
-        <li>Bazylika Mariacka</li>
-        <li>Wzgórze Wawelskie</li>
-      </ul>
+      <ul id="route-intro-highlights"></ul>
     </div>
     <div id="route-intro-footer">
       <button id="route-intro-start-btn">Zaczynamy!</button>
@@ -2122,7 +2131,9 @@ const TRANSLATIONS = {
     settingsTitle: "Ustawienia",
     langMenuSub: "Witamy! Wybierz swój język",
     routeIntroEyebrow: "Trasa",
-    routeIntroSeeLabel: "Zobaczysz m.in.:",
+    riMain: "główne przystanki", riExtra: "punkty dodatkowe", riTime: "czas spaceru", riTimeVal: "1,5–2 h", riKm: "długość trasy",
+    riHoursTitle: "Zwiedzasz, kiedy chcesz",
+    routeIntroSeeLabel: "Najważniejsze miejsca na trasie:",
     routeIntroStart: "Zaczynamy!",
     gpsUnsupported: "Twoja przeglądarka nie obsługuje lokalizacji GPS.",
     playLabel: "Odtwórz", playPauseLabel: "Odtwórz/Pauza", stopLabel: "Stop",
@@ -2242,7 +2253,9 @@ const TRANSLATIONS = {
     settingsTitle: "Settings",
     langMenuSub: "Welcome! Choose your language",
     routeIntroEyebrow: "Route",
-    routeIntroSeeLabel: "Highlights include:",
+    riMain: "main stops", riExtra: "extra points", riTime: "walking time", riTimeVal: "1.5–2 h", riKm: "route length",
+    riHoursTitle: "Explore whenever you like",
+    routeIntroSeeLabel: "Top sights on the route:",
     routeIntroStart: "Let's go!",
     gpsUnsupported: "Your browser doesn't support GPS location.",
     playLabel: "Play", playPauseLabel: "Play/Pause", stopLabel: "Stop",
@@ -4750,14 +4763,26 @@ function selectDistrict(freeRoam, options) {
 const ROUTE_INTRO_CONTENT = {
   'stare-miasto': {
     pl: {
-      meta: '18 przystanków · ok. 2,5 godz. · 3,2 km',
-      desc: 'Spacer po sercu średniowiecznego Krakowa — od Rynku Głównego, przez Bazylikę Mariacką, Planty i średniowieczne mury, aż po Collegium Maius i Kościół Franciszkanów. Idziesz swoim tempem, a przewodnik odezwie się sam, gdy podejdziesz do kolejnego miejsca.',
-      highlights: ['Rynek Główny i Sukiennice', 'Bazylika Mariacka i hejnał', 'Barbakan i Brama Floriańska', 'Wieża Ratuszowa i Collegium Maius']
+      desc: [
+        'Kraków to miasto, którego nie udało się zniszczyć.',
+        'Przez tysiąc lat najeżdżali go Tatarzy, Szwedzi i kolejne armie. Płonął, był grabiony i oblegany, a mimo to za każdym razem podnosił się z popiołów. Przetrwał nawet II wojnę światową, dzięki czemu średniowieczny układ ulic i placów zachował się niemal tak, jak wytyczono go w 1257 roku.',
+        'Dlatego w 1978 roku Kraków trafił na pierwszą w historii Listę Światowego Dziedzictwa UNESCO, razem z Galapagos i parkiem Yellowstone. Dwanaście miejsc na całej planecie, a wśród nich właśnie to miasto.',
+        'Przez ponad czterysta lat koronowano tu polskich królów. Na każdym rogu czeka legenda: o smoku spod wzgórza, o trębaczu, którego hejnał przerwała tatarska strzała, o czarnoksiężniku, który zawarł pakt z diabłem. Kamienice pamiętają kupców z całej Europy, wielkich uczonych, artystów i spiskowców.',
+        'Idziesz swoim tempem, a w słuchawkach opowiadamy Ci historie, których nie przeczytasz na tablicach. Tak, jakby miasto samo zaczęło mówić.'
+      ],
+      hours: 'Ulice, place i zabytki z zewnątrz zobaczysz <b>o każdej porze dnia i nocy</b>. Wyjątkiem jest <b>Wawel</b>: wzgórze jest otwarte codziennie <b>od 6:00 do zmroku</b>, a komnaty zamkowe zwykle <b>od wtorku do niedzieli, ok. 9:30–17:00</b>. Godziny zmieniają się w sezonie, więc przed wejściem do zamku sprawdź je na wawel.krakow.pl.',
+      highlights: ['Rynek Główny', 'Kościół Mariacki', 'Sukiennice', 'Barbakan', 'Brama Floriańska', 'Wieża Ratuszowa', 'Collegium Maius', 'Ulica Grodzka', 'Zamek Królewski na Wawelu']
     },
     en: {
-      meta: '18 stops · approx. 2.5 hrs · 3.2 km',
-      desc: "A walk through the heart of medieval Kraków — from the Main Market Square, past St. Mary's Basilica, the Planty Park and the medieval walls, all the way to Collegium Maius and the Franciscan Church. Go at your own pace: the guide speaks up by itself when you reach the next place.",
-      highlights: ['Main Market Square and the Cloth Hall', "St. Mary's Basilica and the bugle call", "The Barbican and St. Florian's Gate", 'Town Hall Tower and Collegium Maius']
+      desc: [
+        'Kraków is the city that could not be destroyed.',
+        'For a thousand years it was invaded by Tatars, Swedes and army after army. It burned, it was plundered and besieged, and every time it rose from the ashes. It even survived World War II, so its medieval grid of streets and squares still looks almost exactly as it was laid out in 1257.',
+        'That is why in 1978 Kraków was placed on the very first UNESCO World Heritage List, alongside the Galápagos Islands and Yellowstone. Twelve places on the whole planet, and this city was one of them.',
+        'For more than four hundred years Polish kings were crowned here. Around every corner waits a legend: the dragon beneath the hill, the trumpeter whose bugle call was cut short by a Tatar arrow, the sorcerer who made a pact with the devil. These houses remember merchants from all over Europe, great scholars, artists and conspirators.',
+        'Walk at your own pace while we tell you the stories you will never read on a plaque, as if the city itself had started to speak.'
+      ],
+      hours: 'Streets, squares and the sights from outside are open <b>at any time, day or night</b>. The exception is <b>Wawel</b>: the hill is open daily <b>from 6:00 until dusk</b>, and the castle chambers usually <b>Tuesday to Sunday, approx. 9:30–17:00</b>. Hours change with the season, so check wawel.krakow.pl before going into the castle.',
+      highlights: ['Main Market Square', "St. Mary's Basilica", 'Cloth Hall', 'The Barbican', "St. Florian's Gate", 'Town Hall Tower', 'Collegium Maius', 'Grodzka Street', 'Wawel Royal Castle']
     },
   }
 };
@@ -4770,8 +4795,17 @@ function openRouteIntro(districtKey) {
   const titleKey = (DISTRICT_CENTERS[districtKey] || {}).labelKey;
   document.getElementById('route-intro-eyebrow').textContent = t('routeIntroEyebrow');
   document.getElementById('route-intro-title').textContent = titleKey ? t(titleKey) : '';
-  document.getElementById('route-intro-meta').textContent = data.meta.replace(/^\d+/, POINTS.filter(p => p.type === 'main' && !p.offRoute).length); // liczba przystanków = liczba punktów głównych
-  document.getElementById('route-intro-desc').textContent = data.desc;
+  // liczby liczone z danych trasy: przystanki = punkty główne na trasie, km = długość linii prowadzącej
+  document.getElementById('ri-main').textContent = POINTS.filter(p => p.type === 'main' && !p.offRoute).length;
+  document.getElementById('ri-extra').textContent = POINTS.filter(p => p.type !== 'main').length;
+  let m = 0;
+  for (let i = 1; i < ROUTE_LINE.length; i++) m += L.latLng(ROUTE_LINE[i - 1]).distanceTo(ROUTE_LINE[i]);
+  document.getElementById('ri-km').textContent = (m / 1000).toFixed(1).replace('.', currentLang === 'pl' ? ',' : '.') + ' km';
+  document.getElementById('ri-hours-text').innerHTML = data.hours;
+  const descEl = document.getElementById('route-intro-desc');
+  descEl.innerHTML = '';
+  data.desc.forEach(par => { const el = document.createElement('p'); el.textContent = par; descEl.appendChild(el); });
+  document.getElementById('route-intro-body').scrollTop = 0;
   const list = document.getElementById('route-intro-highlights');
   list.innerHTML = '';
   data.highlights.forEach(h => {
@@ -4787,22 +4821,29 @@ function openRouteIntro(districtKey) {
 // zdjęcia trasy: foto/trasa-<klucz>-1.jpg, -2, -3 — puste miejsca zostają jako ramki z aparatem, aż wrzucisz pliki
 // ?v=2 — telefon nie bierze starej odpowiedzi "brak pliku" zapamiętanej, zanim zdjęcia wgraliśmy; przy podmianie zdjęć podbij numer
 const PHOTO_VER = '2';
+// zdjęcia trasy: najpierw stałe foto/trasa-<klucz>-1.jpg, potem 15 losowych zdjęć z punktów (głównych i dodatkowych)
 function loadRouteIntroPhotos(key) {
-  document.querySelectorAll('#route-intro-photos .ri-photo').forEach((slot, i) => {
-    const src = 'foto/trasa-' + key + '-' + (i + 1) + '.jpg?v=' + PHOTO_VER;
-    slot.classList.remove('has-photo');
-    slot.style.backgroundImage = '';
-    slot.onclick = null;
-    const probe = new Image();
-    probe.onload = () => {
-      slot.style.backgroundImage = 'url("' + src + '")';
-      slot.classList.add('has-photo');
-      slot.onclick = () => {
-        sfx.play('menuUp');
-        openPhotoViewer(src);
-      };
-    };
-    probe.src = src;
+  const box = document.getElementById('route-intro-photos');
+  box.innerHTML = '';
+  box.scrollLeft = 0;
+  const pool = [];
+  POINTS.forEach(p => (p.tracks || []).forEach(tr => trackPhotoSrcs(tr).forEach(src => {
+    if (PHOTO_FILES[photoKey(src)] && !pool.some(x => x.src === src)) pool.push({ src, label: pointName(p) });
+  })));
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const list = [{ src: 'foto/trasa-' + key + '-1.jpg?v=' + PHOTO_VER, label: '' }].concat(pool.slice(0, 15));
+  list.forEach((it, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ri-photo';
+    const img = document.createElement('img');
+    img.alt = it.label; img.decoding = 'async';
+    if (i > 1) img.loading = 'lazy';
+    img.src = it.src;
+    b.appendChild(img);
+    if (it.label) { const c = document.createElement('span'); c.className = 'ri-photo-cap'; c.textContent = it.label; b.appendChild(c); }
+    b.onclick = () => { sfx.play('menuUp'); openPhotoViewer(it.src, list); };
+    box.appendChild(b);
   });
 }
 // okładki kart w menu: foto/trasa-<klucz>.jpg (gradient, dopóki nie ma pliku)
