@@ -1119,6 +1119,9 @@
   #map.zoom-far .pin-extra::after { opacity: 0; }
   #map.zoom-far .pin-extra .marker-extra { width: 24px; height: 24px; top: 31px; left: 6px; border-width: 2px; }
   #map.zoom-far .pin-extra .marker-extra.marker-done::after { top: -5px; right: -5px; width: 13px; height: 13px; }
+  /* długi lot kamery: pinezki i linie chowają się na czas lotu (płynniej na telefonie) */
+  #map .leaflet-marker-pane, #map .leaflet-overlay-pane { transition: opacity 0.25s ease; }
+  #map.long-fly .leaflet-marker-pane, #map.long-fly .leaflet-overlay-pane { opacity: 0; transition: opacity 0.15s ease; }
   /* ---------- Płynne pojawianie się / znikanie punktów przy zoomie (zamiast nagłego "pyk") ---------- */
   @keyframes pinIn { from { opacity: 0; transform: scale(0.35); } 60% { opacity: 1; } to { opacity: 1; transform: none; } }
   @keyframes pinOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.35); } }
@@ -3835,8 +3838,42 @@ const map = L.map('map', {
 // w każdej klatce takiego ruchu, więc zawsze ma swoją normalną grubość.
 map.on('zoom', () => {
   if (map._animatingZoom || !lineRenderer._map) return; // krótka animacja zoomu przyciskiem — Leaflet ogarnia sam
+  if (map._longFly) return; // długi lot: linie są wtedy schowane, nie ma czego rysować
   lineRenderer._reset();
 });
+
+// Długi lot kamery (np. z jednego końca miasta na drugi): na telefonie przycinał, bo w każdej klatce
+// przesuwały się wszystkie pinezki ze zdjęciami i od nowa rysowały linie tras, a do tego dochodziły kafelki mapy.
+// Teraz na czas takiego lotu pinezki i linie płynnie znikają, a po wylądowaniu wracają — telefon ma do
+// przesunięcia tylko samą mapę. Krótkie loty (blisko, na ekranie) działają jak dotąd.
+(function () {
+  const flyTo = map.flyTo;
+  const el = map.getContainer();
+  function land() {
+    if (!map._longFly) return;
+    map._longFly = false;
+    if (lineRenderer._map) lineRenderer._reset();
+    el.classList.remove('long-fly');
+  }
+  map.flyTo = function (latlng, zoom, opts) {
+    try {
+      const size = map.getSize(), target = L.latLng(latlng);
+      const z = Math.min(map.getZoom(), zoom === undefined ? map.getZoom() : zoom);
+      const a = map.project(map.getCenter(), z), b = map.project(target, z);
+      const far = Math.abs(b.x - a.x) > size.x * 1.2 || Math.abs(b.y - a.y) > size.y * 1.2 || Math.abs((zoom || map.getZoom()) - map.getZoom()) > 2.5;
+      if (far && !(opts && opts.animate === false)) {
+        map._longFly = true;
+        el.classList.add('long-fly');
+        map.once('moveend', land);
+        clearTimeout(map._longFlyT);
+        map._longFlyT = setTimeout(land, ((opts && opts.duration) || 1.5) * 1000 + 1500); // zabezpieczenie
+      }
+    } catch (_) {}
+    return flyTo.apply(this, arguments);
+  };
+  // lot przerwany palcem też kończy się "moveend", ale na wszelki wypadek: dotknięcie mapy = lądowanie
+  el.addEventListener('touchstart', () => { if (map._longFly) setTimeout(land, 0); }, { passive: true });
+})();
 
 // wykrywamy słabe połączenie (2G/3G, "oszczędzanie danych") i dostosowujemy zachowanie mapy
 const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
