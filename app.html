@@ -4250,7 +4250,9 @@ function clusterIcon(cluster) {
 })();
 
 const pointCluster = L.markerClusterGroup({
-  maxClusterRadius: 50, // pinezki ze zdjęciem są szerokie (46px) — mniejszy promień = nachodzące na siebie pinezki przy oddaleniu
+  // przy oddaleniu punkty to małe kółka (32px), więc grupujemy tylko te, które naprawdę na siebie wchodzą —
+  // wcześniej cały Kazimierz zbijał się w 2 grupy (Pektus). Bliżej pinezki są szersze (46px) → większy promień.
+  maxClusterRadius: z => z <= 16 ? 30 : 50,
   // grupy działają też na przybliżeniu 17 (gęsty Kazimierz: przy 16,5–17,5 pinezki wchodziły na siebie);
   // dopiero od 18 każdy punkt stoi osobno
   disableClusteringAtZoom: 18,
