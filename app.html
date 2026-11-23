@@ -726,8 +726,16 @@
     transition: transform 0.1s ease, background 0.15s ease;
   }
   #brand:active, #locate-btn:active, #settings-btn:active, #view-toggle-btn:active, #north-btn:active { transform: scale(0.94); }
-  /* Kompas — widoczny zawsze; czerwona igła pokazuje, gdzie na ekranie jest północ, stuknięcie = północ do góry */
+  /* zębatka zniknęła z mapy — ustawienia są w menu głównym (domek) */
+  #settings-btn { display: none !important; }
+  /* Kompas — pokazuje się TYLKO, gdy mapa jest obrócona; czerwona igła = gdzie jest północ, stuknięcie = północ do góry */
   #north-btn svg { width: 24px; height: 24px; }
+  #north-btn {
+    opacity: 0; visibility: hidden; transform: scale(0.6); pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease, background 0.15s ease;
+  }
+  #north-btn.rotated { opacity: 1; visibility: visible; transform: scale(1); pointer-events: auto; }
+  #north-btn.rotated:active { transform: scale(0.94); }
   #north-needle { transform-origin: 12px 12px; }
   #brand svg, #locate-btn svg, #settings-btn svg { width: 20px; height: 20px; stroke: var(--ink); color: var(--ink); }
   #locate-btn.active { background: var(--route); }
@@ -4488,6 +4496,7 @@ function updateNorthBtn() {
   if (!canRotateMap) return;
   const b = map.getBearing();
   northNeedle.style.transform = `rotate(${b}deg)`;
+  northBtn.classList.toggle('rotated', Math.min(b, 360 - b) > 1); // mapa obrócona = kompas widoczny
   if (lastCompassHeading !== null && !viewMode3D) updateBeamRotation(lastCompassHeading);
 }
 if (canRotateMap) map.on('rotate', updateNorthBtn);
