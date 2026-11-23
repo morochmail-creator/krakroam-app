@@ -1234,22 +1234,36 @@
     display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
   }
   #sheet-photo-btn svg { width: 22px; height: 22px; stroke: var(--brass-deep); opacity: 0.8; }
-  /* duże zdjęcie na górze rozwiniętego panelu (zamiast małej miniaturki obok tytułu) */
+  /* zdjęcie punktu jako tło nagłówka: niskie, na całą szerokość, nazwa punktu napisana na nim
+     (zastępuje zwykły nagłówek, więc panel prawie nie rośnie i mapa zostaje widoczna) */
+  #sheet-head { position: relative; }
   #sheet-hero {
-    position: relative; display: block; width: 100%; height: clamp(130px, 24vh, 230px);
-    margin: 0 0 12px; padding: 0; border: none; border-radius: 16px; overflow: hidden; cursor: pointer;
-    background: var(--brass-tint);
+    position: absolute; inset: 0; display: block; padding: 0; border: none; border-radius: 16px;
+    overflow: hidden; cursor: pointer; background: var(--brass-tint); z-index: 0;
   }
   #sheet-hero.hidden { display: none; }
   #sheet-hero-img, #sheet-hero-full { position: absolute; inset: 0; background: center / cover no-repeat; }
   #sheet-hero-img { filter: blur(8px); transform: scale(1.08); }
   #sheet-hero-full { opacity: 0; transition: opacity 0.35s ease; }
   #sheet-hero-full.on { opacity: 1; }
-  #sheet-hero-zoom {
-    position: absolute; right: 10px; bottom: 10px; width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(20,17,13,0.55); display: flex; align-items: center; justify-content: center;
+  #sheet-hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,17,13,0) 25%, rgba(20,17,13,0.78) 100%);
   }
-  #sheet-hero-zoom svg { width: 17px; height: 17px; stroke: #fff; }
+  #sheet-hero-zoom {
+    position: absolute; right: 8px; top: 8px; z-index: 1; width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(20,17,13,0.5); display: flex; align-items: center; justify-content: center;
+  }
+  #sheet-hero-zoom svg { width: 15px; height: 15px; stroke: #fff; }
+  #sheet.has-hero #sheet-head {
+    min-height: 116px; margin-bottom: 10px; padding: 12px 12px 10px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  #sheet.has-hero #sheet-kicker, #sheet.has-hero #sheet-title-row { position: relative; z-index: 1; pointer-events: none; }
+  #sheet.has-hero #sheet-title-row { margin-bottom: 0; }
+  #sheet.has-hero #sheet-title-row button { pointer-events: auto; }
+  #sheet.has-hero #sheet-kicker { color: #f6cf6b; }
+  #sheet.has-hero #sheet-title { color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
   #sheet.has-hero #sheet-photo-btn { display: none; }
   #sheet-photo-btn.has-photo svg { display: none; }
   #photo-viewer {
@@ -1444,7 +1458,7 @@
 
   #sheet-full-content {
     display: flex; flex-direction: column; min-height: 0;
-    max-height: calc(74vh - 34px); max-height: calc(74dvh - 34px);
+    max-height: calc(66vh - 34px); max-height: calc(66dvh - 34px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   #sheet-full-content > * { flex-shrink: 0; }
@@ -1860,6 +1874,7 @@
     </div>
 
     <div id="sheet-full-content">
+      <div id="sheet-head">
       <button id="sheet-hero" class="hidden" type="button" aria-label="Zdjęcie">
         <span id="sheet-hero-img"></span><span id="sheet-hero-full"></span>
         <span id="sheet-hero-zoom"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"></polyline><polyline points="9,21 3,21 3,15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg></span>
@@ -1883,6 +1898,8 @@
         <button id="sheet-photo-btn" aria-label="Zdjęcie">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg>
         </button>
+      </div>
+
       </div>
 
       <div id="track-list"></div>
