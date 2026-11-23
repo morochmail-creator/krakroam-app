@@ -656,12 +656,15 @@
   #map { position: absolute; inset: 0; z-index: 1; background: var(--map-bg); transition: background 0.3s ease; }
   .leaflet-container { background: var(--map-bg); transition: background 0.3s ease; }
   .leaflet-tile { will-change: auto; }
-  #map .leaflet-tile-pane {
+  #app[data-map-mode="satellite"] { --map-bg: #3a3a31; } /* "ziemia" zamiast czerni, gdyby kafelek się spóźnił */
+  #map .leaflet-tile-pane, #map .leaflet-underlay-pane {
     filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.5);
     transition: filter 0.3s ease;
   }
   #app[data-map-mode="light"] #map .leaflet-tile-pane,
-  #app[data-map-mode="satellite"] #map .leaflet-tile-pane {
+  #app[data-map-mode="satellite"] #map .leaflet-tile-pane,
+  #app[data-map-mode="light"] #map .leaflet-underlay-pane,
+  #app[data-map-mode="satellite"] #map .leaflet-underlay-pane {
     filter: none;
   }
   #app[data-map-mode="light"] #map-tint {
@@ -3946,6 +3949,11 @@ function withPreload(layer, px) {
   };
   return layer;
 }
+// duży obszar Krakowa z okolicą — dla niego mapa doładowuje się w tle (patrz prefetchTilesForArea)
+const KRAKOW_REGION = L.latLngBounds([49.975, 19.79], [50.125, 20.11]);
+const UNDER_MAX_ZOOM = 15;
+map.createPane('underlay', map._rotatePane || undefined).style.zIndex = 150; // pod zwykłymi kafelkami (200)
+map.getPane('underlay').style.pointerEvents = 'none';
 function makeTileLayers(url, extra) {
   const main = withPreload(L.tileLayer(url, Object.assign({
     maxZoom: 19,
@@ -3954,7 +3962,21 @@ function makeTileLayers(url, extra) {
     updateWhenZooming: false,
     updateInterval: 200
   }, extra)), TILE_PRELOAD_PX);
-  return { main };
+  // PODKŁAD (Pektus: przy szybkim zoomie mapa robiła się na chwilę czarna): pod właściwą mapą leży ta sama
+  // mapa, ale z bardzo małej liczby kafelków z daleka (poziom 13, cały Kraków to ok. 40 sztuk). Gdy ostre
+  // kafelki jeszcze nie doszły, widać pod spodem rozmytą mapę zamiast czarnej dziury.
+  // Tylko do zoomu 15 (UNDER_MAX_ZOOM) — bliżej rozciągnięte kafelki są ogromne, a iPhone ma mało pamięci
+  // (wcześniejszy podkład na każdym zoomie wywalał Safari). Bliżej ratuje nas doładowanie kafelków centrum.
+  const under = L.tileLayer(url, Object.assign({
+    pane: 'underlay',
+    minZoom: 0, maxZoom: UNDER_MAX_ZOOM,
+    minNativeZoom: 13, maxNativeZoom: 13,
+    bounds: KRAKOW_REGION,
+    keepBuffer: 0,
+    updateWhenZooming: false,
+    updateWhenIdle: true
+  }, extra));
+  return { main, under };
 }
 
 const osmTiles = makeTileLayers('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { subdomains: 'abc' });
@@ -3963,6 +3985,8 @@ const osmLayer = osmTiles.main;
 const satLayer = satTiles.main;
 function showTiles(on, off) {
   if (map.hasLayer(off.main)) map.removeLayer(off.main);
+  if (map.hasLayer(off.under)) map.removeLayer(off.under);
+  if (!map.hasLayer(on.under)) on.under.addTo(map);
   if (!map.hasLayer(on.main)) on.main.addTo(map);
 }
 
@@ -4000,19 +4024,29 @@ function prefetchTilesForArea() {
     return Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, z));
   }
 
-  // satelita to teraz domyślna warstwa — właśnie ją doładowujemy w tle, tylko 2 poziomy zoomu
-  const zooms = [16, 17];
+  // satelita to domyślna warstwa — ją doładowujemy w tle, piętrami (Pektus: mapa ma się nie doczytywać przy
+  // zoomie i przewijaniu): z daleka cały duży Kraków z okolicą (mało kafelków), im bliżej, tym mniejszy obszar.
+  // Razem ok. 1300 kafelków (~20 MB), najpierw te z daleka — one najbardziej ratują przed czarnym ekranem.
   const queue = [];
-
-  zooms.forEach(z => {
-    const xMin = lonToTileX(minLng, z), xMax = lonToTileX(maxLng, z);
-    const yMin = latToTileY(maxLat, z), yMax = latToTileY(minLat, z);
-    for (let x = xMin; x <= xMax; x++) {
-      for (let y = yMin; y <= yMax; y++) {
-        queue.push({ x, y, z });
-      }
+  const seen = new Set();
+  function addArea(z, s, n, w, e) {
+    const xMin = lonToTileX(w, z), xMax = lonToTileX(e, z);
+    const yMin = latToTileY(n, z), yMax = latToTileY(s, z);
+    for (let x = xMin; x <= xMax; x++) for (let y = yMin; y <= yMax; y++) {
+      const k = z + '/' + x + '/' + y;
+      if (!seen.has(k)) { seen.add(k); queue.push({ x, y, z }); }
     }
-  });
+  }
+  const R = KRAKOW_REGION;
+  [11, 12, 13, 14].forEach(z => addArea(z, R.getSouth(), R.getNorth(), R.getWest(), R.getEast()));
+  const cLat = (minLat + maxLat) / 2, cLng = (minLng + maxLng) / 2;
+  function around(km) {
+    const dLat = km / 111, dLng = km / (111 * Math.cos(cLat * Math.PI / 180));
+    return [cLat - dLat, cLat + dLat, cLng - dLng, cLng + dLng];
+  }
+  addArea(15, ...around(4));   // ~4 km wokół centrum
+  addArea(16, ...around(2));   // ~2 km
+  addArea(17, minLat, maxLat, minLng, maxLng); // centrum z tras + 0,5 km zapasu (jak wcześniej)
 
   // ładujemy małymi partiami z przerwami, żeby nie zarzucić słabszego łącza naraz
   let i = 0;
@@ -4165,7 +4199,7 @@ function setMapMode(mode) {
 
   if (mode === 'satellite') {
     showTiles(satTiles, osmTiles);
-    appEl.style.setProperty('--map-bg', '#14110d');
+    appEl.style.setProperty('--map-bg', '#3a3a31'); // kolor "ziemi" zamiast czerni — gdyby gdzieś kafelek się spóźnił
   } else {
     showTiles(osmTiles, satTiles);
     appEl.style.setProperty('--map-bg', mode === 'light' ? '#eef0ec' : '#14110d');
