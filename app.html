@@ -1082,6 +1082,12 @@
   #map.zoom-far .pin-main.pin-group::before { width: 32px; height: 32px; top: 37px; left: 11px; border-width: 2.5px; }
   #map.zoom-far .pin-main .pin-count { top: 33px; right: -3px; min-width: 19px; height: 19px; padding: 0 4px; font-size: 10.5px; line-height: 15px; }
   #map.zoom-far .pin-main .marker-main.marker-done::after { top: -5px; right: -5px; width: 15px; height: 15px; }
+  /* oddalona mapa: samotne punkty dodatkowe = małe kółka (24px) dokładnie na miejscu punktu, bez dzióbka */
+  .pin-extra .marker-extra { transition: width 0.3s ease, height 0.3s ease, top 0.3s ease, left 0.3s ease, border-width 0.3s ease; }
+  .pin-extra::after { transition: opacity 0.25s ease; }
+  #map.zoom-far .pin-extra::after { opacity: 0; }
+  #map.zoom-far .pin-extra .marker-extra { width: 24px; height: 24px; top: 31px; left: 6px; border-width: 2px; }
+  #map.zoom-far .pin-extra .marker-extra.marker-done::after { top: -5px; right: -5px; width: 13px; height: 13px; }
   /* ---------- Płynne pojawianie się / znikanie punktów przy zoomie (zamiast nagłego "pyk") ---------- */
   @keyframes pinIn { from { opacity: 0; transform: scale(0.35); } 60% { opacity: 1; } to { opacity: 1; transform: none; } }
   @keyframes pinOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.35); } }
@@ -3688,10 +3694,20 @@ map.addLayer(pointCluster);
 // Oddalona mapa = spokojna mapa: tylko punkty główne (małe kółka), dodatkowe chowamy do czasu przybliżenia.
 // Wyjątek: dodatkowy punkt, do którego prowadzi nawigacja albo którego nagranie jest wczytane — zostaje.
 const FAR_ZOOM = 16.5;
+const SOLO_PX = 60; // większe niż promień grupowania (50), więc samotny punkt nie skleja się z sąsiadem
 function syncExtras() {
   const far = map.getZoom() < FAR_ZOOM;
   map.getContainer().classList.toggle('zoom-far', far);
-  const keep = id => id === navMarkedId || id === playingPointId;
+  // dodatkowy punkt stojący "sam" (żaden inny punkt nie jest bliżej niż SOLO_PX na ekranie) też zostaje,
+  // żeby oddalona mapa nie była pusta; te upchane w jednym miejscu (np. Rynek) dalej się chowają
+  const z = map.getZoom();
+  const px = POINTS.map(p => map.project([p.lat, p.lng], z));
+  const solo = new Set();
+  if (far) POINTS.forEach((p, i) => {
+    if (p.type === 'main') return;
+    if (px.every((q, j) => j === i || q.distanceTo(px[i]) > SOLO_PX)) solo.add(p.id);
+  });
+  const keep = id => id === navMarkedId || id === playingPointId || solo.has(id);
   const extras = POINTS.filter(p => p.type !== 'main').map(p => markersById[p.id]);
   const toRemove = [], toAdd = [];
   extras.forEach(m => {
