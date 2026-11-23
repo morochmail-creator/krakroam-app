@@ -1016,6 +1016,13 @@
   }
   .pin-extra .pin-count { top: -7px; right: -8px; min-width: 19px; height: 19px; padding: 0 4px; font-size: 10.5px; line-height: 15px; }
   .pin-extra .pin-label { top: 46px; }
+  /* ---------- Oddalona mapa (zoom < 17): tylko główne punkty jako małe kółka ze zdjęciem, bez dzióbka ----------
+     Kółko siedzi dokładnie na miejscu punktu (tam, gdzie był czubek pinezki). */
+  #map.zoom-far .pin-main::after { display: none; }
+  #map.zoom-far .pin-main .marker-main { width: 32px; height: 32px; top: 41px; left: 7px; border-width: 2.5px; }
+  #map.zoom-far .pin-main.pin-group::before { width: 32px; height: 32px; top: 37px; left: 11px; border-width: 2.5px; }
+  #map.zoom-far .pin-main .pin-count { top: 33px; right: -3px; min-width: 19px; height: 19px; padding: 0 4px; font-size: 10.5px; line-height: 15px; }
+  #map.zoom-far .pin-main .marker-main.marker-done::after { top: -5px; right: -5px; width: 15px; height: 15px; }
   /* nazwa pod pinezką (włączana klasą .pin-names na mapie) */
   .pin-label {
     display: none; position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
@@ -3509,6 +3516,27 @@ POINTS.forEach(p => {
 });
 map.addLayer(pointCluster);
 
+// Oddalona mapa = spokojna mapa: tylko punkty główne (małe kółka), dodatkowe chowamy do czasu przybliżenia.
+// Wyjątek: dodatkowy punkt, do którego prowadzi nawigacja albo którego nagranie jest wczytane — zostaje.
+const FAR_ZOOM = 16.5;
+function syncExtras() {
+  const far = map.getZoom() < FAR_ZOOM;
+  map.getContainer().classList.toggle('zoom-far', far);
+  const keep = id => id === navMarkedId || id === playingPointId;
+  const extras = POINTS.filter(p => p.type !== 'main').map(p => markersById[p.id]);
+  const toRemove = [], toAdd = [];
+  extras.forEach(m => {
+    const want = !far || keep(m.options.pointId);
+    const has = pointCluster.hasLayer(m);
+    if (want && !has) toAdd.push(m);
+    else if (!want && has) toRemove.push(m);
+  });
+  if (toRemove.length) pointCluster.removeLayers(toRemove);
+  if (toAdd.length) pointCluster.addLayers(toAdd);
+}
+map.on('zoomend', syncExtras);
+syncExtras();
+
 // Stuknięcia w punkty, które "nie łapały": gdy palec trafi w punkt, ale telefon uzna, że puszczenie
 // palca było nad czymś innym (sąsiedni punkt, linia trasy, mapa pod spodem), przeglądarka wysyła
 // kliknięcie do wspólnego "rodzica" zamiast do punktu i nic się nie działo, dopóki mapa się nie ruszyła.
@@ -4295,11 +4323,13 @@ function showNavTargetMarker() {
   if (!navTargetLatLng || !p || !markersById[p.id] || p.lat !== navTargetLatLng[0] || p.lng !== navTargetLatLng[1]) return;
   navMarkedId = p.id;
   applyMarkerState(p.id);
+  syncExtras();
 }
 function hideNavTargetMarker() {
   const prev = navMarkedId;
   navMarkedId = null;
   if (prev) applyMarkerState(prev);
+  syncExtras();
 }
 
 const NAV_START_ZOOM = 18;
@@ -5854,6 +5884,7 @@ function updatePlayingMarker() {
   playingActive = !!playingPointId && !audioEl.paused && !audioEl.ended;
   if (prev && prev !== playingPointId) applyMarkerState(prev);
   if (playingPointId) applyMarkerState(playingPointId);
+  if (prev !== playingPointId) syncExtras();
 }
 ['play', 'pause', 'ended', 'emptied', 'loadstart'].forEach(ev => audioEl.addEventListener(ev, updatePlayingMarker));
 // ikona zawsze zgodna z prawdziwym stanem (także przy sterowaniu z słuchawek / ekranu blokady)
