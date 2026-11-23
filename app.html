@@ -6163,10 +6163,19 @@ audioEl.addEventListener('loadedmetadata', () => {
   applyPendingSeek(); showTimes(audioEl.currentTime);
 });
 audioEl.addEventListener('canplay', applyPendingSeek);
-audioEl.addEventListener('ended', () => { setPlayIcon(false); updateProgressUI(100); markPointDone(); playNextInPoint(); });
+// 1,5 s ciszy między nagraniami (Pektus) — gdy w tym czasie ktoś sam coś włączy, kolejne nie startuje
+let nextTrackTimer = null;
+audioEl.addEventListener('ended', () => {
+  setPlayIcon(false); updateProgressUI(100); markPointDone();
+  clearTimeout(nextTrackTimer);
+  const endedSrc = audioEl.currentSrc;
+  nextTrackTimer = setTimeout(() => { if (audioEl.paused && audioEl.currentSrc === endedSrc) playNextInPoint(); }, 1500);
+});
+audioEl.addEventListener('play', () => clearTimeout(nextTrackTimer));
 /* ---------- Autoodtwarzanie: po skończonym nagraniu leci następne w tym samym punkcie ---------- */
 var autoplayNext = true; // var, nie let — applyTranslations() woła updateAutoplayUI() wcześniej w kodzie
-try { autoplayNext = localStorage.getItem('krakroam_autoplay') !== '0'; } catch (_) {}
+// domyślnie włączone; nowy klucz (_v2), żeby u wszystkich wróciło na "włączone" — potem apka pamięta wybór
+try { autoplayNext = localStorage.getItem('krakroam_autoplay_v2') !== '0'; } catch (_) {}
 function playNextInPoint() {
   if (!autoplayNext || !loadedPoint) return;
   const tracks = loadedPoint.tracks || [];
@@ -6188,7 +6197,7 @@ function updateAutoplayUI() {
 }
 function setAutoplay(v) {
   autoplayNext = v;
-  try { localStorage.setItem('krakroam_autoplay', v ? '1' : '0'); } catch (_) {}
+  try { localStorage.setItem('krakroam_autoplay_v2', v ? '1' : '0'); } catch (_) {}
   updateAutoplayUI();
 }
 document.getElementById('autoplay-btn').addEventListener('click', () => {
