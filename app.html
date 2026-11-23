@@ -844,6 +844,29 @@
     background: #3f8a5c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 70% no-repeat;
   }
   .pin-main.pin-nav::after { border-top-color: var(--route); }
+  .pin-main .marker-main.pin-nophoto {
+    background: #f6efe0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b3822a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6z'/%3E%3C/svg%3E") center / 56% no-repeat;
+  }
+  /* grupa punktów: ta sama pinezka + "kartka" pod spodem i plakietka z liczbą pozostałych punktów */
+  .pin-group::before {
+    content: ""; position: absolute; top: -4px; left: 5px; width: 46px; height: 46px; border-radius: 50%;
+    background: #d9a239; border: 3px solid #f6cf6b; box-sizing: border-box;
+    box-shadow: 0 0 0 1.5px #14110d;
+  }
+  .pin-count {
+    position: absolute; z-index: 2; top: -7px; right: -9px;
+    min-width: 22px; height: 22px; padding: 0 5px; box-sizing: border-box; border-radius: 11px;
+    background: #14110d; color: #fff; border: 2px solid #fff;
+    font: 800 11.5px/18px 'Inter', sans-serif; text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  /* grupa samych punktów dodatkowych: kropka tylko trochę większa od pojedynczej, z liczbą */
+  .cluster-dot {
+    width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box;
+    background: #ece6d6; border: 2px solid #fff;
+    box-shadow: 0 0 0 1.5px #14110d, 0 2px 6px rgba(0,0,0,0.55);
+    color: #14110d; font: 800 10.5px/16px 'Inter', sans-serif; text-align: center;
+  }
   /* nazwa pod pinezką (włączana klasą .pin-names na mapie) */
   .pin-label {
     display: none; position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
@@ -3117,38 +3140,43 @@ function pointPinPhoto(p) {
   }
   return null;
 }
-function makePinIcon(p) {
+// bez zdjęcia: kremowe kółko z ikoną zabytku (wygląda jak reszta pinezek, a nie jak pusta złota kula)
+function pinHtml(p, extra, cls) {
   const photo = pointPinPhoto(p);
   const bg = photo ? ` style="background-image:url('${photo}')"` : '';
   const label = String(pointName(p)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return `<div class="pin-main${cls ? ' ' + cls : ''}"><div class="marker-main${photo ? '' : ' pin-nophoto'}"${bg}></div>${extra || ''}<div class="pin-label">${label}</div></div>`;
+}
+function makePinIcon(p) {
+  return L.divIcon({ className: '', html: pinHtml(p), iconSize: [46, 58], iconAnchor: [23, 57] });
+}
+
+// Grupy punktów przy oddaleniu wyglądają TAK SAMO jak pojedyncze punkty (Pektus: "punkty mają równo
+// wyglądać na różnych zoomach"): grupa z punktem głównym = ta sama pinezka ze zdjęciem (pierwszego
+// punktu głównego w grupie wg kolejności trasy) + mała plakietka "+N", grupa samych dodatkowych =
+// mała kremowa kropka z liczbą.
+const pointOrder = {};
+POINTS.forEach((p, i) => { pointOrder[p.id] = i; });
+function clusterIcon(cluster) {
+  const kids = cluster.getAllChildMarkers();
+  const count = kids.length;
+  const mains = kids.filter(m => m.options.pointType === 'main');
+  if (!mains.length) {
+    return L.divIcon({
+      html: `<div class="marker-hit"><div class="cluster-dot">${count}</div></div>`,
+      className: '', iconSize: [MARKER_HIT_SIZE, MARKER_HIT_SIZE]
+    });
+  }
+  const first = mains.reduce((a, m) => pointOrder[m.options.pointId] < pointOrder[a.options.pointId] ? m : a);
+  const p = POINTS[pointOrder[first.options.pointId]];
   return L.divIcon({
-    className: '',
-    html: `<div class="pin-main"><div class="marker-main"${bg}></div><div class="pin-label">${label}</div></div>`,
-    iconSize: [46, 58], iconAnchor: [23, 57]
+    html: pinHtml(p, `<div class="pin-count">+${count - 1}</div>`, 'pin-group'),
+    className: '', iconSize: [46, 58], iconAnchor: [23, 57]
   });
 }
 
-function clusterIconFactory(cssClass) {
-  return function (cluster) {
-    const count = cluster.getChildCount();
-    const sizeClass = count < 5 ? 'cluster-sm' : count < 12 ? 'cluster-md' : 'cluster-lg';
-    // halo + rdzeń z białą obwódką — celowo NIE wygląda jak pojedynczy numerowany punkt,
-    // żeby liczba zgrupowanych punktów nigdy nie była mylona z numerem przystanku
-    return L.divIcon({
-      html: `<div class="cluster-wrap ${sizeClass}"><div class="cluster-halo ${cssClass}-halo"></div><div class="${cssClass} ${sizeClass}">${count}</div></div>`,
-      className: '',
-      iconSize: L.point(40, 40)
-    });
-  };
-}
-
-// JEDNA grupa dla wszystkich punktów — wcześniej były dwie osobne (główne i dodatkowe), których
-// bąbelki nakładały się na siebie przy oddaleniu, więc palec często trafiał w "nie ten" bąbelek.
-// Kolor bąbelka: złoty, jeśli w grupie jest choć jeden punkt główny, szary — same dodatkowe.
-const mainClusterIcon = clusterIconFactory('cluster-main');
-const extraClusterIcon = clusterIconFactory('cluster-extra');
 const pointCluster = L.markerClusterGroup({
-  maxClusterRadius: 36,
+  maxClusterRadius: 50, // pinezki ze zdjęciem są szerokie (46px) — mniejszy promień = nachodzące na siebie pinezki przy oddaleniu
   disableClusteringAtZoom: 17,
   spiderfyOnMaxZoom: false,
   showCoverageOnHover: false,
@@ -3160,10 +3188,7 @@ const pointCluster = L.markerClusterGroup({
   // punkty poza ekranem zostają na mapie (jest ich tylko kilkadziesiąt) — wcześniej biblioteka zdejmowała je przy przesuwaniu
   // i dokładała z powrotem dopiero po zatrzymaniu mapy, więc przy szybkim machaniu palcem punkty znikały na kilka sekund
   removeOutsideVisibleBounds: false,
-  iconCreateFunction: cluster => {
-    const hasMain = cluster.getAllChildMarkers().some(m => m.options.pointType === 'main');
-    return (hasMain ? mainClusterIcon : extraClusterIcon)(cluster);
-  }
+  iconCreateFunction: clusterIcon
 });
 
 // Naprawa "duchów" bąbelków: gdy lot kamery (np. po stuknięciu w bąbelek) zostanie przerwany palcem,
@@ -3224,7 +3249,7 @@ function pointIsDone(p) {
 let doneIds = POINTS.filter(pointIsDone).map(p => p.id); // zaliczone punkty (główne i dodatkowe)
 POINTS.forEach(p => {
   const icon = p.type === 'main' ? makePinIcon(p) : makeDivIcon('marker-extra');
-  const marker = L.marker([p.lat, p.lng], { icon, pointType: p.type, zIndexOffset: p.type === 'main' ? 100 : 0 });
+  const marker = L.marker([p.lat, p.lng], { icon, pointType: p.type, pointId: p.id, zIndexOffset: p.type === 'main' ? 100 : 0 });
 
   marker.on('click', () => {
     sfx.play('point');
