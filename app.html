@@ -13,6 +13,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="KrakRoam">
 <meta name="theme-color" content="#fafaf8">
+<script>
+  // wygląd apki (jasny / ciemny) — ustawiany od razu, żeby nie mignął jasny ekran
+  try { if (localStorage.getItem('krakroam_theme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.querySelector('meta[name="theme-color"]').setAttribute('content', '#1d1b18'); } } catch (_) {}
+</script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
@@ -44,6 +48,28 @@
     --radius-card: 20px;
     --radius-pill: 999px;
   }
+
+  /* ---------- Ciemny wygląd apki (Ustawienia → Wygląd apki). Mapa ma osobny wybór (Widok mapy). ---------- */
+  :root[data-theme="dark"] {
+    --paper: #1d1b18;
+    --paper-2: #2a2722;
+    --ink: #f2eee5;
+    --ink-dim: #a69e8f;
+    --line: #3b372f;
+    --line-strong: #0a0908;
+    --brass-tint: #3d3118;
+    --brass-deep: #e0b252;
+    --route-tint: #1b2b42;
+    --shadow-plate: 0 1px 0 rgba(0,0,0,0.3), 0 10px 24px rgba(0,0,0,0.5);
+    --shadow-float: 0 6px 20px rgba(0,0,0,0.5);
+    color-scheme: dark;
+  }
+  /* ciemne "dymki" zostają ciemne (w ciemnym wyglądzie --ink jest jasny) */
+  :root[data-theme="dark"] #info-toast, :root[data-theme="dark"] #gps-reminder, :root[data-theme="dark"] .popup {
+    background: #0e0d0b; color: #f2eee5; box-shadow: 0 0 0 1px #3b372f, var(--shadow-float);
+  }
+  :root[data-theme="dark"] #gps-reminder-close, :root[data-theme="dark"] .speed-btn { color: #f2eee5; }
+  :root[data-theme="dark"] #route-list-search:focus { background: var(--paper-2); }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -329,7 +355,7 @@
   #howto-footer { padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin: 0 auto; width: 100%; box-sizing: border-box; }
   #howto-start {
     width: 100%; padding: 16px; border-radius: 16px; border: none;
-    background: var(--ink); color: #fff; font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
+    background: var(--ink); color: var(--paper); font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
   }
 
   #district-menu {
@@ -775,7 +801,14 @@
   }
   #perm-title { font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 6px; padding-right: 30px; }
   #perm-sub { font-size: 14px; line-height: 1.45; color: var(--ink-dim); margin-bottom: 12px; }
-  .perm-status { font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .perm-status { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 700; color: var(--ink); padding: 10px 12px; margin-bottom: 6px; border-radius: 12px; background: var(--paper-2); }
+  .perm-state { font-size: 13px; font-weight: 700; color: var(--danger); }
+  .perm-status.ok .perm-state { color: var(--ok); }
+  .perm-hint { font-size: 14px; color: var(--ink-dim); margin-top: 10px; line-height: 1.4; }
+  .perm-allok { font-size: 15px; font-weight: 700; color: var(--ok); text-align: center; margin-top: 6px; }
+  .perm-more { margin-top: 12px; }
+  .perm-more summary { font-size: 13.5px; font-weight: 700; color: var(--route); cursor: pointer; list-style: none; }
+  .perm-more summary::-webkit-details-marker { display: none; }
   .perm-head { font-size: 13px; font-weight: 800; color: var(--ink); margin: 14px 0 6px; }
   .perm-steps { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.45; color: var(--ink); }
   .perm-steps li { margin-bottom: 6px; }
@@ -818,7 +851,8 @@
   }
   .settings-section-label:first-of-type { margin-top: 0; }
   /* Widok mapy = jeden wiersz z trzema "guzikami" obok siebie (zamiast listy na pół ekranu) */
-  #layers-menu {
+  #theme-menu { margin-bottom: 4px; }
+  #layers-menu, #theme-menu {
     display: flex; gap: 4px; padding: 4px;
     background: var(--paper-2); border: 1px solid var(--line); border-radius: 14px;
   }
@@ -1174,6 +1208,23 @@
     display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
   }
   #sheet-photo-btn svg { width: 22px; height: 22px; stroke: var(--brass-deep); opacity: 0.8; }
+  /* duże zdjęcie na górze rozwiniętego panelu (zamiast małej miniaturki obok tytułu) */
+  #sheet-hero {
+    position: relative; display: block; width: 100%; height: clamp(130px, 24vh, 230px);
+    margin: 0 0 12px; padding: 0; border: none; border-radius: 16px; overflow: hidden; cursor: pointer;
+    background: var(--brass-tint);
+  }
+  #sheet-hero.hidden { display: none; }
+  #sheet-hero-img, #sheet-hero-full { position: absolute; inset: 0; background: center / cover no-repeat; }
+  #sheet-hero-img { filter: blur(8px); transform: scale(1.08); }
+  #sheet-hero-full { opacity: 0; transition: opacity 0.35s ease; }
+  #sheet-hero-full.on { opacity: 1; }
+  #sheet-hero-zoom {
+    position: absolute; right: 10px; bottom: 10px; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(20,17,13,0.55); display: flex; align-items: center; justify-content: center;
+  }
+  #sheet-hero-zoom svg { width: 17px; height: 17px; stroke: #fff; }
+  #sheet.has-hero #sheet-photo-btn { display: none; }
   #sheet-photo-btn.has-photo svg { display: none; }
   #photo-viewer {
     position: fixed; inset: 0; z-index: 140; background: rgba(10, 10, 9, 0.97);
@@ -1367,7 +1418,7 @@
 
   #sheet-full-content {
     display: flex; flex-direction: column; min-height: 0;
-    max-height: calc(62vh - 34px); max-height: calc(62dvh - 34px);
+    max-height: calc(74vh - 34px); max-height: calc(74dvh - 34px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   #sheet-full-content > * { flex-shrink: 0; }
@@ -1708,6 +1759,12 @@
       <button id="settings-close" aria-label="Zamknij">×</button>
       <div id="settings-title">Ustawienia</div>
 
+      <div class="settings-section-label" data-t="themeLabel">Wygląd apki</div>
+      <div id="theme-menu" class="seg-menu">
+        <div class="layer-option theme-option" data-theme-opt="light"><span class="lo-label" data-t="themeLight">☀️ Jasny</span></div>
+        <div class="layer-option theme-option" data-theme-opt="dark"><span class="lo-label" data-t="themeDark">🌙 Ciemny</span></div>
+      </div>
+
       <div class="settings-section-label" id="settings-map-label">Widok mapy</div>
       <div id="layers-menu">
         <div class="layer-option" data-mode="dark"><span class="dot"></span><span class="lo-label">Ciemna</span></div>
@@ -1780,6 +1837,10 @@
     </div>
 
     <div id="sheet-full-content">
+      <button id="sheet-hero" class="hidden" type="button" aria-label="Zdjęcie">
+        <span id="sheet-hero-img"></span><span id="sheet-hero-full"></span>
+        <span id="sheet-hero-zoom"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"></polyline><polyline points="9,21 3,21 3,15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg></span>
+      </button>
       <div id="sheet-kicker">Punkt główny</div>
       <div id="sheet-title-row">
         <h2 id="sheet-title">—</h2>
@@ -2027,8 +2088,12 @@ const TRANSLATIONS = {
     nextStop: "Następny przystanek",
     navStraightLine: "w linii prostej",
     gpsReminder: "Lokalizacja wyłączona — nie widzę, gdzie jesteś.", gpsReminderBtn: "Włącz",
-    permRow: "Lokalizacja i kompas — jak włączyć", permTitle: "Jak włączyć lokalizację i kompas", permSub: "Przeglądarka nie ma dostępu do lokalizacji lub kompasu. Bez tego apka nie pokaże, gdzie jesteś i w którą stronę patrzysz.", permRetry: "Spróbuj ponownie", permClose: "Zamknij", permLoc: "📍 Lokalizacja", permCompass: "🧭 Kompas (kierunek patrzenia)", iosLoc: ["W <b>Ustawieniach</b> telefonu: <b>Prywatność i ochrona → Usługi lokalizacji</b> — włącz.", "Niżej na tej liście: <b>Witryny Safari</b> → <b>Podczas używania aplikacji</b> i włącz <b>Dokładna lokalizacja</b>.", "Wróć do Safari, stuknij <b>aA</b> (lub ikonę obok adresu) → <b>Ustawienia witryny</b> → <b>Lokalizacja: Pozwalaj</b>."], iosCompass: ["Stuknij <b>Spróbuj ponownie</b> i w okienku wybierz <b>Pozwól</b> (dostęp do ruchu i orientacji).", "Jeśli wcześniej wybrałeś „Nie pozwalaj”: zamknij kartę z apką, otwórz ją jeszcze raz i stuknij przycisk lokalizacji."], andLoc: ["Przesuń palcem od góry ekranu w dół i stuknij ikonę <b>Lokalizacja</b>, żeby była włączona.", "W Chrome stuknij małą ikonę <b>po lewej stronie adresu strony</b> (u góry, przy „app.krakroam.pl”).", "Stuknij <b>Uprawnienia</b> i przestaw <b>Lokalizacja</b> na włączoną."], andCompass: ["W Chrome stuknij małą ikonę <b>po lewej stronie adresu strony</b> → <b>Uprawnienia</b> → włącz <b>Czujniki ruchu</b>.", "Wróć do apki i stuknij <b>Spróbuj ponownie</b>.", "Dalej nie działa? Zrób telefonem w powietrzu kilka „ósemek” (kalibracja kompasu). Niektóre tańsze telefony nie mają kompasu."], 
+    permRow: "Lokalizacja i kompas", permTitle: "Lokalizacja i kompas", permSub: "Przeglądarka nie ma dostępu do lokalizacji lub kompasu. Bez tego apka nie pokaże, gdzie jesteś i w którą stronę patrzysz.", permRetry: "Spróbuj ponownie", permClose: "Zamknij", permLoc: "📍 Lokalizacja", permCompass: "🧭 Kompas (kierunek patrzenia)", iosLoc: ["W <b>Ustawieniach</b> telefonu: <b>Prywatność i ochrona → Usługi lokalizacji</b> — włącz.", "Niżej na tej liście: <b>Witryny Safari</b> → <b>Podczas używania aplikacji</b> i włącz <b>Dokładna lokalizacja</b>.", "Wróć do Safari, stuknij <b>aA</b> (lub ikonę obok adresu) → <b>Ustawienia witryny</b> → <b>Lokalizacja: Pozwalaj</b>."], iosCompass: ["Stuknij <b>Włącz</b> i w okienku wybierz <b>Pozwól</b> (dostęp do ruchu i orientacji).", "Jeśli wcześniej wybrałeś „Nie pozwalaj”: zamknij kartę z apką, otwórz ją jeszcze raz i stuknij przycisk lokalizacji."], andLoc: ["Przesuń palcem od góry ekranu w dół i stuknij ikonę <b>Lokalizacja</b>, żeby była włączona.", "W Chrome stuknij małą ikonę <b>po lewej stronie adresu strony</b> (u góry, przy „app.krakroam.pl”).", "Stuknij <b>Uprawnienia</b> i przestaw <b>Lokalizacja</b> na włączoną."], andCompass: ["W Chrome stuknij małą ikonę <b>po lewej stronie adresu strony</b> → <b>Uprawnienia</b> → włącz <b>Czujniki ruchu</b>.", "Wróć do apki i stuknij <b>Włącz</b>.", "Dalej nie działa? Zrób telefonem w powietrzu kilka „ósemek” (kalibracja kompasu). Niektóre tańsze telefony nie mają kompasu."], 
     permLocShort: "Lokalizacja", permCompassShort: "Kompas", permWorks: "działa", permNotWorks: "nie działa",
+    themeLabel: "Wygląd apki", themeLight: "☀️ Jasny", themeDark: "🌙 Ciemny",
+    permTurnOn: "Włącz", permAllOk: "Wszystko działa 👍", permMore: "Nie pojawia się okienko? Pokaż, jak to włączyć",
+    permHintIos: "Stuknij „Włącz” i w okienku wybierz „Pozwól”.",
+    permHintAnd: "Stuknij „Włącz” i w okienku wybierz „Zezwól”.",
     audioWeakResuming: "Słaby zasięg — wznawiam nagranie…", audioWeakStopped: "Słaby zasięg — nagranie przerwane. Stuknij ▶, żeby wznowić.",
     gpsDenied: "Nie widzę Twojej lokalizacji. Włącz GPS i zezwól przeglądarce na dostęp do lokalizacji.",
     introTitleRoute: "Odsłuchaj w drodze na start",
@@ -2143,8 +2208,12 @@ const TRANSLATIONS = {
     nextStop: "Next stop",
     navStraightLine: "in a straight line",
     gpsReminder: "Location is off — I can't see where you are.", gpsReminderBtn: "Turn on",
-    permRow: "Location & compass — how to turn on", permTitle: "How to turn on location and compass", permSub: "Your browser has no access to location or the compass. Without it the app can't show where you are or which way you're facing.", permRetry: "Try again", permClose: "Close", permLoc: "📍 Location", permCompass: "🧭 Compass (facing direction)", iosLoc: ["In the phone's <b>Settings</b>: <b>Privacy & Security → Location Services</b> — turn on.", "Further down that list: <b>Safari Websites</b> → <b>While Using the App</b> and turn on <b>Precise Location</b>.", "Back in Safari, tap <b>aA</b> (or the icon next to the address) → <b>Website Settings</b> → <b>Location: Allow</b>."], iosCompass: ["Tap <b>Try again</b> and choose <b>Allow</b> (motion & orientation access).", "If you chose “Don't Allow” before: close the tab, open the app again and tap the location button."], andLoc: ["Swipe down from the top of the screen and tap <b>Location</b> so it's on.", "In Chrome, tap the small icon <b>to the left of the page address</b> (at the top, by “app.krakroam.pl”).", "Tap <b>Permissions</b> and switch <b>Location</b> on."], andCompass: ["In Chrome, tap the small icon <b>left of the page address</b> → <b>Permissions</b> → switch on <b>Motion sensors</b>.", "Go back to the app and tap <b>Try again</b>.", "Still not working? Move the phone in a few figure-eights in the air. Some cheaper phones have no compass."], 
+    permRow: "Location & compass", permTitle: "Location & compass", permSub: "Your browser has no access to location or the compass. Without it the app can't show where you are or which way you're facing.", permRetry: "Try again", permClose: "Close", permLoc: "📍 Location", permCompass: "🧭 Compass (facing direction)", iosLoc: ["In the phone's <b>Settings</b>: <b>Privacy & Security → Location Services</b> — turn on.", "Further down that list: <b>Safari Websites</b> → <b>While Using the App</b> and turn on <b>Precise Location</b>.", "Back in Safari, tap <b>aA</b> (or the icon next to the address) → <b>Website Settings</b> → <b>Location: Allow</b>."], iosCompass: ["Tap <b>Turn on</b> and choose <b>Allow</b> (motion & orientation access).", "If you chose “Don't Allow” before: close the tab, open the app again and tap the location button."], andLoc: ["Swipe down from the top of the screen and tap <b>Location</b> so it's on.", "In Chrome, tap the small icon <b>to the left of the page address</b> (at the top, by “app.krakroam.pl”).", "Tap <b>Permissions</b> and switch <b>Location</b> on."], andCompass: ["In Chrome, tap the small icon <b>left of the page address</b> → <b>Permissions</b> → switch on <b>Motion sensors</b>.", "Go back to the app and tap <b>Turn on</b>.", "Still not working? Move the phone in a few figure-eights in the air. Some cheaper phones have no compass."], 
     permLocShort: "Location", permCompassShort: "Compass", permWorks: "working", permNotWorks: "not working",
+    themeLabel: "App appearance", themeLight: "☀️ Light", themeDark: "🌙 Dark",
+    permTurnOn: "Turn on", permAllOk: "Everything works 👍", permMore: "No pop-up? Show how to turn it on",
+    permHintIos: "Tap “Turn on” and choose “Allow” in the pop-up.",
+    permHintAnd: "Tap “Turn on” and choose “Allow” in the pop-up.",
     audioWeakResuming: "Weak signal — resuming the recording…", audioWeakStopped: "Weak signal — recording stopped. Tap ▶ to resume.",
     gpsDenied: "We can't see your location. Turn on GPS and allow your browser to use your location.",
     introTitleRoute: "Listen on your way to the start",
@@ -3366,7 +3435,7 @@ document.getElementById('settings-scrim').addEventListener('click', () => {
 
 function setMapMode(mode) {
   appEl.setAttribute('data-map-mode', mode);
-  document.querySelectorAll('.layer-option').forEach(el => {
+  document.querySelectorAll('#layers-menu .layer-option').forEach(el => {
     el.classList.toggle('active', el.dataset.mode === mode);
   });
 
@@ -3379,9 +3448,22 @@ function setMapMode(mode) {
   }
 }
 
-document.querySelectorAll('.layer-option').forEach(el => {
+document.querySelectorAll('#layers-menu .layer-option').forEach(el => {
   el.addEventListener('click', () => setMapMode(el.dataset.mode));
 });
+
+// Wygląd apki: jasny / ciemny (menu, panele, ustawienia). Zapamiętany w telefonie.
+function setTheme(theme) {
+  const dark = theme === 'dark';
+  if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+  else document.documentElement.removeAttribute('data-theme');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', dark ? '#1d1b18' : '#fafaf8');
+  try { localStorage.setItem('krakroam_theme', dark ? 'dark' : 'light'); } catch (_) {}
+  document.querySelectorAll('.theme-option').forEach(el => el.classList.toggle('active', el.dataset.themeOpt === (dark ? 'dark' : 'light')));
+}
+document.querySelectorAll('.theme-option').forEach(el => el.addEventListener('click', () => { sfx.play('tap'); setTheme(el.dataset.themeOpt); }));
+setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
 
 // (zdjęcia: przeniesione wyżej, bo pinezki punktów głównych potrzebują ich już przy tworzeniu mapy)
 const TRACK_PHOTO_VER = '4'; // przy podmianie zdjęć podbij numer, żeby telefony pobrały nowe
@@ -4271,12 +4353,16 @@ function showPermHelp(focus) {
   const comp = block(t('permCompass'), 'iosCompass', 'andCompass');
   const locOk = lastGpsOkAt && Date.now() - lastGpsOkAt < GPS_STALE_MS;
   const compOk = lastCompassEventAt && Date.now() - lastCompassEventAt < 5000;
-  document.getElementById('perm-sub').innerHTML =
-    '<div class="perm-status">' + (locOk ? '✅ ' : '❌ ') + t('permLocShort') + ' — ' + t(locOk ? 'permWorks' : 'permNotWorks') + '</div>' +
-    '<div class="perm-status">' + (compOk ? '✅ ' : '❌ ') + t('permCompassShort') + ' — ' + t(compOk ? 'permWorks' : 'permNotWorks') + '</div>';
-  document.getElementById('perm-body').innerHTML = focus === 'compass' ? comp + loc : loc + comp;
+  // krótko: stan + jeden przycisk "Włącz" (wywołuje okienko zgody telefonu). Pełna instrukcja schowana pod linkiem —
+  // strona internetowa nie może sama otworzyć ustawień telefonu (ani na iPhonie, ani na Androidzie).
+  const row = (ok, label) => '<div class="perm-status' + (ok ? ' ok' : '') + '"><span>' + (ok ? '✅ ' : '❌ ') + label + '</span><span class="perm-state">' + t(ok ? 'permWorks' : 'permNotWorks') + '</span></div>';
+  document.getElementById('perm-sub').innerHTML = row(locOk, t('permLocShort')) + row(compOk, t('permCompassShort')) +
+    (locOk && compOk ? '' : '<div class="perm-hint">' + t(kind === 'ios' ? 'permHintIos' : 'permHintAnd') + '</div>');
+  document.getElementById('perm-body').innerHTML = locOk && compOk ? '<div class="perm-allok">' + t('permAllOk') + '</div>' :
+    '<details class="perm-more"><summary>' + t('permMore') + '</summary>' + (focus === 'compass' ? comp + loc : loc + comp) + '</details>';
   document.getElementById('perm-title').textContent = t('permTitle');
-  document.getElementById('perm-retry').style.display = '';
+  document.getElementById('perm-retry').textContent = t('permTurnOn');
+  document.getElementById('perm-retry').style.display = locOk && compOk ? 'none' : '';
   gpsReminderEl.classList.add('hidden');
   permScreenEl.classList.remove('hidden');
 }
@@ -5089,8 +5175,24 @@ function trackPhotoSrcs(track) {
   return out;
 }
 let currentPhotoSrc = null;
+// duże zdjęcie w panelu: najpierw rozmyta miniaturka (od razu), potem pełne zdjęcie płynnie na wierzch
+const sheetHero = document.getElementById('sheet-hero');
+const sheetHeroFull = document.getElementById('sheet-hero-full');
+function showSheetHero(mini, src) {
+  document.getElementById('sheet-hero-img').style.backgroundImage = 'url("' + mini + '")';
+  sheetHeroFull.classList.remove('on');
+  sheetHeroFull.style.backgroundImage = '';
+  sheetHero.classList.remove('hidden');
+  sheet.classList.add('has-hero');
+  const im = new Image();
+  im.onload = () => { if (currentPhotoSrc !== src) return; sheetHeroFull.style.backgroundImage = 'url("' + src + '")'; sheetHeroFull.classList.add('on'); };
+  im.src = src;
+}
+function hideSheetHero() { sheetHero.classList.add('hidden'); sheet.classList.remove('has-hero'); }
+sheetHero.addEventListener('click', () => document.getElementById('sheet-photo-btn').click());
 function updateTrackPhoto() {
   const btn = document.getElementById('sheet-photo-btn');
+  hideSheetHero();
   const track = currentPoint && currentPoint.tracks && currentPoint.tracks[currentTrackIndex];
   const src = trackPhotoSrc(track);
   currentPhotoSrc = null;
@@ -5102,6 +5204,7 @@ function updateTrackPhoto() {
     currentPhotoSrc = src;
     btn.style.backgroundImage = 'url("' + mini + '")';
     btn.classList.add('has-photo');
+    showSheetHero(mini, src);
     // duże zdjęcie tego nagrania pobieramy od razu w tle, a po chwili też zdjęcia pozostałych nagrań tego punktu
     prefetchPhoto(src);
     const pt = currentPoint;
