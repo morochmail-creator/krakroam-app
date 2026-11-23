@@ -193,10 +193,23 @@
   #splash-brand { font: 800 30px 'Inter', system-ui, sans-serif; letter-spacing: -0.02em; color: #fafaf8; }
   #splash-brand span { color: #d9a239; }
   #splash-bar { width: 160px; height: 4px; border-radius: 4px; background: rgba(250,250,248,0.15); overflow: hidden; margin-top: 6px; }
-  #splash-bar-fill {
-    height: 100%; width: 0; border-radius: 4px; background: #d9a239;
-    animation: splash-fill 2.2s cubic-bezier(.2,.7,.3,1) forwards;
+  #splash-bar-fill { height: 100%; width: 4%; border-radius: 4px; background: #d9a239; transition: width 0.3s ease; }
+  #splash-bar { width: 200px; }
+  #splash-status { font: 500 13px 'Inter', system-ui, sans-serif; color: rgba(250,250,248,0.6); min-height: 18px; text-align: center; padding: 0 24px; }
+  #splash-skip {
+    margin-top: 10px; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(250,250,248,0.25);
+    background: none; color: rgba(250,250,248,0.8); font: 600 13px 'Inter', system-ui, sans-serif;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
   }
+  #splash-skip.show { opacity: 1; pointer-events: auto; }
+  /* kółeczko "ładuje się" na zdjęciach, które jeszcze nie doszły */
+  @keyframes imgSpin { to { transform: rotate(360deg); } }
+  .is-loading::before {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; z-index: 3;
+    border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; box-sizing: border-box;
+    animation: imgSpin 0.8s linear infinite; pointer-events: none;
+  }
+  .ri-photo.is-loading::before, #home-menu .is-loading::before { border-color: rgba(0,0,0,0.12); border-top-color: var(--brass-deep); }
   #splash.loaded #splash-bar-fill { animation: none; width: 100%; transition: width 0.25s ease; }
   @keyframes splash-fill { from { width: 0; } to { width: 85%; } }
 
@@ -1510,6 +1523,8 @@
   <img id="splash-icon" src="/icon-192.png" alt="" width="84" height="84">
   <div id="splash-brand">Krak<span>Roam</span></div>
   <div id="splash-bar"><div id="splash-bar-fill"></div></div>
+  <div id="splash-status"></div>
+  <button id="splash-skip" type="button"></button>
 </div>
 
 <div id="app" data-map-mode="satellite">
@@ -5541,7 +5556,10 @@ function loadRouteIntroPhotos(key) {
     const img = document.createElement('img');
     img.alt = it.label; img.decoding = 'async';
     if (i > 1) img.loading = 'lazy';
+    b.classList.add('is-loading');
+    img.onload = img.onerror = () => b.classList.remove('is-loading');
     img.src = it.src;
+    if (img.complete && img.naturalWidth) b.classList.remove('is-loading');
     b.appendChild(img);
     if (it.label) { const c = document.createElement('span'); c.className = 'ri-photo-cap'; c.textContent = it.label; b.appendChild(c); }
     b.onclick = () => { sfx.play('menuUp'); openPhotoViewer(it.src, list); };
@@ -5554,7 +5572,9 @@ document.querySelectorAll('.district-row[data-district] .dr-cover').forEach(c =>
   if (key === 'free-roam') return;
   const src = 'foto/trasa-' + key + '.jpg?v=' + PHOTO_VER;
   const probe = new Image();
-  probe.onload = () => { c.style.backgroundImage = 'url("' + src + '")'; };
+  c.classList.add('is-loading');
+  probe.onload = () => { c.classList.remove('is-loading'); c.style.backgroundImage = 'url("' + src + '")'; };
+  probe.onerror = () => c.classList.remove('is-loading');
   probe.src = src;
 });
 function routeKm(line) {
@@ -5686,6 +5706,7 @@ const routesSlideshow = (function () {
     img.src = url;
   }
   return {
+    urls,
     start() { if (timer || !layers.length) return; timer = setTimeout(step, EVERY - 1500); },
     stop() { clearTimeout(timer); timer = null; }
   };
@@ -5982,8 +6003,10 @@ function showSheetHero(mini, src) {
   sheetHeroFull.style.backgroundImage = '';
   sheetHero.classList.remove('hidden');
   sheet.classList.add('has-hero');
+  sheetHero.classList.add('is-loading');
   const im = new Image();
-  im.onload = () => { if (currentPhotoSrc !== src) return; sheetHeroFull.style.backgroundImage = 'url("' + src + '")'; sheetHeroFull.classList.add('on'); };
+  im.onload = () => { if (currentPhotoSrc !== src) return; sheetHero.classList.remove('is-loading'); sheetHeroFull.style.backgroundImage = 'url("' + src + '")'; sheetHeroFull.classList.add('on'); };
+  im.onerror = () => sheetHero.classList.remove('is-loading');
   im.src = src;
 }
 function hideSheetHero() { sheetHero.classList.add('hidden'); sheet.classList.remove('has-hero'); }
@@ -6058,10 +6081,12 @@ function showPvPhoto() {
     // zanim duże zdjęcie dojdzie: ramka w jego kształcie z rozmytą miniaturką, zamiast pustego ekranu
     photoViewerImg.style.aspectRatio = dim ? dim[0] + ' / ' + dim[1] : '';
     photoViewerImg.style.backgroundImage = mini ? 'url("' + mini + '")' : '';
-    photoViewerImg.classList.add('loading');
-    photoViewerImg.onload = () => { photoViewerImg.classList.remove('loading'); photoViewerImg.style.backgroundImage = ''; };
+    const pvFrame = document.getElementById('pv-frame');
+    photoViewerImg.classList.add('loading'); pvFrame.classList.add('is-loading');
+    photoViewerImg.onload = () => { photoViewerImg.classList.remove('loading'); pvFrame.classList.remove('is-loading'); photoViewerImg.style.backgroundImage = ''; };
+    photoViewerImg.onerror = () => pvFrame.classList.remove('is-loading');
     photoViewerImg.src = src;
-    if (photoViewerImg.complete && photoViewerImg.naturalWidth) { photoViewerImg.classList.remove('loading'); photoViewerImg.style.backgroundImage = ''; }
+    if (photoViewerImg.complete && photoViewerImg.naturalWidth) { photoViewerImg.classList.remove('loading'); pvFrame.classList.remove('is-loading'); photoViewerImg.style.backgroundImage = ''; }
     // sąsiednie zdjęcia pobieramy od razu, żeby przewijanie było bez czekania
     [pvList[pvIndex - 1], pvList[pvIndex + 1]].forEach(x => x && prefetchPhoto(x.src));
   }
@@ -7246,24 +7271,62 @@ if (savedLang && savedUnlocked) {
 }
 // jeśli brak zapamiętanego języka — ekran wyboru języka zostaje domyślnie widoczny, nic więcej nie robimy
 
-// Ekran ładowania znika, gdy apka jest gotowa i mapa ma już pierwsze kafelki (najdłużej po 3 s),
-// ale nie wcześniej niż po 0,7 s — żeby logo nie "mignęło" tylko na ułamek sekundy.
-(function hideSplash() {
+// Ekran ładowania z paskiem (Pektus: słaby internet = puste, brzydkie pola). Zanim pokażemy apkę, pobieramy:
+// zdjęcia z menu (okładki tras, zmieniające się zdjęcia na karcie "Trasy", zdjęcia ekranów tras),
+// miniaturki pinezek na mapie i pierwsze nagranie każdej trasy (+ nagrania wprowadzenia, gdy będą).
+// Po 6 s pojawia się "Pomiń", a po 25 s apka i tak startuje — reszta dociąga się w tle.
+(function bootPreload() {
   const el = document.getElementById('splash');
   if (!el) return;
-  let done = false;
+  const pl = (localStorage.getItem('krakroam_lang') || (navigator.language || 'pl')).slice(0, 2) === 'pl';
+  const fill = document.getElementById('splash-bar-fill'), status = document.getElementById('splash-status'), skip = document.getElementById('splash-skip');
+  status.textContent = pl ? 'Przygotowujemy zdjęcia i nagrania…' : 'Getting photos and recordings ready…';
+  skip.textContent = pl ? 'Pomiń' : 'Skip';
+
+  const imgs = new Set(['foto/trasa-stare-miasto.jpg']);
+  ['stare-miasto', 'kazimierz'].forEach(k => { imgs.add('foto/trasa-' + k + '.jpg?v=' + PHOTO_VER); imgs.add('foto/trasa-' + k + '-1.jpg?v=' + PHOTO_VER); });
+  ['foto/trasa-stare-miasto-2.jpg?v=3', 'foto/trasa-stare-miasto-3.jpg?v=3'].forEach(u => imgs.add(u));
+  try { routesSlideshow.urls.forEach(u => imgs.add(u)); } catch (_) {}
+  POINTS.forEach(p => { const m = pointPinPhoto(p); if (m) imgs.add(m); });
+  const audios = new Set();
+  INTRO_POINT.tracks.forEach(tr => tr.audio && audios.add(tr.audio));
+  [POINTS_STARE_MIASTO, POINTS_KAZIMIERZ].forEach(list => {
+    const first = list.find(p => p.type === 'main' && !p.offRoute && p.tracks.some(tr => tr.audio));
+    if (first) audios.add(first.tracks.find(tr => tr.audio).audio);
+  });
+
+  const jobs = [];
+  imgs.forEach(u => jobs.push({ w: 1, run: () => new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = u; }) }));
+  audios.forEach(u => jobs.push({ w: 6, run: async () => {
+    try { if (window.caches && await caches.match(u)) return; } catch (_) {}
+    await fetch(u).then(r => r.blob()).catch(() => {});
+  } }));
+  const total = jobs.reduce((a, j) => a + j.w, 0) || 1;
+  let doneW = 0, finished = false;
+  const show = () => { fill.style.width = Math.max(4, Math.round(doneW / total * 100)) + '%'; };
   const finish = () => {
-    if (done) return;
-    done = true;
+    if (finished) return;
+    finished = true;
+    fill.style.width = '100%';
     el.classList.add('loaded');
-    setTimeout(() => el.classList.add('done'), 260);
-    setTimeout(() => el.remove(), 800);
+    setTimeout(() => el.classList.add('done'), 300);
+    setTimeout(() => el.remove(), 900);
   };
-  const minWait = Math.max(0, 700 - performance.now());
-  const ready = () => setTimeout(finish, minWait);
-  satLayer.once('load', ready);
-  osmLayer.once('load', ready);
-  setTimeout(finish, 3000);
+  const timeout = ms => new Promise(r => setTimeout(r, ms));
+  // po 4 naraz — żeby słaby internet nie dławił się kilkudziesięcioma pobraniami jednocześnie
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length && !finished) {
+      const j = jobs[next++];
+      await Promise.race([j.run(), timeout(20000)]);
+      doneW += j.w; show();
+    }
+  };
+  const started = performance.now();
+  Promise.all([0, 1, 2, 3].map(worker)).then(() => setTimeout(finish, Math.max(0, 700 - (performance.now() - started))));
+  setTimeout(() => skip.classList.add('show'), 6000);
+  skip.addEventListener('click', finish);
+  setTimeout(finish, 25000);
 })();
 
 // "Schowek" apki w telefonie (sw.js): szybsze otwieranie, mapa i nagrania z pamięci telefonu na słabym zasięgu
