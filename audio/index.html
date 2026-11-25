@@ -523,6 +523,7 @@
     window.sampleLang = function (l) {
       players.forEach(function (au, i) {
         au.pause(); // zmiana języka zawsze zatrzymuje nagranie
+        sampleBtns[i].classList.remove('playing'); // load() może połknąć zdarzenie 'pause', więc guzik zerujemy sami
         var pl = sampleBtns[i].dataset.src, want = l === 'en' ? pl.replace('/audio/pl/', '/audio/en/') : pl;
         if (sampleBtns[i].dataset.noen) { // te nagrania nie mają jeszcze angielskiej wersji — po angielsku nie gramy polskiego
           var off = l === 'en'; sampleBtns[i].classList.toggle('unavail', off);
