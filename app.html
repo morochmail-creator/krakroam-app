@@ -3835,6 +3835,20 @@ const POINTS_KAZIMIERZ = [
 ];
 const ROUTE_LINE_KAZIMIERZ = [[50.051657, 19.945214], [50.051585, 19.94528], [50.051537, 19.945404], [50.051538, 19.945496], [50.051315, 19.945626], [50.050921, 19.945845], [50.051079, 19.946486], [50.051392, 19.946318], [50.051449, 19.946251], [50.051472, 19.946187], [50.051512, 19.946175], [50.051513, 19.94623], [50.051507, 19.946337], [50.051598, 19.946966], [50.051716, 19.946921], [50.05178, 19.947272], [50.051847, 19.947623], [50.051773, 19.947663], [50.051751, 19.947729], [50.051807, 19.948169], [50.051828, 19.948247], [50.051815, 19.948322], [50.051798, 19.948379], [50.051838, 19.948414], [50.051893, 19.948357], [50.052103, 19.948238], [50.052273, 19.94817], [50.052368, 19.948137], [50.05261, 19.948031], [50.052863, 19.94778], [50.053013, 19.947545], [50.053108, 19.947361], [50.053306, 19.946943], [50.05314, 19.946226], [50.052948, 19.945489], [50.052813, 19.944776], [50.052702, 19.944289], [50.052801, 19.944159], [50.052712, 19.944099], [50.052664, 19.944243], [50.052778, 19.944744], [50.052638, 19.944847], [50.052189, 19.945112], [50.052124, 19.945059], [50.051929, 19.94471], [50.05179, 19.944493], [50.051702, 19.944466], [50.051518, 19.944576], [50.05139, 19.944182], [50.051308, 19.943895], [50.051268, 19.943938], [50.051202, 19.943983], [50.051111, 19.94401], [50.05096, 19.944057], [50.050854, 19.944101], [50.050777, 19.944121], [50.050588, 19.944212], [50.050562, 19.944072], [50.050537, 19.94404], [50.050149, 19.944184], [50.049947, 19.944276], [50.049943, 19.944315], [50.049956, 19.944427], [50.049929, 19.944358], [50.049918, 19.9443], [50.049515, 19.944472], [50.049381, 19.944532], [50.049297, 19.94444], [50.04916, 19.94442], [50.04909, 19.94439], [50.048813, 19.944024], [50.048895, 19.94376], [50.048988, 19.943547], [50.049011, 19.943331], [50.049105, 19.943273], [50.049076, 19.943077], [50.049011, 19.943105], [50.048957, 19.943095], [50.048711, 19.942163], [50.049189, 19.941924], [50.049163, 19.941807], [50.049248, 19.941743], [50.049159, 19.941208], [50.049124, 19.941022], [50.049062, 19.940787], [50.04903, 19.940753], [50.048996, 19.940628], [50.048669, 19.939238], [50.048494, 19.938557], [50.048473, 19.938454], [50.048474, 19.938404], [50.048438, 19.938312], [50.04842, 19.938235]];
 const POINTS = CURRENT_ROUTE === 'kazimierz' ? POINTS_KAZIMIERZ : CURRENT_ROUTE === 'free-roam' ? POINTS_STARE_MIASTO.concat(POINTS_KAZIMIERZ) : POINTS_STARE_MIASTO;
+
+// Angielskie nagrania: audio/en/<ta sama nazwa co po polsku>.mp3. Po przełączeniu na angielski track.audio wskazuje angielski plik;
+// jeśli angielskiej wersji jeszcze nie ma, audio jest puste (apka pokazuje "brak nagrania"). Polska ścieżka zostaje w track.audioPl (np. do nazw zdjęć).
+const EN_AUDIO = new Set(['0_1_Poczatki_Krakowa', '0_2_Miasto_Ksiazat', '0_3_Miasto_Krolow', '0_4_Krakow_bez_Krola', '0_5_Obwarzanek_Krakowski', '10_0_Wieza_Ratuszowa', '10_1_Piwnice_tortury_i_kat', '10_2_Krwawy_Burmistrz', '10_3_Eros_Bendato', '11_0_Collegium_Maius', '11_1_Dziedziniec', '11_2_Mikolaj_Kopernik', '11_3_Dawne_zycie_akademickie', '12_0_Kosciol_Franciszkanow', '12_1_Stanislaw_Wyspianski', '12_2_Polichromia_Wyspianskiego', '12_3_Witraze_Wyspianskiego', '12_4_Arcybractwo_Meki_Panskiej', '13_0_Okol', '13_1_Ulica_Grodzka', '13_2_Dom_Wita_Stwosza', '14_0_Kosciol_sw_Andrzeja', '14_1_Kosciol_sw_Piotra_i_Pawla', '14_2_Plac_i_Kolumna', '15_0_Historia_Wzgorza', '15_1_Wawel_bez_krolow', '15_2_Legenda_o_Wandzie', '16_0_Historia_katedry', '16_1_Kosci_przy_wejsciu', '16_2_Kaplica_Zygmuntowska', '16_3_Dzwon_Zygmunt', '16_4_Krypty', '17_0_Zycie_na_zamku', '17_1_Stanczyk', '17_2_Ucieczka_Henryka_Walezego', '17_3_Zaginione_miasteczko_wawelskie', '18_0_Renesansowy_zamek', '18_1_Urwany_fryz', '18_2_Zygmunt_III_i_alchemia', '18_3_Turnieje_Rycerskie', '18_4_Arrasy', '18_5_Muzeum', '1_0_Rynek_Glowny', '1_1_Sredniowieczny_Rynek', '1_2_Wspolczesny_Rynek', '2_0_Historia_sukiennic', '2_1_Renesansowe_Sukiennice', '2_2_Sukiennice_dzisiaj', '2_3_Podziemia_rynku', '3_0_Historia_Kosciola_Mariackiego', '3_1_Legenda_o_trebaczu', '3_2_Wnetrze_Kosciola', '3_3_Oltarz_Wita_Stwosza', '4_0_Plac_Mariacki', '4_1_Kuny', '4_2_Zak', '5_0_Historia_Malego_Rynku', '5_1_Pierwsza_polska_gazeta', '5_2_Maly_Rynek_dzisiaj', '6_0_Historia_Placu', '6_1_Teatr_Slowackiego', '6_2_Wielkie_Premiery', '6_3_Ludwik_Solski', '7_0_Historia_Plant', '7_1_Galeria_Pomnikow', '7_2_Planty_Dzisiaj', '8_0_Sredniowieczne_Mury', '8_1_Brama_Florianska', '8_2_Barbakan', '8_3_Marcin_Oracewicz', '8_4_Cechy_krakowskie', '9_0_Muzeum_Czartoryskich', '9_1_Zaulek_ksiazat_Czartoryskich']);
+[INTRO_POINT].concat(POINTS_STARE_MIASTO, POINTS_KAZIMIERZ).forEach(pt => (pt.tracks || []).forEach(tr => {
+  const pl = tr.audio;
+  Object.defineProperty(tr, 'audioPl', { value: pl, enumerable: false });
+  Object.defineProperty(tr, 'audio', { enumerable: true, configurable: true, get() {
+    if (!pl) return null;
+    if (currentLang !== 'en') return pl;
+    const name = pl.split('/').pop().replace(/\.mp3$/i, '');
+    return EN_AUDIO.has(name) ? 'audio/en/' + name + '.mp3' : null;
+  } });
+}));
 const ROUTE_LINE = CURRENT_ROUTE === 'kazimierz' ? ROUTE_LINE_KAZIMIERZ : CURRENT_ROUTE === 'free-roam' ? [] : ROUTE_LINE_STARE_MIASTO;
 
 
@@ -6218,7 +6232,7 @@ function photoText(field) { return field ? (field[currentLang] || field.pl) : ''
 function trackPhotoSrc(track) {
   if (!track) return null;
   if (track.photo) return track.photo;
-  if (track.audio) return 'foto/' + track.audio.split('/').pop().replace(/\.mp3$/i, '.webp') + '?v=' + TRACK_PHOTO_VER;
+  if (track.audioPl) return 'foto/' + track.audioPl.split('/').pop().replace(/\.mp3$/i, '.webp') + '?v=' + TRACK_PHOTO_VER;
   return null;
 }
 // zdjęcia, które są w foto/ (nazwa: [szerokość, wysokość]) — apka od razu wie, że zdjęcie jest,
