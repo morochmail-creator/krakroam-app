@@ -6086,6 +6086,7 @@ function setSheetPeek(state, freshOpen) {
   }
   sheetPeek = state;
   sheet.classList.toggle('peek', state);
+  if (!state) requestAnimationFrame(fitTrackList);
   sheetBackdrop.classList.toggle('peek', state);
   const closeIcon = document.querySelector('#sheet-close svg polyline');
   if (closeIcon) closeIcon.setAttribute('points', state ? '6,15 12,9 18,15' : '6,9 12,15 18,9');
@@ -6722,6 +6723,13 @@ function closeSheet() {
 document.getElementById('sheet-close').addEventListener('click', () => { sfx.play(sheetPeek ? 'menuUp' : 'menuDown'); if (sheetPeek) sheetMove.expand(); else sheetMove.collapse(); });
 sheetBackdrop.addEventListener('click', () => sheetMove.collapse()); // kliknięcie w tło tylko ZWIJA panel, nigdy nie zamyka go całkiem
 
+function fitTrackList() {
+  // zwinięty panel ma display:none → wiersze mają 0 px; wtedy NIE ustawiamy wysokości (inaczej lista zostaje ściśnięta do 15 px)
+  const row = trackListEl.querySelector('.track-row');
+  if (row && row.offsetHeight > 0) trackListEl.style.setProperty('--track-list-h', Math.round(row.offsetHeight * 3.5 + 5 * 3) + 'px');
+  else trackListEl.style.removeProperty('--track-list-h');
+  trackListEl.classList.toggle('scrollable', trackListEl.scrollHeight > trackListEl.clientHeight + 2);
+}
 function renderTrackList() {
   trackListEl.innerHTML = '';
   if (!currentPoint) return;
@@ -6745,8 +6753,7 @@ function renderTrackList() {
   // pokazujemy delikatny cień u dołu TYLKO jeśli lista faktycznie jest dłuższa niż widoczny obszar (jest co przewijać)
   requestAnimationFrame(() => {
     // lista pokazuje dokładnie 3,5 nagrania — połówka czwartego od razu podpowiada, że jest ich więcej i można przewijać
-    const row = trackListEl.querySelector('.track-row');
-    if (row) trackListEl.style.setProperty('--track-list-h', Math.round(row.offsetHeight * 3.5 + 5 * 3) + 'px');
+    fitTrackList();
     trackListEl.classList.toggle('scrollable', trackListEl.scrollHeight > trackListEl.clientHeight + 2);
     const active = trackListEl.querySelector('.track-row.active');
     if (active) active.scrollIntoView({ block: 'nearest' });
