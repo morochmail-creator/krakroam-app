@@ -2416,6 +2416,7 @@ function t(key) {
    Nowy punkt/nagranie = dopisz tu jego nazwę, inaczej zostanie po polsku.
 ============================================================ */
 const PLACE_NAMES = {
+  "Stare Miasto":              { en: "The Old Town" },
   "Zamek na Wawelu":          { en: "The Royal Castle" },
   "Dziedziniec Arkadowy":     { en: "The Arcaded Courtyard" },
   "Wejście na Wawel":         { en: "Entrance to Wawel" },
@@ -2472,6 +2473,11 @@ const PLACE_NAMES = {
   "Bazylika Dominikanów":      { en: "Dominican Basilica" }
 };
 const TITLE_TR = {
+  "Początki Krakowa":            { en: "The Origins of Kraków" },
+  "Miasto Książąt":              { en: "The City of Princes" },
+  "Miasto Królów":               { en: "The City of Kings" },
+  "Kraków bez Króla":            { en: "Kraków Without a King" },
+  "Obwarzanek krakowski":        { en: "The Kraków Obwarzanek" },
   "Stary Teatr":                 { en: "The Old Theatre" },
   "Pałac Sztuki":                { en: "The Palace of Art" },
   "Wampir z Krakowa":            { en: "The Vampire of Kraków" },
@@ -2675,6 +2681,20 @@ let CURRENT_ROUTE = 'stare-miasto';
 try { const r = localStorage.getItem('krakroam_route'); if (ROUTE_KEYS.includes(r)) CURRENT_ROUTE = r; } catch (_) {}
 
 const POINTS_STARE_MIASTO = [
+  {
+    id: "stare-miasto-wstep",
+    name: "Stare Miasto",
+    type: "main",
+    lat: 50.06215,
+    lng: 19.938275,
+    tracks: [
+      { number: "0.1", label: "Początki Krakowa", audio: "audio/pl/0_1_Poczatki_Krakowa.mp3" },
+      { number: "0.2", label: "Miasto Książąt", audio: "audio/pl/0_2_Miasto_Ksiazat.mp3" },
+      { number: "0.3", label: "Miasto Królów", audio: "audio/pl/0_3_Miasto_Krolow.mp3" },
+      { number: "0.4", label: "Kraków bez Króla", audio: "audio/pl/0_4_Krakow_bez_Krola.mp3" },
+      { number: "0.5", label: "Obwarzanek krakowski", audio: "audio/pl/0_5_Obwarzanek_Krakowski.mp3" }
+    ]
+  },
   {
     id: "rynek-glowny",
     name: "Rynek Główny",
