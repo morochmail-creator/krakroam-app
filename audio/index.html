@@ -467,6 +467,7 @@
       langs.querySelectorAll('.lang-btn').forEach(function (b) { b.classList.toggle('on', b.dataset.lang === l); });
       flag.innerHTML = FLAGS[l] + l.toUpperCase();
       payLabel(); routeDesc();
+      if (window.sampleLang) window.sampleLang(l);
       try { localStorage.setItem('krakroam_site_lang', l); } catch (e) {}
     }
 
@@ -501,10 +502,20 @@
       toast(T[lang].soon);
     });
 
-    var players = [];
+    var players = [], sampleBtns = [];
     function fmt(t) { t = Math.floor(t || 0); return Math.floor(t / 60) + ':' + ('0' + t % 60).slice(-2); }
+    // próbki: po angielsku grają angielskie nagrania (audio/en/), po polsku polskie (audio/pl/)
+    window.sampleLang = function (l) {
+      players.forEach(function (au, i) {
+        var pl = sampleBtns[i].dataset.src, want = l === 'en' ? pl.replace('/audio/pl/', '/audio/en/') : pl;
+        if (au.getAttribute('src') === want) return;
+        var was = !au.paused; au.pause(); au.src = want; au.load();
+        var d = sampleBtns[i].querySelector('.dur'), c = sampleBtns[i].querySelector('.cur'), f = sampleBtns[i].querySelector('.fill');
+        if (c) c.textContent = '0:00'; if (f) f.style.width = '0%'; if (d) d.textContent = '';
+      });
+    };
     document.querySelectorAll('.sample').forEach(function (btn) {
-      var au = new Audio(); au.preload = 'metadata'; au.src = btn.dataset.src; players.push(au);
+      var au = new Audio(); au.preload = 'metadata'; au.src = btn.dataset.src; players.push(au); sampleBtns.push(btn);
       var fill = btn.querySelector('.fill'), bar = btn.querySelector('.bar'), cur = btn.querySelector('.cur'), dur = btn.querySelector('.dur'), dragging = false;
       btn.addEventListener('click', function (e) {
         if (e.target.closest('.bar')) return;
