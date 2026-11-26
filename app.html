@@ -7506,7 +7506,7 @@ try { musicOn = localStorage.getItem('krakroam_music') !== '0'; } catch (_) {}
 const musicEl = new Audio();
 musicEl.preload = 'auto';
 let musicBag = [], musicLast = null, musicVol = 0, musicTarget = 0, musicRamp = null, musicStopTimer = null;
-const MUSIC_LEVEL = 0.55; // cicho pod lektorem (pliki i tak są ~14 dB cichsze od nagrań)
+const MUSIC_LEVEL = 0.5; // cicho pod lektorem (pliki i tak są ~14 dB cichsze od nagrań)
 function musicNext() {
   if (!musicBag.length) {
     musicBag = MUSIC_TRACKS.map(m => m.f).sort(() => Math.random() - 0.5);
@@ -7543,12 +7543,24 @@ function musicSync() {
     musicStopTimer = setTimeout(() => {
       if (musicOn && !audioEl.paused && !audioEl.ended) return;
       musicFadeTo(0, 800, () => { musicEl.pause(); });
-    }, audioEl.ended && musicOn ? 4000 : 700);
+    }, 700);
   }
 }
 musicEl.addEventListener('ended', () => { musicNext(); if (musicOn && !audioEl.paused) { const p = musicEl.play(); if (p && p.catch) p.catch(() => {}); } });
 musicEl.addEventListener('error', () => { if (musicOn) setTimeout(() => { musicNext(); musicSync(); }, 2000); });
 ['play', 'playing', 'pause', 'ended', 'emptied'].forEach(ev => audioEl.addEventListener(ev, musicSync));
+// nowe nagranie (inne niż poprzednie) = nowy, losowy utwór; pauza/wznowienie tego samego nagrania gra dalej ten sam
+let musicVoiceSrc = null;
+audioEl.addEventListener('loadstart', () => {
+  const src = audioEl.getAttribute('src');
+  if (!src || src === musicVoiceSrc) return;
+  musicVoiceSrc = src;
+  clearInterval(musicRamp); clearTimeout(musicStopTimer);
+  try { musicEl.pause(); } catch (_) {}
+  musicSetVol(0);
+  musicNext();
+  musicSync();
+});
 function updateMusicUI() {
   const ic = document.getElementById('settings-music-icon'), tx = document.getElementById('settings-music-text');
   if (ic) ic.textContent = musicOn ? '🎵' : '🔇';
