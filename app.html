@@ -7537,7 +7537,26 @@ function musicAlign(force) {
   if (t >= (musicEl.duration || 0) - 0.05) return; // nagranie dłuższe niż utwór: muzyka już się skończyła
   if (force || Math.abs(musicEl.currentTime - t) > 0.6) { try { musicEl.currentTime = t; } catch (_) {} }
 }
-function musicSetVol(v) { musicVol = v; try { musicEl.volume = v; } catch (_) {} }
+// iPhone ignoruje element.volume — tam głośność muzyki idzie przez Web Audio (inaczej fade out i ściszanie nie działają)
+let musicCtx = null, musicGain = null;
+function musicSetVol(v) {
+  musicVol = v;
+  if (!nativeVolume) {
+    try {
+      if (!musicGain) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        musicCtx = new AC();
+        const src = musicCtx.createMediaElementSource(musicEl);
+        musicGain = musicCtx.createGain();
+        src.connect(musicGain); musicGain.connect(musicCtx.destination);
+      }
+      musicGain.gain.value = v;
+      if (musicCtx.state !== 'running') musicCtx.resume();
+      return;
+    } catch (_) {}
+  }
+  try { musicEl.volume = v; } catch (_) {}
+}
 function musicFadeTo(target, ms, done) {
   clearInterval(musicRamp);
   const from = musicVol, t0 = Date.now();
@@ -7569,6 +7588,7 @@ function musicSync() {
   }
 }
 ['play', 'playing', 'pause', 'ended', 'emptied'].forEach(ev => audioEl.addEventListener(ev, musicSync));
+audioEl.addEventListener('ended', () => { clearInterval(musicRamp); musicSetVol(0); try { musicEl.pause(); } catch (_) {} });
 // nowe nagranie = jego własny utwór; przewijanie i tempo lektora przenoszą się na muzykę
 audioEl.addEventListener('loadstart', () => { if (!audioEl.getAttribute('src')) return; clearInterval(musicRamp); musicBind(); musicSync(); });
 audioEl.addEventListener('seeked', () => musicAlign(true));
