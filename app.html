@@ -80,6 +80,11 @@
     -webkit-font-smoothing: antialiased;
   }
   button { font-family: inherit; }
+  /* Android: przeciągnięcie w dół nie odświeża strony (nie gubimy audio/stanu), a długie przytrzymanie nie zaznacza tekstu ani nie otwiera menu zdjęcia */
+  html, body { overscroll-behavior: none; }
+  body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  input, textarea { -webkit-user-select: text; user-select: text; }
+  img { -webkit-user-drag: none; -webkit-touch-callout: none; }
 
   #app { position: relative; width: 100%; height: 100dvh; }
 
@@ -7722,6 +7727,47 @@ if (savedLang && savedUnlocked) {
 if ('serviceWorker' in navigator && !/^(www\.)?krakroam\.pl$/.test(location.hostname)) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
 }
+/* ============================================================
+   PRZYCISK "WSTECZ" NA ANDROIDZIE
+   Wcześniej cofnięcie telefonem wychodziło z apki, nawet gdy otwarty był panel punktu, lista lub zdjęcie.
+   Teraz każde otwarte okno dokłada jeden wpis do historii przeglądarki, a "wstecz" zamyka najwyższe okno.
+============================================================ */
+(function () {
+  const hid = id => { const e = document.getElementById(id); return e && !e.classList.contains('hidden'); };
+  const OVERLAYS = [
+    [() => document.getElementById('photo-viewer').classList.contains('open'), 'photo-viewer-close'],
+    [() => hid('route-list-screen'), 'route-list-close'],
+    [() => hid('settings-screen'), 'settings-close'],
+    [() => hid('route-intro-screen'), 'route-intro-close'],
+    [() => hid('howto-screen'), 'howto-close'],
+    [() => { const d = document.getElementById('district-menu'); return !d.classList.contains('hidden') && !d.classList.contains('peek'); }, 'district-menu-close'],
+    [() => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !s.classList.contains('peek'); }, 'sheet-close']
+  ];
+  const topOpen = () => OVERLAYS.find(o => { try { return o[0](); } catch (_) { return false; } });
+  let pushed = false, ignore = false, queued = false;
+  function sync() {
+    queued = false;
+    const open = !!topOpen();
+    try {
+      if (open && !pushed) { history.pushState({ kr: 1 }, ''); pushed = true; }
+      else if (!open && pushed) { pushed = false; ignore = true; history.back(); }
+    } catch (_) {}
+  }
+  function queue() { if (!queued) { queued = true; requestAnimationFrame(sync); } }
+  window.addEventListener('popstate', () => {
+    if (ignore) { ignore = false; return; }
+    const o = topOpen();
+    if (!o) return; // nic nie jest otwarte — przeglądarka robi swoje (wyjście z apki)
+    pushed = false;
+    const btn = document.getElementById(o[1]);
+    if (btn) btn.click();
+    queue();
+  });
+  const obs = new MutationObserver(queue);
+  ['photo-viewer', 'route-list-screen', 'settings-screen', 'route-intro-screen', 'howto-screen', 'district-menu', 'sheet'].forEach(id => {
+    const e = document.getElementById(id); if (e) obs.observe(e, { attributes: true, attributeFilter: ['class'] });
+  });
+})();
 </script>
 </body>
 </html>
