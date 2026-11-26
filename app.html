@@ -1917,6 +1917,10 @@
         <span id="settings-sound-icon">🔊</span>
         <span id="settings-sound-text">Dźwięki: włączone</span>
       </div>
+      <div class="settings-row" id="settings-music-row">
+        <span id="settings-music-icon">🎵</span>
+        <span id="settings-music-text">Muzyka w tle: włączona</span>
+      </div>
       <div class="settings-row" id="settings-autoplay-row">
         <span id="settings-autoplay-icon">⏭️</span>
         <span id="settings-autoplay-text">Autoodtwarzanie: włączone</span>
@@ -2216,6 +2220,7 @@ const TRANSLATIONS = {
     listNoResults: "Nic nie znaleziono",
     listSearchClear: "Wyczyść",
     soundOn: "Dźwięki: włączone",
+    musicOn: "Muzyka w tle: włączona", musicOff: "Muzyka w tle: wyłączona",
     autoplayOn: "Autoodtwarzanie: włączone",
     autoplayOff: "Autoodtwarzanie: wyłączone",
     autoplayLabel: "Autoodtwarzanie kolejnych nagrań",
@@ -2271,7 +2276,7 @@ const TRANSLATIONS = {
     playLabel: "Odtwórz", playPauseLabel: "Odtwórz/Pauza", stopLabel: "Stop",
     prevTrackLabel: "Poprzednie nagranie", nextTrackLabel: "Następne nagranie",
     back10Label: "Cofnij o 10 sekund", volumeLabel: "Głośność", speedLabel: "Prędkość odtwarzania",
-    photoLabel: "Zdjęcie", creditsRow: "Źródła zdjęć", creditsTitle: "Źródła zdjęć", creditsSub: "Zdjęcia pochodzą z Wikimedia Commons. Pod każdym linkiem znajdziesz autora i licencję.", expandNavLabel: "Rozwiń nawigację"
+    photoLabel: "Zdjęcie", creditsRow: "Źródła zdjęć i muzyki", creditsTitle: "Źródła zdjęć i muzyki", creditsSub: "Zdjęcia pochodzą z Wikimedia Commons. Pod każdym linkiem znajdziesz autora i licencję.", musicCredits: "Muzyka w tle", expandNavLabel: "Rozwiń nawigację"
   },
   en: {
     menuTitle: "Where are we exploring today?",
@@ -2341,6 +2346,7 @@ const TRANSLATIONS = {
     listNoResults: "Nothing found",
     listSearchClear: "Clear",
     soundOn: "Sounds: on",
+    musicOn: "Background music: on", musicOff: "Background music: off",
     autoplayOn: "Autoplay: on",
     autoplayOff: "Autoplay: off",
     autoplayLabel: "Autoplay next recordings",
@@ -2396,7 +2402,7 @@ const TRANSLATIONS = {
     playLabel: "Play", playPauseLabel: "Play/Pause", stopLabel: "Stop",
     prevTrackLabel: "Previous recording", nextTrackLabel: "Next recording",
     back10Label: "Back 10 seconds", volumeLabel: "Volume", speedLabel: "Playback speed",
-    photoLabel: "Photo", creditsRow: "Photo credits", creditsTitle: "Photo credits", creditsSub: "Photos come from Wikimedia Commons. Each link shows the author and licence.", expandNavLabel: "Expand navigation"
+    photoLabel: "Photo", creditsRow: "Photo & music credits", creditsTitle: "Photo & music credits", creditsSub: "Photos come from Wikimedia Commons. Each link shows the author and licence.", musicCredits: "Background music", expandNavLabel: "Expand navigation"
   },
 };
 
@@ -6499,6 +6505,7 @@ document.getElementById('settings-credits-row').addEventListener('click', () => 
     html += '<div class="credit-item">' + esc(name) + '<br><a href="' + esc(info.src) + '" target="_blank" rel="noopener">' +
       esc(decodeURIComponent(info.src.replace('https://commons.wikimedia.org/wiki/File:', ''))) + '</a></div>';
   })));
+  html += '<div class="credit-item"><b>' + esc(t('musicCredits')) + '</b><br>' + MUSIC_TRACKS.map(m => esc(m.title)).join('<br>') + '</div>';
   document.getElementById('perm-title').textContent = t('creditsTitle');
   document.getElementById('perm-sub').textContent = t('creditsSub');
   document.getElementById('perm-body').innerHTML = html;
@@ -7080,6 +7087,7 @@ function updateAutoplayUI() {
   btn.setAttribute('aria-pressed', autoplayNext ? 'true' : 'false');
   btn.setAttribute('aria-label', t('autoplayLabel'));
   document.getElementById('settings-autoplay-text').textContent = t(autoplayNext ? 'autoplayOn' : 'autoplayOff');
+  if (typeof updateMusicUI === 'function') updateMusicUI();
 }
 function setAutoplay(v) {
   autoplayNext = v;
@@ -7480,6 +7488,79 @@ if ('mediaSession' in navigator) {
 // iPhone: gdy głośność idzie przez Web Audio, po zablokowaniu ekranu dźwięk potrafi zamilknąć —
 // budzimy go przy każdym starcie odtwarzania i po powrocie do apki
 function wakeAudioCtx() { if (audioCtx && audioCtx.state !== 'running') { try { audioCtx.resume(); } catch (_) {} } }
+
+/* ---------- Muzyka w tle: losowa kolejność (bez powtórki, aż zagrają wszystkie), cicho pod lektorem ---------- */
+const MUSIC_TRACKS = [
+  { f: 'vivaldi-wiosna', title: 'Antonio Vivaldi – Wiosna (Cztery pory roku)' },
+  { f: 'vivaldi-wiosna-largo', title: 'Antonio Vivaldi – Wiosna, II. Largo (Cztery pory roku)' },
+  { f: 'vivaldi-zima-largo', title: 'Antonio Vivaldi – Zima, Largo (Cztery pory roku)' },
+  { f: 'mozart-eine-kleine-nachtmusik', title: 'W. A. Mozart – Eine kleine Nachtmusik' },
+  { f: 'mozart-marsz-turecki', title: 'W. A. Mozart – Marsz turecki' },
+  { f: 'czajkowski-czerwiec', title: 'P. Czajkowski – Pory roku, Czerwiec (wersja na skrzypce)' },
+  { f: 'chopin-nokturn-es', title: 'Fryderyk Chopin – Nokturn Es-dur op. 9 nr 2' },
+  { f: 'handel-krolowa-saby', title: 'G. F. Händel – Przybycie Królowej Saby (Academy of Ancient Music)' },
+  { f: 'brahms-taniec-wegierski-5', title: 'Johannes Brahms – Taniec węgierski nr 5 (Maxim Vengerov)' }
+];
+var musicOn = true; // var — applyTranslations() woła updateMusicUI() wcześniej w kodzie
+try { musicOn = localStorage.getItem('krakroam_music') !== '0'; } catch (_) {}
+const musicEl = new Audio();
+musicEl.preload = 'auto';
+let musicBag = [], musicLast = null, musicVol = 0, musicTarget = 0, musicRamp = null, musicStopTimer = null;
+const MUSIC_LEVEL = 0.55; // cicho pod lektorem (pliki i tak są ~14 dB cichsze od nagrań)
+function musicNext() {
+  if (!musicBag.length) {
+    musicBag = MUSIC_TRACKS.map(m => m.f).sort(() => Math.random() - 0.5);
+    if (musicBag.length > 1 && musicBag[musicBag.length - 1] === musicLast) musicBag.unshift(musicBag.pop()); // ostatni z poprzedniej rundy nie gra pierwszy
+  }
+  musicLast = musicBag.pop();
+  musicEl.src = 'muzyka/' + musicLast + '.mp3';
+  musicEl.load();
+}
+function musicSetVol(v) { musicVol = v; try { musicEl.volume = v; } catch (_) {} }
+function musicFadeTo(target, ms, done) {
+  clearInterval(musicRamp);
+  const from = musicVol, t0 = Date.now();
+  musicRamp = setInterval(() => {
+    const k = Math.min(1, (Date.now() - t0) / ms);
+    musicSetVol(from + (target - from) * k);
+    if (k >= 1) { clearInterval(musicRamp); if (done) done(); }
+  }, 50);
+}
+// muzyka gra tylko, gdy gra lektor; ciszej, gdy lektor mówi (zawsze), ale nie zagłusza go
+function musicSync() {
+  clearTimeout(musicStopTimer);
+  const want = musicOn && !audioEl.paused && !audioEl.ended;
+  if (want) {
+    if (!musicEl.src) musicNext();
+    if (musicEl.paused) {
+      musicSetVol(0);
+      const p = musicEl.play();
+      if (p && p.catch) p.catch(() => {});
+    }
+    musicFadeTo(MUSIC_LEVEL, 1500);
+  } else {
+    // krótka zwłoka: przy zmianie nagrania lektor na moment się zatrzymuje, a muzyka ma grać dalej
+    musicStopTimer = setTimeout(() => {
+      if (musicOn && !audioEl.paused && !audioEl.ended) return;
+      musicFadeTo(0, 800, () => { musicEl.pause(); });
+    }, audioEl.ended && musicOn ? 4000 : 700);
+  }
+}
+musicEl.addEventListener('ended', () => { musicNext(); if (musicOn && !audioEl.paused) { const p = musicEl.play(); if (p && p.catch) p.catch(() => {}); } });
+musicEl.addEventListener('error', () => { if (musicOn) setTimeout(() => { musicNext(); musicSync(); }, 2000); });
+['play', 'playing', 'pause', 'ended', 'emptied'].forEach(ev => audioEl.addEventListener(ev, musicSync));
+function updateMusicUI() {
+  const ic = document.getElementById('settings-music-icon'), tx = document.getElementById('settings-music-text');
+  if (ic) ic.textContent = musicOn ? '🎵' : '🔇';
+  if (tx) tx.textContent = t(musicOn ? 'musicOn' : 'musicOff');
+}
+document.getElementById('settings-music-row').addEventListener('click', () => {
+  musicOn = !musicOn;
+  try { localStorage.setItem('krakroam_music', musicOn ? '1' : '0'); } catch (_) {}
+  updateMusicUI(); sfx.play('tap'); musicSync();
+});
+updateMusicUI();
+
 audioEl.addEventListener('play', wakeAudioCtx);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) wakeAudioCtx(); });
 
