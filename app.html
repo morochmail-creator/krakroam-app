@@ -7507,14 +7507,35 @@ const musicEl = new Audio();
 musicEl.preload = 'auto';
 let musicBag = [], musicLast = null, musicVol = 0, musicTarget = 0, musicRamp = null, musicStopTimer = null;
 const MUSIC_LEVEL = 0.5; // cicho pod lektorem (pliki i tak są ~14 dB cichsze od nagrań)
-function musicNext() {
+const musicBySrc = {}; // każde nagranie ma przypisany swój utwór (wraca do niego po powrocie do nagrania)
+function musicPick() {
   if (!musicBag.length) {
     musicBag = MUSIC_TRACKS.map(m => m.f).sort(() => Math.random() - 0.5);
     if (musicBag.length > 1 && musicBag[musicBag.length - 1] === musicLast) musicBag.unshift(musicBag.pop()); // ostatni z poprzedniej rundy nie gra pierwszy
   }
   musicLast = musicBag.pop();
-  musicEl.src = 'muzyka/' + musicLast + '.mp3';
+  return musicLast;
+}
+// podpina utwór do aktualnego nagrania lektora
+function musicBind() {
+  const src = audioEl.getAttribute('src');
+  if (!src) return;
+  if (!musicBySrc[src]) musicBySrc[src] = musicPick();
+  const url = 'muzyka/' + musicBySrc[src] + '.mp3';
+  if (musicEl.getAttribute('src') === url) return;
+  try { musicEl.pause(); } catch (_) {}
+  musicSetVol(0);
+  musicEl.src = url;
   musicEl.load();
+  musicAlign(true);
+}
+// muzyka stoi w tym samym miejscu co lektor (przewijanie, pauza, tempo — jak jedno audio)
+function musicAlign(force) {
+  const t = audioEl.currentTime || 0;
+  musicEl.playbackRate = audioEl.playbackRate || 1;
+  if (musicEl.readyState < 1) { musicEl.addEventListener('loadedmetadata', () => musicAlign(true), { once: true }); return; }
+  if (t >= (musicEl.duration || 0) - 0.05) return; // nagranie dłuższe niż utwór: muzyka już się skończyła
+  if (force || Math.abs(musicEl.currentTime - t) > 0.6) { try { musicEl.currentTime = t; } catch (_) {} }
 }
 function musicSetVol(v) { musicVol = v; try { musicEl.volume = v; } catch (_) {} }
 function musicFadeTo(target, ms, done) {
@@ -7531,9 +7552,10 @@ function musicSync() {
   clearTimeout(musicStopTimer);
   const want = musicOn && !audioEl.paused && !audioEl.ended;
   if (want) {
-    if (!musicEl.src) musicNext();
+    musicBind();
     if (musicEl.paused) {
       musicSetVol(0);
+      musicAlign(true);
       const p = musicEl.play();
       if (p && p.catch) p.catch(() => {});
     }
@@ -7546,21 +7568,12 @@ function musicSync() {
     }, 700);
   }
 }
-musicEl.addEventListener('ended', () => { musicNext(); if (musicOn && !audioEl.paused) { const p = musicEl.play(); if (p && p.catch) p.catch(() => {}); } });
-musicEl.addEventListener('error', () => { if (musicOn) setTimeout(() => { musicNext(); musicSync(); }, 2000); });
 ['play', 'playing', 'pause', 'ended', 'emptied'].forEach(ev => audioEl.addEventListener(ev, musicSync));
-// nowe nagranie (inne niż poprzednie) = nowy, losowy utwór; pauza/wznowienie tego samego nagrania gra dalej ten sam
-let musicVoiceSrc = null;
-audioEl.addEventListener('loadstart', () => {
-  const src = audioEl.getAttribute('src');
-  if (!src || src === musicVoiceSrc) return;
-  musicVoiceSrc = src;
-  clearInterval(musicRamp); clearTimeout(musicStopTimer);
-  try { musicEl.pause(); } catch (_) {}
-  musicSetVol(0);
-  musicNext();
-  musicSync();
-});
+// nowe nagranie = jego własny utwór; przewijanie i tempo lektora przenoszą się na muzykę
+audioEl.addEventListener('loadstart', () => { if (!audioEl.getAttribute('src')) return; clearInterval(musicRamp); musicBind(); musicSync(); });
+audioEl.addEventListener('seeked', () => musicAlign(true));
+audioEl.addEventListener('ratechange', () => { musicEl.playbackRate = audioEl.playbackRate || 1; });
+audioEl.addEventListener('timeupdate', () => { if (!musicEl.paused) musicAlign(false); });
 function updateMusicUI() {
   const ic = document.getElementById('settings-music-icon'), tx = document.getElementById('settings-music-text');
   if (ic) ic.textContent = musicOn ? '🎵' : '🔇';
