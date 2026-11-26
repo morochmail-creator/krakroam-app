@@ -7573,7 +7573,17 @@ function musicSync() {
 audioEl.addEventListener('loadstart', () => { if (!audioEl.getAttribute('src')) return; clearInterval(musicRamp); musicBind(); musicSync(); });
 audioEl.addEventListener('seeked', () => musicAlign(true));
 audioEl.addEventListener('ratechange', () => { musicEl.playbackRate = audioEl.playbackRate || 1; });
-audioEl.addEventListener('timeupdate', () => { if (!musicEl.paused) musicAlign(false); });
+// fade out muzyki razem z końcem nagrania lektora (ostatnie 3,5 s)
+let musicEnding = false;
+audioEl.addEventListener('timeupdate', () => {
+  if (musicEl.paused) return;
+  musicAlign(false);
+  const rem = audioEl.duration - audioEl.currentTime;
+  if (isFinite(rem) && rem < 3.5) {
+    musicEnding = true; clearInterval(musicRamp);
+    musicSetVol(MUSIC_LEVEL * Math.max(0, rem) / 3.5);
+  } else if (musicEnding) { musicEnding = false; musicFadeTo(MUSIC_LEVEL, 800); }
+});
 function updateMusicUI() {
   const ic = document.getElementById('settings-music-icon'), tx = document.getElementById('settings-music-text');
   if (ic) ic.textContent = musicOn ? '🎵' : '🔇';
