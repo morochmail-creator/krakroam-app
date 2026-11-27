@@ -278,6 +278,14 @@
     display: flex; flex-direction: column;
     padding: calc(22px + env(safe-area-inset-top, 0px)) 18px calc(18px + env(safe-area-inset-bottom, 0px));
   }
+  /* Pektus (2026-11-27): X zamyka menu główne i wraca do mapy (np. w trakcie słuchania nagrania) */
+  #home-close {
+    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: max(16px, calc(50% - 224px)); z-index: 2;
+    background: var(--paper-2); border: 1px solid var(--line); color: var(--ink);
+    width: 36px; height: 36px; border-radius: 50%;
+    font-size: 22px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
   #home-brand { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
   #home-brand span { color: var(--brass-deep); }
   #home-title { font-size: 28px; font-weight: 800; letter-spacing: -0.025em; color: var(--ink); margin: 18px 0 16px; line-height: 1.15; }
@@ -1652,6 +1660,7 @@
 
   <!-- ---------- Menu główne (start apki i przycisk "domek"): Trasy, Jak korzystać z apki, Ustawienia ---------- -->
   <div id="home-menu" class="hidden">
+    <button id="home-close" type="button" aria-label="Zamknij">×</button>
     <div id="home-inner">
       <div id="home-brand">Krak<span>Roam</span></div>
       <div id="home-title" data-t="homeTitle">Co dziś robimy?</div>
@@ -2628,6 +2637,7 @@ function applyTranslations() {
   document.getElementById('perm-retry').textContent = t('permRetry');
   document.getElementById('perm-close-btn').textContent = t('permClose');
   document.getElementById('perm-x').setAttribute('aria-label', t('closeLabel'));
+  document.getElementById('home-close').setAttribute('aria-label', t('closeLabel'));
   if (typeof updateRouteProgress === 'function') updateRouteProgress();
   if (typeof updateSoundRow === 'function') updateSoundRow();
   if (typeof autoplayNext === 'boolean') updateAutoplayUI();
@@ -6028,6 +6038,11 @@ document.getElementById('home-howto').addEventListener('click', () => {
 document.getElementById('home-settings').addEventListener('click', () => {
   sfx.play('menuUp');
   settingsScreenEl.classList.remove('hidden');
+});
+document.getElementById('home-close').addEventListener('click', () => {
+  sfx.play('menuDown');
+  closeHomeMenu();
+  map.invalidateSize();
 });
 document.getElementById('home-map-btn').addEventListener('click', () => {
   sfx.play('menuDown');
