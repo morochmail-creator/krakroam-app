@@ -7362,20 +7362,24 @@ document.getElementById('stop-btn').addEventListener('click', () => {
 // głośność: zwykły suwak, a na iPhonie (gdzie przeglądarka blokuje audio.volume) — przez Web Audio (wzmocnienie 0-1)
 const volumeEl = document.getElementById('volume');
 let nativeVolume = true, audioCtx = null, gainNode = null, volumeLevel = 1;
+// iPhone: lektor i muzyka idą przez JEDEN wspólny kontekst Web Audio (dwa osobne psuły głośność lektora)
+function getAudioCtx() {
+  if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; audioCtx = new AC(); }
+  return audioCtx;
+}
 function setVolume(v) {
   volumeLevel = v;
   if (nativeVolume) { audioEl.volume = v; return; }
   if (!gainNode) {
     try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AC();
-      const src = audioCtx.createMediaElementSource(audioEl);
-      gainNode = audioCtx.createGain();
-      src.connect(gainNode); gainNode.connect(audioCtx.destination);
+      const ctx = getAudioCtx();
+      const src = ctx.createMediaElementSource(audioEl);
+      gainNode = ctx.createGain();
+      src.connect(gainNode); gainNode.connect(ctx.destination);
     } catch (_) { return; }
   }
-  gainNode.gain.value = v;
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  gainNode.gain.value = v; // lektor: stała głośność, bez żadnego fade
+  if (audioCtx.state !== 'running') audioCtx.resume();
 }
 (function () {
   audioEl.volume = 0.5;
@@ -7582,20 +7586,21 @@ function musicAlign(force) {
   if (force || Math.abs(musicEl.currentTime - t) > 0.6) { try { musicEl.currentTime = t; } catch (_) {} }
 }
 // iPhone ignoruje element.volume — tam głośność muzyki idzie przez Web Audio (inaczej fade out i ściszanie nie działają)
-let musicCtx = null, musicGain = null;
+// fade dotyczy TYLKO muzyki (musicGain / musicEl.volume) — lektor zawsze gra na pełnej głośności
+let musicGain = null;
 function musicSetVol(v) {
   musicVol = v;
   if (!nativeVolume) {
     try {
+      if (!gainNode) setVolume(volumeLevel); // lektor w tym samym kontekście, ze stałą głośnością
       if (!musicGain) {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        musicCtx = new AC();
-        const src = musicCtx.createMediaElementSource(musicEl);
-        musicGain = musicCtx.createGain();
-        src.connect(musicGain); musicGain.connect(musicCtx.destination);
+        const ctx = getAudioCtx();
+        const src = ctx.createMediaElementSource(musicEl);
+        musicGain = ctx.createGain();
+        src.connect(musicGain); musicGain.connect(ctx.destination);
       }
       musicGain.gain.value = v;
-      if (musicCtx.state !== 'running') musicCtx.resume();
+      if (audioCtx.state !== 'running') audioCtx.resume();
       return;
     } catch (_) {}
   }
