@@ -440,6 +440,11 @@
   .dr-cover { position: absolute; inset: 0; background: linear-gradient(135deg, #b9b3a4 0%, #8e887a 100%) center 30% / cover no-repeat; }
   .dr-cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 30%, rgba(10,8,5,0.88) 100%); }
   .dr-hero { height: 330px; border-radius: 26px; box-shadow: 0 10px 26px rgba(0,0,0,0.2); background: #3b3326; }
+  /* Pektus (2026-11-27): długie karty, ale zdjęcie w starym kadrze — zdjęcie ma dawną wysokość karty (u góry),
+     a niżej karta przechodzi w ciemne tło z napisami i przyciskiem */
+  #rc-track .dr-hero { background: #14100b; }
+  #rc-track .dr-cover { bottom: auto; height: min(330px, 42vh, 100%); }
+  #rc-track .dr-cover::after { background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 30%, rgba(20,16,11,0.55) 75%, #14100b 100%); }
   .dr-tag {
     position: absolute; top: 14px; left: 14px; z-index: 1;
     font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
