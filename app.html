@@ -745,6 +745,11 @@
     font-size: 11px; font-weight: 800; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em;
     margin: 18px 6px 4px;
   }
+  .rl-route {
+    font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em;
+    margin: 22px 4px 0; padding-bottom: 6px; border-bottom: 2px solid var(--brass);
+  }
+  .rl-route + .rl-header { margin-top: 10px; }
   .rl-item {
     display: flex; align-items: center; gap: 12px; padding: 10px 6px; min-height: 48px;
     border-bottom: 1px solid var(--line); cursor: pointer;
@@ -7010,8 +7015,18 @@ function renderRouteList() {
   };
   // wstęp (audio 0) na samej górze — inaczej po przejściu do punktu 1 nie było jak do niego wrócić
   addRow(INTRO_POINT, 'intro', '0', false);
+  // bez trasy (free roam) punkty są pogrupowane trasami: nagłówek trasy, a pod nim główne i dodatkowe
+  const groups = CURRENT_ROUTE === 'free-roam'
+    ? [['stareMiastoTitle', POINTS_STARE_MIASTO], ['kazimierzTitle', POINTS_KAZIMIERZ]]
+    : [[null, POINTS]];
+  groups.forEach(([routeKey, routePts]) => {
+    if (routeKey) {
+      const rh = document.createElement('div');
+      rh.className = 'rl-route'; rh.textContent = t(routeKey);
+      body.appendChild(rh);
+    }
   [['main', 'listMain'], ['extra', 'listExtra']].forEach(([type, hdrKey]) => {
-    const pts = POINTS.filter(p => p.type === type);
+    const pts = routePts.filter(p => p.type === type);
     if (!pts.length) return;
     const h = document.createElement('div');
     h.className = 'rl-header'; h.textContent = t(hdrKey);
@@ -7024,21 +7039,25 @@ function renderRouteList() {
       addRow(p, type + (type === 'main' && !num ? ' free' : ''), mark, doneIds.includes(p.id));
     });
   });
+  });
   filterRouteList();
 }
 function filterRouteList() {
   const q = searchNorm(routeListSearch.value.trim());
   routeListSearchClear.classList.toggle('hidden', !q);
   const body = document.getElementById('route-list-body');
-  let anyVisible = false, header = null, headerHasRows = false;
+  let anyVisible = false, header = null, headerHasRows = false, route = null, routeHasRows = false;
   const closeHeader = () => { if (header) header.style.display = headerHasRows ? '' : 'none'; };
+  const closeRoute = () => { if (route) route.style.display = routeHasRows ? '' : 'none'; };
   Array.from(body.children).forEach(el => {
+    // nagłówek trasy (free roam) chowamy, gdy wyszukiwanie nie zostawiło pod nim żadnego punktu
+    if (el.classList.contains('rl-route')) { closeHeader(); closeRoute(); header = null; route = el; routeHasRows = false; return; }
     if (el.classList.contains('rl-header')) { closeHeader(); header = el; headerHasRows = false; return; }
     const show = !q || el.dataset.search.includes(q);
     el.style.display = show ? '' : 'none';
-    if (show) { anyVisible = true; headerHasRows = true; }
+    if (show) { anyVisible = true; headerHasRows = true; routeHasRows = true; }
   });
-  closeHeader();
+  closeHeader(); closeRoute();
   document.getElementById('route-list-empty').classList.toggle('hidden', anyVisible);
 }
 routeListSearch.addEventListener('input', filterRouteList);

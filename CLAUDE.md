@@ -65,7 +65,7 @@ Sprzedaż przez QR w hotelach itp. → mail z linkiem i hasłem → dostęp 1–
 - ~5524 **Obracanie mapy**: `resetNorth`, `straightenMap`
 - ~5603 **Menu dzielnic/tras**: `selectDistrict`, `ROUTE_INTRO_CONTENT`, `openRouteIntro`, karuzela, `openHomeMenu`, wybór języka i start apki (~6040–6087)
 - ~6117 **SHEET (panel punktu)**: `PHOTO_INFO`, `updateTrackPhoto`, przeglądarka zdjęć `openPhotoViewer`, przeciąganie panelu, `openSheet` (~6743), `renderTrackList`, `loadTrack` (~6829)
-- ~6856 **AUDIO PLAYER**: `togglePlayPause`, postęp trasy `markPointDone`, `renderRouteList`, autoplay `setAutoplay`, odzyskiwanie po błędzie, `goTrack`, `setVolume`, prędkość `applyPlaybackRate`
+- ~6856 **AUDIO PLAYER**: `togglePlayPause`, postęp trasy `markPointDone`, `renderRouteList` (lista punktów; w free roam pogrupowana trasami: nagłówki `.rl-route`), autoplay `setAutoplay`, odzyskiwanie po błędzie, `goTrack`, `setVolume`, prędkość `applyPlaybackRate`
 - ~7534 **Muzyka w tle**: `MUSIC_TRACKS`, `MUSIC_LEVEL`, `musicFadeTo`, `musicSync`, `updateMusicUI`
 - ~7769 **Przycisk „Wstecz” na Androidzie**
 
