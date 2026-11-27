@@ -456,7 +456,7 @@
   .dr-go .dr-chevron { width: 18px; height: 18px; stroke: #1b1a17; }
   .dr-sub { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); margin: 20px 2px 10px; }
   .dr-grid { display: flex; gap: 10px; }
-  #route-carousel { position: relative; height: min(330px, 42vh); margin: 0 -20px; overflow: hidden; touch-action: pan-y; }
+  #route-carousel { position: relative; height: min(470px, 60vh); margin: 0 -20px; overflow: hidden; touch-action: pan-y; }
   #rc-track { position: absolute; inset: 0; }
   #rc-track .dr-hero {
     position: absolute; top: 0; left: 50%; width: calc(100% - 64px); max-width: 400px; height: 100%;
@@ -484,13 +484,7 @@
   .dr-tile .dr-cover { filter: grayscale(0.85) brightness(0.95); }
   .dr-tile .dr-cover::after { background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(10,8,5,0.8)); }
   .dr-tile .dr-title { position: absolute; left: 12px; bottom: 10px; z-index: 1; color: #fff; font-size: 16px; font-weight: 800; }
-  .dr-free { display: flex; align-items: center; gap: 14px; padding: 18px 16px; border-radius: 20px; background: linear-gradient(135deg, #5d7a68, #2f4538); box-shadow: 0 6px 18px rgba(0,0,0,0.16); }
-  .dr-free-ic { width: 44px; height: 44px; flex-shrink: 0; border-radius: 13px; background: rgba(255,255,255,0.18); color: #fff; display: flex; align-items: center; justify-content: center; }
-  .dr-free-ic svg { width: 22px; height: 22px; stroke: #fff; }
   .district-row-mid { flex: 1; min-width: 0; }
-  .dr-free .dr-title { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; color: #fff; }
-  .dr-free .dr-desc { font-size: 12.5px; color: rgba(255,255,255,0.85); margin-top: 3px; line-height: 1.35; }
-  .dr-free .dr-chevron { stroke: #fff; }
   .dr-chevron { flex-shrink: 0; width: 20px; height: 20px; stroke: var(--brass-deep); }
   /* trasa w przygotowaniu: ten sam ekran trasy, ale bez liczb, godzin i listy — tylko zdjęcie i krótka informacja */
   #route-intro-screen.soon #ri-stats, #route-intro-screen.soon #ri-hours, #route-intro-screen.soon #ri-more,
@@ -1665,8 +1659,8 @@
         <span class="hc-go"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"></polyline></svg></span>
       </button>
       <button id="home-map-btn" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"></path><path d="M9 4v14M15 6v14"></path></svg>
-        <span data-t="homeToMap">Przejdź do mapy</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polygon points="15.5,8.5 13,13 8.5,15.5 11,11" fill="currentColor"></polygon></svg>
+        <span data-t="freeRoamTitle">Zwiedzaj bez trasy</span>
       </button>
       <div id="home-grid">
         <button class="home-tile" id="home-howto" type="button">
@@ -1752,14 +1746,6 @@
       </div>
       <div id="rc-dots"></div>
 
-      <div class="district-row dr-free" data-district="free-roam">
-        <div class="dr-free-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polygon points="15.5,8.5 13,13 8.5,15.5 11,11" fill="currentColor"></polygon></svg></div>
-        <div class="district-row-mid">
-          <div class="dr-title" data-i18n="freeRoamTitle">Zwiedzaj bez trasy</div>
-          <div class="dr-desc" data-i18n="freeRoamDesc">Punkty wszystkich tras, w dowolnej kolejności</div>
-        </div>
-        <svg class="dr-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"></polyline></svg>
-      </div>
 
       <div id="gps-hint" class="hidden"></div>
       <div id="district-menu-divider"></div>
@@ -2623,8 +2609,6 @@ function applyTranslations() {
   document.querySelector('.district-row[data-district="kazimierz"] .dr-title').textContent = t('kazimierzTitle');
   document.querySelector('.district-row[data-district="podgorze"] .dr-title').textContent = t('podgorzeTitle');
   document.querySelectorAll('[data-i18n="comingSoon"]').forEach(el => el.textContent = t('comingSoon'));
-  document.querySelector('[data-i18n="freeRoamTitle"]').textContent = t('freeRoamTitle');
-  document.querySelector('[data-i18n="freeRoamDesc"]').textContent = t('freeRoamDesc');
   document.getElementById('nearest-btn-label').textContent = t('nearestBtn');
   document.getElementById('no-audio-note').textContent = t('noAudio');
   document.getElementById('settings-lang-flag').textContent = currentLang.toUpperCase();
@@ -5936,7 +5920,8 @@ document.getElementById('route-intro-start-btn').addEventListener('click', () =>
 
 document.querySelector('.district-row[data-district="stare-miasto"]').addEventListener('click', () => openRouteIntro('stare-miasto'));
 document.querySelector('.district-row[data-district="kazimierz"]').addEventListener('click', () => openRouteIntro('kazimierz'));
-document.querySelector('.district-row[data-district="free-roam"]').addEventListener('click', () => {
+// Pektus (2026-11-27): "Zwiedzaj bez trasy" jest teraz w menu głównym (zamiast "Przejdź do mapy"), nie w menu tras
+function startFreeRoam() {
   if (CURRENT_ROUTE !== 'free-roam') {
     // zwiedzanie bez trasy = punkty WSZYSTKICH tras (Pektus) — wczytujemy je od nowa
     try { localStorage.setItem('krakroam_route', 'free-roam'); sessionStorage.setItem('krakroam_open_intro', 'free-roam'); } catch (_) {}
@@ -5945,7 +5930,7 @@ document.querySelector('.district-row[data-district="free-roam"]').addEventListe
     return;
   }
   selectDistrict(true);
-});
+}
 
 document.getElementById('brand').addEventListener('click', () => {
   sfx.play('menuUp');
@@ -6040,8 +6025,7 @@ document.getElementById('home-settings').addEventListener('click', () => {
 });
 document.getElementById('home-map-btn').addEventListener('click', () => {
   sfx.play('menuDown');
-  closeHomeMenu();
-  map.invalidateSize();
+  startFreeRoam();
 });
 document.getElementById('howto-close').addEventListener('click', () => howtoEl.classList.add('hidden'));
 document.getElementById('howto-start').addEventListener('click', () => {

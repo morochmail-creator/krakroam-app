@@ -42,7 +42,7 @@ Sprzedaż przez QR w hotelach itp. → mail z linkiem i hasłem → dostęp 1–
 **HTML/CSS**
 - 1–27 head, motyw z localStorage; 28–1591 `<style>` (cały CSS)
 - 1596 `#splash` (ekran ładowania), 1605 `#pw-screen` (hasło), 1616 `#a2hs-screen`, 1632 `#lang-menu`
-- 1649 `#home-menu`, 1682 `#howto-screen`, 1706 `#district-menu` (karuzela tras), 1772 `#route-intro-screen`
+- 1649 `#home-menu` (przycisk `#home-map-btn` = „Zwiedzaj bez trasy” → `startFreeRoam`), 1682 `#howto-screen`, 1706 `#district-menu` (karuzela tras), 1772 `#route-intro-screen`
 - 1802 `#map`, 1808 `#nav-top-bar`, 1836 `#route-list-screen`, 1851 `#perm-screen`, 1876 `#gps-reminder`
 - 1911 `#settings-screen` (widok mapy, dźwięk, język `settings-lang-row`, wyloguj `settings-logout-row`)
 - 2092–2095 skrypty: Leaflet 1.9.4, markercluster, leaflet-rotate
